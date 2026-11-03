@@ -3,20 +3,7 @@
  * binding-handle bookkeeping.  See rpcx.h for the raw procedure list. */
 #include "rpcx.h"
 
-typedef struct { rx_raw r; WCHAR ep[64]; RPC_BINDING_HANDLE h; UUID u; } rawfx;
-
-static int raw_up(rawfx *f, unsigned n, unsigned short major, unsigned short minor) {
-    memset(f, 0, sizeof *f);
-    rx_raw_uuid(&f->u, n); rx_raw_init(&f->r, &f->u, major, minor); rx_ep(f->ep, 64);
-    rx_server_reset();
-    if (rx_use_ep(f->ep) != RPC_S_OK) return 0;
-    if (U(RpcServerRegisterIf)((RPC_IF_HANDLE)&f->r.si, NULL, NULL) != RPC_S_OK) return 0;
-    if (U(RpcServerListen)(1, 20, TRUE) != RPC_S_OK) return 0;
-    f->h = rx_bind(f->ep);
-    return f->h != NULL;
-}
-static void raw_down(rawfx *f) { rx_unbind(f->h); f->h = NULL; rx_server_down((RPC_IF_HANDLE)&f->r.si, NULL); }
-#define RUP(f, n, ma, mi) do { if (!raw_up(&f, n, ma, mi)) { CHECKF(0, "raw server fixture failed"); raw_down(&f); return; } } while (0)
+#include "rawfx.h"
 
 TEST(ncalrpc_raw_echo_sizes) {
     static const ULONG sizes[] = { 0, 1, 2, 3, 4, 7, 8, 9, 15, 16, 17, 255, 256, 1000, 4095, 4096, 4097, 65535, 65536, 65537, 1 << 20 };
