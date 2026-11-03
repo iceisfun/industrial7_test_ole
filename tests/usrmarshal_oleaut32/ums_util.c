@@ -364,9 +364,9 @@ ULONG ums_model_safearray(int v64, SAFEARRAY *psa, ULONG pos, unsigned char *out
     if (sf == 0x24) return 0;
     if (v64) {
         W64(q, 1); W64(q + 8, psa->cDims); W16(q + 16, psa->cDims); W16(q + 18, psa->fFeatures); W32(q + 20, wel);
-        W32(q + 24, lv); W32(q + 28, sf); W64(q + 32, cells); W64(q + 40, (unsigned long long)(ULONG_PTR)psa->pvData);
-        MASK(q + 40, 8);
-        r = q + 48;
+        W32(q + 24, lv); W32(q + 32, sf); W64(q + 40, cells); W64(q + 48, (unsigned long long)(ULONG_PTR)psa->pvData);
+        MASK(q + 48, 8);
+        r = q + 56;
     } else {
         W32(q, 1); W32(q + 4, psa->cDims); W16(q + 8, psa->cDims); W16(q + 10, psa->fFeatures); W32(q + 12, wel);
         W32(q + 16, lv); W32(q + 20, sf); W32(q + 24, cells); W32(q + 28, (unsigned int)(ULONG_PTR)psa->pvData);
