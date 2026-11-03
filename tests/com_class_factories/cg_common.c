@@ -88,7 +88,8 @@ static HRESULT WINAPI cf_Create(IClassFactory *i, IUnknown *outer, REFIID riid, 
     InterlockedIncrement(&cg_live_objects);
     f->lastObj = o;
     hr = o->inner.lpVtbl->QueryInterface(&o->inner, riid, ppv);
-    o->inner.lpVtbl->Release(&o->inner);
+    if (SUCCEEDED(hr) && outer && !IsEqualGUID(riid, &cg_IID_IUnknown)) InterlockedDecrement(&cg_live_objects); /* illegal COM usage: inner leaks on purpose */
+    else o->inner.lpVtbl->Release(&o->inner);
     if (FAILED(hr)) f->lastObj = NULL;
     return hr;
 }

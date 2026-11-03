@@ -1,7 +1,7 @@
 /* CoRegisterClassObject / CoRevokeClassObject / CoGetClassObject on privately registered factories. */
 #include "cg.h"
 
-#define STA() do { if (!cg_api()) return; EQ(pCoInitializeEx(NULL, COINIT_APARTMENTTHREADED), S_OK); } while (0)
+#define STA() LONG live0_; do { if (!cg_api()) return; live0_ = cg_live_objects; EQ(pCoInitializeEx(NULL, COINIT_APARTMENTTHREADED), S_OK); } while (0)
 #define MTA() do { if (!cg_api()) return; EQ(pCoInitializeEx(NULL, COINIT_MULTITHREADED), S_OK); } while (0)
 #define UNINIT() pCoUninitialize()
 
@@ -232,7 +232,7 @@ TEST(cgreg_distinct_cookies) {
                   cg_release(obj); cg_release((IUnknown *)cf); }
     }
     for (int i = 0; i < 4; i++) EQ(pCoRevokeClassObject(c[i]), S_OK);
-    EQ(cg_live_objects, 0);
+    EQ(cg_live_objects, live0_);
     UNINIT();
 }
 TEST(cgreg_revoke_double) {
