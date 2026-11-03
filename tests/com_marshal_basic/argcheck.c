@@ -66,8 +66,24 @@ TEST(mbasic_args_marshal_destctx_ptr_requires_differentmachine) {
     for (unsigned i = 0; i < 3; i++) {
         IStream *s = mb_stream();
         HRESULT hr = U(CoMarshalInterface)(s, &IID_IUnknown, MB_UNK(0), ctxs[i], &g_dc, MSHLFLAGS_NORMAL);
-        CHECKF(FAILED(hr), "ctx %lu with pvDestContext must fail, hr=0x%lx", ctxs[i], (unsigned long)hr);
-        t_note("ctx %lu + pvDestContext -> 0x%lx", ctxs[i], (unsigned long)hr);
+        /* decomp: pvDestContext != NULL with dwDestContext != MSHCTX_DIFFERENTMACHINE -> E_INVALIDARG (marshal.hxx) */
+        CHECKF(hr == MB_E_INVALIDARG, "ctx %lu with pvDestContext hr=0x%lx", ctxs[i], (unsigned long)hr);
+        EQ(mb_size(s), 0);
+        IStream_Release(s);
+    }
+    MB_DONE();
+}
+/* decomp: dwDestContext < 6 passes argument validation (CROSSCTX etc. included), 6 and above is E_INVALIDARG */
+TEST(mbasic_args_marshal_extended_contexts_not_invalidarg) {
+    REQUIRE(U(CoMarshalInterface)); REQUIRE(U(CoGetMarshalSizeMax)); REQUIRE(U(CoReleaseMarshalData)); mb_obj_reset(1); MB_INIT_STA();
+    for (DWORD ctx = 4; ctx <= 5; ctx++) {
+        IStream *s = mb_stream(); ULONG sz = 0;
+        HRESULT h1 = U(CoGetMarshalSizeMax)(&sz, &IID_IClassFactory, MB_UNK(0), ctx, NULL, MSHLFLAGS_NORMAL);
+        HRESULT h2 = U(CoMarshalInterface)(s, &IID_IClassFactory, MB_UNK(0), ctx, NULL, MSHLFLAGS_NORMAL);
+        CHECKF(h1 != MB_E_INVALIDARG, "getsize ctx %lu hr=0x%lx", ctx, (unsigned long)h1);
+        CHECKF(h2 != MB_E_INVALIDARG, "marshal ctx %lu hr=0x%lx", ctx, (unsigned long)h2);
+        t_note("ctx %lu: getsize 0x%lx marshal 0x%lx", ctx, (unsigned long)h1, (unsigned long)h2);
+        if (h2 == S_OK) { mb_rewind(s); U(CoReleaseMarshalData)(s); }
         IStream_Release(s);
     }
     MB_DONE();
@@ -393,7 +409,9 @@ TEST(mbasic_args_getpsclsid_idispatch) {
     CLSID c; memset(&c, 0, sizeof c);
     EQ(U(CoGetPSClsid)(&IID_IDispatch, &c), S_OK);
     static const GUID psd = {0x00020420, 0, 0, {0xC0, 0, 0, 0, 0, 0, 0, 0x46}};
-    CHECK(IsEqualGUID(&c, &psd));
+    static const GUID psa = {0x00020424, 0, 0, {0xC0, 0, 0, 0, 0, 0, 0, 0x46}};
+    /* decomp: PSDispatch -> CLSID_PSDispatch, PSAutomation -> CLSID_PSAutomation; registry-sourced otherwise */
+    CHECK(IsEqualGUID(&c, &psd) || IsEqualGUID(&c, &psa));
     MB_DONE();
 }
 TEST(mbasic_args_getpsclsid_stock_interfaces) {
