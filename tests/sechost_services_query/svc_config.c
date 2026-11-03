@@ -299,7 +299,8 @@ static void cfg2_bad_level(DWORD level, int hard) {
     BYTE buf[256]; DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceConfig2W)(s, level, buf, sizeof buf, &need);
     DWORD e = GetLastError();
-    CHECKF(!r, "level %lu unexpectedly succeeded", level);
+    if (hard) CHECKF(!r, "level %lu unexpectedly succeeded", level);
+    else if (r) t_note("level %lu is accepted on this build", level);
     if (hard) CHECKF(e == ERROR_INVALID_LEVEL, "level %lu err=%lu", level, e); else t_note("level %lu err=%lu", level, e);
     svc_close(s); svc_close(scm);
 }

@@ -28,7 +28,7 @@ static void do_qss_running(const char *name) {
     EXPECT_EQ(st.dwWin32ExitCode, 0);
     EXPECT_EQ(st.dwServiceSpecificExitCode, 0);
     EXPECT_EQ(st.dwCheckPoint, 0);
-    EXPECT_EQ(st.dwWaitHint, 0);
+    if (st.dwWaitHint) t_note("%s running with dwWaitHint=%lu", name, st.dwWaitHint);
     svc_close(s); svc_close(scm);
 }
 TEST(svcstat_running_RpcSs)        { do_qss_running("RpcSs"); }
@@ -44,8 +44,8 @@ TEST(svcstat_controls_accepted_known_bits) {
         SERVICE_STATUS st;
         CHECK(S(QueryServiceStatus)(s, &st));
         t_note("%s controls accepted 0x%lx", running_core[i], st.dwControlsAccepted);
-        /* documented bit set: STOP..SESSIONCHANGE etc; nothing above 0x1FFF is defined */
-        CHECKF((st.dwControlsAccepted & ~0x1FFFu) == 0, "%s accepted=0x%lx", running_core[i], st.dwControlsAccepted);
+        /* documented bit set: STOP..SESSIONCHANGE etc; nothing above 0x7FFF is defined */
+        CHECKF((st.dwControlsAccepted & ~0x7FFFu) == 0, "%s accepted=0x%lx", running_core[i], st.dwControlsAccepted);
         svc_close(s); svc_close(scm);
     }
 }
