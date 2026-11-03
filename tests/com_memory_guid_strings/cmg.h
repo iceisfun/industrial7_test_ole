@@ -41,4 +41,6 @@ static inline IMalloc *cmg_getmalloc(const char *mod) {
     if (!f || f(1, &m) != S_OK) return NULL;
     return m;
 }
+static inline void cmg_free(void *p) { U(CoTaskMemFree)(p); }
+#define CoTaskMemFree cmg_free
 #endif
