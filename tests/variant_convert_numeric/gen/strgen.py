@@ -207,6 +207,8 @@ def _dest_result(dst, spec, s):
             soft = True
         if frac_tie and (abs(v) > 1000) and dst not in ("I4", "I8"):
             soft = True
+        if frac_tie and dst not in ("I4", "I8") and (abs(r_ - lo) <= 1 or abs(r_ - hi) <= 1):
+            soft = True   # tie exactly at a type boundary: only the I4/I8 string paths are visible in the decomp
         if is_hex(s) and dst in ("I1", "I2", "UI1", "UI2") and r_ > 127:
             soft = True   # VarNumFromParseNum hex path not visible in the decomp
         if r_ < lo or r_ > hi:
