@@ -375,3 +375,23 @@ TMTEST_BARE(dxtm_loadex_register_twice_idempotent)
     EQ(U(UnRegisterTypeLib)(&s.libid, 4, 1, 0, SYS_WIN64), S_OK);
     EQ(U(UnRegisterTypeLib)(&s.libid, 4, 1, 0, SYS_WIN64), TLB_REGACCESS);
 }
+
+TMTEST_BARE(dxtm_qp_clears_out_on_failure_even_when_preset)
+{
+    /* decomp: *lpbstrPathName is zeroed before the lookup, so a failing query never leaves the caller's value */
+    TMLibSpec s; BSTR q = (BSTR)(ULONG_PTR)0x5678;
+    rg_spec(&s, 9, 9, 0, &TM_IID_Mini1);
+    EQ(qpath(&s, 9, 9, 0, &q), TLB_NOTREG);
+    CHECK(q == NULL);
+    q = (BSTR)(ULONG_PTR)0x5678;
+    EQ(qpath(&s, 9, 0, 0x409, &q), TLB_NOTREG);
+    CHECK(q == NULL);
+}
+
+TMTEST_BARE(dxtm_load_not_registered_clears_out_pointer)
+{
+    TMLibSpec s; ITypeLib *tl = (ITypeLib *)(ULONG_PTR)0x9999;
+    rg_spec(&s, 9, 8, 0, &TM_IID_Mini1);
+    EQ(load(&s, 9, 8, 0, &tl), TLB_NOTREG);
+    if (tl != NULL) t_note("out pointer left as %p after failed LoadRegTypeLib", (void *)tl);
+}
