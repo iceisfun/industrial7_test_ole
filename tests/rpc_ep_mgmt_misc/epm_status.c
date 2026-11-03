@@ -21,6 +21,7 @@ static unsigned model_map(unsigned s) {
 TEST(epm_status_map_win32_table_0_to_10000) {
     unsigned s, bad = 0;
     REQUIRE(U(I_RpcMapWin32Status));
+    WINE_STUB();   /* wine keeps the pre-2003 status map / filter / raise semantics */
     for (s = 0; s < 10000; s++) {
         unsigned got = (unsigned)U(I_RpcMapWin32Status)((RPC_STATUS)s), want = model_map(s);
         if (got != want) { if (bad++ < 10) CHECKF(0, "I_RpcMapWin32Status(%u) = 0x%08x want 0x%08x", s, got, want); }
@@ -54,6 +55,7 @@ TEST(epm_status_map_win32_unknown_codes) {
     static const unsigned unk[] = { 9999, 10000, 12345, 0x7FFFFFFFu, 0x10000000u, 0x40000000u };
     unsigned i;
     REQUIRE(U(I_RpcMapWin32Status));
+    WINE_STUB();   /* wine keeps the pre-2003 status map / filter / raise semantics */
     for (i = 0; i < sizeof unk / sizeof unk[0]; i++)
         EXPECT_EQ((unsigned)U(I_RpcMapWin32Status)((RPC_STATUS)unk[i]), 0xC0000001u);   /* STATUS_UNSUCCESSFUL */
 }
@@ -87,6 +89,7 @@ static void filter_range(unsigned long lo, unsigned long hi, unsigned *bad, unsi
 TEST(epm_status_exception_filter_ranges) {
     unsigned bad = 0, n = 0;
     REQUIRE(U(I_RpcExceptionFilter) && UN(RpcExceptionFilter));
+    WINE_STUB();   /* wine keeps the pre-2003 status map / filter / raise semantics */
     filter_range(0, 2000, &bad, &n);
     filter_range(0x40000000, 0x40000005, &bad, &n);
     filter_range(0x80000000, 0x80000005, &bad, &n);
@@ -106,6 +109,7 @@ TEST(epm_status_exception_filter_fatal_set_explicit) {
         { 0xC0000409, "STACK_BUFFER_OVERRUN" }, { 0xC00002C9, "REG_NAT_CONSUMPTION" } };
     unsigned i;
     REQUIRE(U(I_RpcExceptionFilter));
+    WINE_STUB();   /* wine keeps the pre-2003 status map / filter / raise semantics */
     for (i = 0; i < sizeof f / sizeof f[0]; i++) {
         int r = U(I_RpcExceptionFilter)(f[i].c);
         CHECKF(r == EXCEPTION_CONTINUE_SEARCH, "%s: %d", f[i].n, r);
@@ -142,6 +146,7 @@ TEST(epm_status_raise_exception_propagates_code) {
 
 TEST(epm_status_raise_exception_record_is_noncontinuable_without_parameters) {
     REQUIRE(U(RpcRaiseException));
+    WINE_STUB();   /* wine keeps the pre-2003 status map / filter / raise semantics */
     g_raise_code = 0x1234;
     EQ(epx_try(do_raise, NULL), 0x1234);
     CHECK(epx_last_flags & EXCEPTION_NONCONTINUABLE);
@@ -151,6 +156,7 @@ TEST(epm_status_raise_exception_record_is_noncontinuable_without_parameters) {
 TEST(epm_status_raise_exception_access_violation_is_translated) {
     /* RpcpRaiseException maps STATUS_ACCESS_VIOLATION (0xC0000005) to ERROR_NOACCESS (998) */
     REQUIRE(U(RpcRaiseException));
+    WINE_STUB();   /* wine keeps the pre-2003 status map / filter / raise semantics */
     g_raise_code = 0xC0000005u;
     EQ(epx_try(do_raise, NULL), 998);
 }

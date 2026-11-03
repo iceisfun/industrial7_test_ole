@@ -13,10 +13,11 @@ enum {
     R_PID_ST_NULL, R_PID_NULL, R_PID_ST_H, R_PID_H, R_CANCEL_ST_NULL, R_CANCEL_ST_H,
     R_AUTHCLIENT_ST, R_AUTHZ_ST, R_AUTHZ_FREE_ST, R_SETCANCEL_ST, R_SUB_BADNOTIF, R_SUB_BADTYPE,
     R_SERVFROMCLIENT_ST, R_SERVFROMCLIENT_OUT_NULL, R_CLIENTFN_ON_CALLHANDLE_ST, R_CLIENTFN2_ST, R_MAXCALLS_ST, R_FREE_CALLHANDLE_ST,
-    R_COMTIMEOUT_ST, R_COPY_ST, R_COUNT
+    R_COMTIMEOUT_ST, R_COPY_ST, R_TRANSPORT_ST, R_TRANSPORT, R_BTRANSPORT_ST, R_BTRANSPORT, R_MODID_ST, R_COUNT
 };
 
 UDECL(RPC_STATUS, RpcBindingInqMaxCalls, (RPC_BINDING_HANDLE, unsigned *));
+UDECL(RPC_STATUS, I_RpcBindingInqCurrentModifiedId, (void *, LUID *));
 
 static void reply(RPC_MESSAGE *m, const void *p, ULONG n) {
     m->BufferLength = n;
@@ -51,6 +52,10 @@ static void RPC_ENTRY h_probe(RPC_MESSAGE *m) {
     r[R_CLIENTFN2_ST] = U(RpcMgmtInqComTimeout)(m->Handle, &ct);
     r[R_MAXCALLS_ST] = UN(RpcBindingInqMaxCalls) ? UN(RpcBindingInqMaxCalls)(m->Handle, &mc) : 0xFFFE;
     r[R_COMTIMEOUT_ST] = mc;
+    {   unsigned tt = 0xAA; LUID lu;
+        r[R_TRANSPORT_ST] = U(I_RpcServerInqTransportType)(&tt); r[R_TRANSPORT] = tt; tt = 0xAA;
+        r[R_BTRANSPORT_ST] = U(I_RpcBindingInqTransportType)(m->Handle, &tt); r[R_BTRANSPORT] = tt;
+        r[R_MODID_ST] = UN(I_RpcBindingInqCurrentModifiedId) ? UN(I_RpcBindingInqCurrentModifiedId)(NULL, &lu) : 0xFFFE; }
     cp = NULL;
     r[R_COPY_ST] = U(I_RpcBindingCopy)(m->Handle, &cp);
     if (r[R_COPY_ST] == 0 && cp) U(RpcBindingFree)(&cp);
@@ -190,6 +195,19 @@ TEST(epm_server_probe_in_call_binding_kinds) {
         t_note("I_RpcBindingCopy(call handle) = %lu, RpcBindingInqMaxCalls max=%lu", (unsigned long)r[R_COPY_ST], (unsigned long)r[R_COMTIMEOUT_ST]);
         t_note("RpcBindingInqAuthClientW(NULL) over unsecured ncalrpc = %lu", (unsigned long)r[R_AUTHCLIENT_ST]);
         t_note("RpcGetAuthorizationContextForClient(NULL) over unsecured ncalrpc = %lu, free = %lu", (unsigned long)r[R_AUTHZ_ST], (unsigned long)r[R_AUTHZ_FREE_ST]);
+    } else CHECK(0);
+    SERVER_TEST_TEARDOWN(h);
+}
+
+TEST(epm_server_probe_in_call_transport_type) {
+    DWORD r[R_COUNT]; ULONG n = 0;
+    SERVER_TEST_SETUP(h);
+    if (call(h, P_PROBE, NULL, 0, r, sizeof r, &n) == RPC_S_OK && n == sizeof r) {
+        EQ(r[R_TRANSPORT_ST], RPC_S_OK);
+        EQ(r[R_TRANSPORT], TRANSPORT_TYPE_LPC);          /* ncalrpc */
+        EQ(r[R_BTRANSPORT_ST], RPC_S_OK);
+        EQ(r[R_BTRANSPORT], TRANSPORT_TYPE_LPC);
+        t_note("I_RpcBindingInqCurrentModifiedId(NULL) in call = %lu", (unsigned long)r[R_MODID_ST]);
     } else CHECK(0);
     SERVER_TEST_TEARDOWN(h);
 }
