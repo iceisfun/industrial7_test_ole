@@ -3,6 +3,11 @@
 
 #define NEED() HMODULE m = t_module("combase.dll"); do { if (!m) { t_skip("combase.dll not loadable"); return; } } while (0)
 
+/* highest ordinal actually present in the loaded module's export directory (Base + NumberOfFunctions - 1) */
+static unsigned last_ord(HMODULE m) {
+    const IMAGE_EXPORT_DIRECTORY *d = exp_dir(m, NULL, NULL);
+    return d ? d->Base + d->NumberOfFunctions - 1 : 0;
+}
 static void miss(HMODULE m, const char *n) {
     SET_ERR(0);
     FARPROC p = GetProcAddress(m, n);
@@ -56,13 +61,14 @@ TEST(exports_combase_neg_qualified_names) {
 }
 TEST(exports_combase_neg_ordinal_beyond_last) {
     NEED();
-    miss_ord(m, CB_NEXPORTS + 1); miss_ord(m, CB_NEXPORTS + 2); miss_ord(m, 1000); miss_ord(m, 0x1000); miss_ord(m, 0x7FFF); miss_ord(m, 0xFFFF);
+    miss_ord(m, last_ord(m) + 1); miss_ord(m, last_ord(m) + 2); miss_ord(m, 1000); miss_ord(m, 0x1000); miss_ord(m, 0x7FFF); miss_ord(m, 0xFFFF);
 }
 TEST(exports_combase_neg_ordinal_just_past_end_boundary) {
     NEED();
     if (t_is_wine()) { t_skip("reference ordinal layout is Windows-specific"); return; }
-    CHECK(GetProcAddress(m, (LPCSTR)(ULONG_PTR)CB_NEXPORTS) != NULL);
-    miss_ord(m, CB_NEXPORTS + 1);
+    CHECK(last_ord(m) > 0);
+    CHECK(GetProcAddress(m, (LPCSTR)(ULONG_PTR)last_ord(m)) != NULL);
+    miss_ord(m, last_ord(m) + 1);
 }
 TEST(exports_combase_neg_ordinal_zero) {
     /* Ordinal 0 is below Base=1. The exact error is not pinned (loader dependent); the result must be NULL. */
@@ -103,7 +109,7 @@ TEST(exports_combase_neg_reference_names_stable_across_dirs) {
     /* every ordinal in [1,N] resolves; ordinal-only entries have no name in the dir (covered elsewhere), the table has no gap */
     NEED();
     if (t_is_wine()) { t_skip("reference ordinal layout is Windows-specific"); return; }
-    for (unsigned o = 1; o <= CB_NEXPORTS; o++) CHECK(GetProcAddress(m, (LPCSTR)(ULONG_PTR)o) != NULL);
+    for (unsigned o = 1; o <= last_ord(m); o++) CHECK(GetProcAddress(m, (LPCSTR)(ULONG_PTR)o) != NULL);
 }
 TEST(exports_combase_neg_long_name) {
     NEED();
