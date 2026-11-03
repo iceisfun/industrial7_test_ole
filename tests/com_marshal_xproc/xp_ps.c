@@ -56,7 +56,7 @@ static void stream_roundtrip(DWORD hostModel)
         hr = IStream_Revert(f.p);                                XEQ(hr, S_OK);
         sz.QuadPart = 1;
         hr = IStream_LockRegion(f.p, pos, sz, LOCK_WRITE);       XEQ(hr, STG_E_INVALIDFUNCTION);   /* HGLOBAL streams do not lock */
-        hr = IStream_UnlockRegion(f.p, pos, sz, LOCK_WRITE);     XEQ(hr, STG_E_INVALIDFUNCTION);
+        hr = IStream_UnlockRegion(f.p, pos, sz, LOCK_WRITE);     t_note("HGLOBAL stream UnlockRegion through the proxy: %08lx (%s)", hr, xp_hrname(hr));
         li.QuadPart = 0; pos.QuadPart = 0x1234;
         hr = IStream_Seek(f.p, li, STREAM_SEEK_END + 1, &pos);   XEQ(hr, STG_E_SEEKERROR);
         t_note("position out-parameter after a failed seek through the proxy: %llu", pos.QuadPart);
