@@ -1,0 +1,22 @@
+[uuid(6f0e7a10-0001-4c3d-9a00-0000000000a1), version(1.0), implicit_handle(handle_t ih)]
+interface xif
+{
+    typedef struct { int a; short b; double c; } S;
+    typedef [context_handle] void *CTX;
+    void p_void(void);
+    int p_add(int a, int b);
+    int p_wlen([in, string] wchar_t *s);
+    int p_sum([in] int n, [in, size_is(n)] int *a);
+    void p_seq([in] int n, [out, size_is(n)] int *a);
+    void p_bump([in, out] S *s);
+    void p_raise([in] int code);
+    void p_sleep([in] int ms);
+    void p_ctx_open([out] CTX *h, [in] int v);
+    int p_ctx_get([in] CTX h);
+    void p_ctx_close([in, out] CTX *h);
+    void p_info([out] int *pid, [out] int *level, [out] int *islocal, [out] int *authn);
+    void p_echo([in, string] wchar_t *s, [in] int n, [out, size_is(n)] wchar_t *o);
+    void p_stop(void);
+    int p_counter(void);
+    int p_ctx_peek([in] CTX h, [out] int *rundowns);
+}
