@@ -380,3 +380,38 @@ TEST(dxinproc_hkcr_registration_visible_in_merged_view) {
     EQ(RegQueryValueA(HKEY_CLASSES_ROOT, path, v, &n), ERROR_SUCCESS);
     EXPECT_STR(v, dx_server_path());
 }
+TEST(dxinproc_activation_by_progid) {
+    REQUIRE(U(CoCreateInstance)); REQUIRE(U(CLSIDFromProgID)); NEED();
+    GUID c, got; char k[128], p[80], s[200], gs[40]; WCHAR w[80];
+    dx_reg_inproc(&c, "Both", k, sizeof k); dx_guidstr(&c, gs);
+    dx_progid(p, sizeof p, "Act.1"); dx_track(p); snprintf(s, sizeof s, "%s\\CLSID", p); dx_set(s, NULL, gs);
+    for (int n = 0; n < 80; n++) { w[n] = (unsigned char)p[n]; if (!p[n]) break; }
+    INITA(); dx_reset_counters();
+    EQ(U(CLSIDFromProgID)(w, &got), S_OK);
+    IPersist *ip = NULL; dx_info i;
+    EQ(U(CoCreateInstance)(&got, NULL, CLSCTX_INPROC_SERVER, &IID_IPersist, (void **)&ip), S_OK);
+    if (ip) { EQ(dx_getinfo((IUnknown *)ip, &i), S_OK); EQ(i.idx, c.Data3); ip->lpVtbl->Release(ip); }
+    dx_couninit();
+}
+TEST(dxinproc_clsid_key_case_insensitive) {
+    REQUIRE(U(CoCreateInstance)); NEED();
+    GUID c; char k[128], lower[128], sub[200], gs[40]; dx_newguid(&c, DXK_NORMAL); dx_guidstr(&c, gs);
+    for (char *q = gs; *q; q++) *q = (char)tolower((unsigned char)*q);
+    snprintf(lower, sizeof lower, "CLSID\\%s", gs); dx_track(lower); dx_set(lower, NULL, "olet lowercase key");
+    snprintf(sub, sizeof sub, "%s\\InprocServer32", lower); dx_set(sub, NULL, dx_server_path()); dx_set(sub, "ThreadingModel", "Both");
+    INITA(); IUnknown *u = NULL;
+    EQ(U(CoCreateInstance)(&c, NULL, CLSCTX_INPROC_SERVER, &IID_IUnknown, (void **)&u), S_OK);   /* registry key names are case-insensitive */
+    if (u) u->lpVtbl->Release(u);
+    dx_couninit();
+}
+TEST(dxinproc_clsid_key_requires_braces) {
+    REQUIRE(U(CoCreateInstance)); NEED();
+    GUID c; char k[128], sub[200], gs[40]; dx_newguid(&c, DXK_NORMAL); dx_guidstr(&c, gs);
+    gs[strlen(gs) - 1] = 0;   /* "{...": no closing brace */
+    snprintf(k, sizeof k, "CLSID\\%s", gs + 1); dx_track(k); dx_set(k, NULL, "olet unbraced key");   /* key name without braces */
+    snprintf(sub, sizeof sub, "%s\\InprocServer32", k); dx_set(sub, NULL, dx_server_path()); dx_set(sub, "ThreadingModel", "Both");
+    INITA(); void *p = (void *)1;
+    EQ(U(CoCreateInstance)(&c, NULL, CLSCTX_INPROC_SERVER, &IID_IUnknown, &p), REGDB_E_CLASSNOTREG);
+    CHECK(p == NULL);
+    dx_couninit();
+}

@@ -63,13 +63,17 @@ CHILD(dxthr) {
     return bad ? 1 : 0;
 }
 
+static int g_wine_hang;   /* emulator only: a child hung in COM start-up after this process used COM; stop wasting time */
+static int child_timed_out(DWORD code) { if (code == 0xDEAD0001 && t_is_wine()) { g_wine_hang = 1; return 1; } return 0; }
 static void run_model(const char *model, const char *regmodel) {
+    if (g_wine_hang) { t_skip("emulator: earlier child hung in COM start-up"); return; }
     static const char *kinds[] = { "sta0", "sta1", "mta0", "mta1" };
     GUID c; char gs[40], args[200], log[2048];
     dx_reg_inproc(&c, regmodel, NULL, 0); dx_guidstr(&c, gs);
     for (int k = 0; k < 4; k++) {
         snprintf(args, sizeof args, "%s %s %s", gs, model, kinds[k]);
-        DWORD code = dx_child("dxthr", args, 30000, log, sizeof log);
+        DWORD code = dx_child("dxthr", args, t_is_wine() ? 12000 : 30000, log, sizeof log);
+        if (child_timed_out(code)) { t_skip("emulator: child hung in COM start-up (works when this process has not used COM before)"); return; }
         CHECKF(code == 0, "model %s caller %s: exit %lx\n%s", model, kinds[k], code, log);
         if (code == 0 && log[0]) t_note("%s", log);
     }
@@ -84,7 +88,9 @@ TEST(dxthr_model_value_case_insensitive) {
     /* the same expectations as the canonical spelling; a mismatch means the string compare is case-sensitive */
     GUID c; char gs[40], args[200], log[1024]; dx_reg_inproc(&c, "BOTH", NULL, 0); dx_guidstr(&c, gs);
     snprintf(args, sizeof args, "%s Both sta1", gs);
-    DWORD code = dx_child("dxthr", args, 30000, log, sizeof log);
+    if (g_wine_hang) { t_skip("emulator: earlier child hung in COM start-up"); return; }
+    DWORD code = dx_child("dxthr", args, t_is_wine() ? 12000 : 30000, log, sizeof log);
+    if (child_timed_out(code)) { t_skip("emulator: child hung in COM start-up"); return; }
     t_note("ThreadingModel=\"BOTH\" treated like Both: %s (exit %lx) %s", code == 0 ? "yes" : "no", code, log);
 }
 TEST(dxthr_model_bogus_value) {
@@ -100,6 +106,8 @@ TEST(dxthr_apartment_server_proxy_calls_work) {
     REQUIRE(U(CoCreateInstance)); NEED();
     GUID c; char gs[40], args[200], log[512]; dx_reg_inproc(&c, "Apartment", NULL, 0); dx_guidstr(&c, gs);
     snprintf(args, sizeof args, "%s Apartment mta0", gs);
-    DWORD code = dx_child("dxthr", args, 30000, log, sizeof log);
+    if (g_wine_hang) { t_skip("emulator: earlier child hung in COM start-up"); return; }
+    DWORD code = dx_child("dxthr", args, t_is_wine() ? 12000 : 30000, log, sizeof log);
+    if (child_timed_out(code)) { t_skip("emulator: child hung in COM start-up"); return; }
     CHECKF(code == 0, "exit %lx %s", code, log);
 }

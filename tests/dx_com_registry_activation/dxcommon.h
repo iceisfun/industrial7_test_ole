@@ -25,6 +25,7 @@ int  dx_exists(const char *subkey);
 void dx_del(const char *subkey);             /* delete tree, ignore errors */
 void dx_track(const char *subkey);           /* delete at cleanup */
 void dx_cleanup(void);
+void dx_sweep_stale(void);                   /* remove olet leftovers of dead processes (not this one) */
 
 /* Unique GUIDs for this run: Data1 7E57C0DE, Data2 = kind, Data3 = serial, Data4 = "olet" + pid. */
 void dx_newguid(GUID *g, WORD kind);

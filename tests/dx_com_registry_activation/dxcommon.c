@@ -87,6 +87,7 @@ void dx_clsidkey(const GUID *g, char *out, size_t cap) { char s[40]; dx_guidstr(
 void dx_progid(char *out, size_t cap, const char *leaf) { snprintf(out, cap, "olet%lu.%s", GetCurrentProcessId(), leaf); }
 
 /* ------------------------------------------------------------------ sweep */
+static int g_sweep_self = 1;
 static int pid_alive(DWORD pid) {
     HANDLE h; DWORD ec = 0; int alive;
     if (pid == GetCurrentProcessId()) return 1;
@@ -103,7 +104,7 @@ static void sweep_guid_branch(const char *branch) {
         if (RegEnumKeyExA(k, i, name, &n, NULL, NULL, NULL, NULL)) break;
         if (!dx_parse_guid(name, &g) || g.Data1 != 0x7E57C0DE || memcmp(g.Data4, "olet", 4)) continue;
         DWORD pid; memcpy(&pid, g.Data4 + 4, 4);
-        if (pid == GetCurrentProcessId() || !pid_alive(pid)) { if (nk < 256) strcpy(kill[nk++], name); }
+        if ((g_sweep_self && pid == GetCurrentProcessId()) || !pid_alive(pid)) { if (nk < 256) strcpy(kill[nk++], name); }
     }
     RegCloseKey(k);
     for (int j = 0; j < nk; j++) { char s[300]; snprintf(s, sizeof s, "%s\\%s", branch, kill[j]); dx_del(s); }
@@ -116,11 +117,12 @@ static void sweep_progids(void) {
         if (RegEnumKeyExA(k, i, name, &n, NULL, NULL, NULL, NULL)) break;
         if (strncmp(name, "olet", 4) || name[4] < '0' || name[4] > '9') continue;
         DWORD pid = (DWORD)strtoul(name + 4, NULL, 10);
-        if (pid == GetCurrentProcessId() || !pid_alive(pid)) { if (nk < 256) strcpy(kill[nk++], name); }
+        if ((g_sweep_self && pid == GetCurrentProcessId()) || !pid_alive(pid)) { if (nk < 256) strcpy(kill[nk++], name); }
     }
     RegCloseKey(k);
     for (int j = 0; j < nk; j++) dx_del(kill[j]);
 }
+void dx_sweep_stale(void);
 static void sweep_all(void) {
     REGSAM saved = g_view;
     for (int v = 0; v < 3; v++) {
@@ -129,6 +131,7 @@ static void sweep_all(void) {
     }
     g_view = saved; sweep_progids();
 }
+void dx_sweep_stale(void) { g_sweep_self = 0; sweep_all(); g_sweep_self = 1; }
 int dx_ready(void) {
     if (g_ready >= 0) return g_ready;
     HKEY k = NULL; char probe[96];
