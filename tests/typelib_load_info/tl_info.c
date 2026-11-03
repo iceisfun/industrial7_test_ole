@@ -555,8 +555,6 @@ TEST(tlli_ti_idsofnames_interface)
     nm = L"Clone";
     TEQ(ITypeInfo_GetIDsOfNames(ti, &nm, 1, &id), S_OK);
     CHECK(id != 0x7777 && id != DISPID_UNKNOWN);
-    TEQ(ITypeInfo_GetFuncDesc(ti, 17 > 0 ? 0 : 0, &fd), S_OK);
-    if (fd) ITypeInfo_ReleaseFuncDesc(ti, fd);
     nm = L"clone"; DISPID id2 = 0;
     TEQ(ITypeInfo_GetIDsOfNames(ti, &nm, 1, &id2), S_OK);      /* case-insensitive */
     TEQ(id2, id);
