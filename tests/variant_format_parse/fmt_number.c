@@ -284,6 +284,7 @@ TEST(vfp_fmt_bool_numeric_formats)
     VFP_ROW_SOFT(t, "0", 0, 0, "-1");
     VFP_ROW_SOFT(f, "0", 0, 0, "0");
     VFP_ROW_SOFT(t, "General Number", 0, 0, "-1");
+    /* decomp: no token buffer + VT_BOOL selects a built-in boolean token ({0e,04,06}); its text form is not verified */
     VFP_ROW_SOFT(t, NULL, 0, 0, "True");
     VFP_ROW_SOFT(f, NULL, 0, 0, "False");
     VFP_ROW_SOFT(t, "", 0, 0, "True");
