@@ -71,4 +71,7 @@ void dx_couninit(void);
 /* Child with a log file: runs child `name`, collects what it dx_log()ed, returns exit code. */
 DWORD dx_child(const char *name, const char *extra, DWORD timeout_ms, char *log, size_t logcap);
 void  dx_log(int argc, char **argv, const char *fmt, ...);
+/* Single-evaluation equality check (EXPECT_EQ evaluates its arguments twice, which breaks calls with side effects). */
+#define EQ(a, b) do { unsigned long long a_ = (unsigned long long)(ULONG_PTR)(a), b_ = (unsigned long long)(ULONG_PTR)(b); \
+    t_check(a_ == b_, __FILE__, __LINE__, #a " == " #b, "got 0x%llx want 0x%llx", a_, b_); } while (0)
 #endif
