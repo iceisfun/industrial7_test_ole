@@ -731,3 +731,10 @@ TEST(exp_rpcrt4_same_module_forward_resolves_in_image) {
     CHECK(p != NULL); if (p) CHECK(exp_in_image(m, p));
     CHECK(t_proc_in(DLL, "RpcSsDontSerializeContext") == t_proc_in(DLL, "I_RpcSsDontSerializeContext"));
 }
+
+TEST(exp_rpcrt4_name_ordinal_tables) { REQUIRE(t_module(DLL)); exp_check_name_ordinal_tables(DLL); }
+TEST(exp_rpcrt4_rva_slots) { REQUIRE(t_module(DLL)); exp_check_rva_slots(DLL, tbl, N); }
+TEST(exp_rpcrt4_executable_pages) { REQUIRE(t_module(DLL)); exp_check_exec_pages(DLL, tbl, N); }
+TEST(exp_rpcrt4_ldr_agrees) { REQUIRE(t_module(DLL)); exp_check_ldr(DLL, tbl, N, 1556); }
+TEST(exp_rpcrt4_table_shape) { exp_check_table_shape(DLL, tbl, N); }
+TEST(exp_rpcrt4_handles_and_image) { REQUIRE(t_module(DLL)); exp_check_handles(DLL, "I_RpcBindingInqCurrentModifiedId"); }

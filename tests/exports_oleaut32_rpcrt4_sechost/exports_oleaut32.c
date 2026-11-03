@@ -605,3 +605,10 @@ TEST(exp_oleaut32_sysstring_roundtrip_via_ordinals) {
     BSTR b = a(L"abc"); CHECK(b != NULL);
     if (b) { EXPECT_EQ(l(b), 3); f(b); }
 }
+
+TEST(exp_oleaut32_name_ordinal_tables) { REQUIRE(t_module(DLL)); exp_check_name_ordinal_tables(DLL); }
+TEST(exp_oleaut32_rva_slots) { REQUIRE(t_module(DLL)); exp_check_rva_slots(DLL, tbl, N); }
+TEST(exp_oleaut32_executable_pages) { REQUIRE(t_module(DLL)); exp_check_exec_pages(DLL, tbl, N); }
+TEST(exp_oleaut32_ldr_agrees) { REQUIRE(t_module(DLL)); exp_check_ldr(DLL, tbl, N, 502); }
+TEST(exp_oleaut32_table_shape) { exp_check_table_shape(DLL, tbl, N); }
+TEST(exp_oleaut32_handles_and_image) { REQUIRE(t_module(DLL)); exp_check_handles(DLL, "SysAllocString"); }

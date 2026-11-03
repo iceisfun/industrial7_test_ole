@@ -295,3 +295,10 @@ TEST(exp_sechost_forwarder_target_in_other_image) {
     REQUIRE(t_module(DLL));
     for (int i = 0; i < N; i++) if (tbl[i].fwd) { FARPROC p = t_proc_in(DLL, tbl[i].name); HMODULE h = NULL; if (p) GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)p, &h); CHECK(h != NULL); }
 }
+
+TEST(exp_sechost_name_ordinal_tables) { REQUIRE(t_module(DLL)); exp_check_name_ordinal_tables(DLL); }
+TEST(exp_sechost_rva_slots) { REQUIRE(t_module(DLL)); exp_check_rva_slots(DLL, tbl, N); }
+TEST(exp_sechost_executable_pages) { REQUIRE(t_module(DLL)); exp_check_exec_pages(DLL, tbl, N); }
+TEST(exp_sechost_ldr_agrees) { REQUIRE(t_module(DLL)); exp_check_ldr(DLL, tbl, N, 217); }
+TEST(exp_sechost_table_shape) { exp_check_table_shape(DLL, tbl, N); }
+TEST(exp_sechost_handles_and_image) { REQUIRE(t_module(DLL)); exp_check_handles(DLL, "I_ScSetServiceBitsA"); }
