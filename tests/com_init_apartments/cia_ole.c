@@ -255,6 +255,7 @@ static void run_sec(const char *scenario)
 {
     DWORD rc;
     REQUIRE(U(CoInitializeSecurity));
+    if (t_is_wine() && strcmp(scenario, "uninit")) { t_skip("a successful CoInitializeSecurity hangs under Wine's rpcss stand-in"); return; }
     rc = t_run_child("cia_sec", scenario, 30000);
     CHECKF(rc == 0, "scenario %s: child exit 0x%lx (line number of first failed check, or DEAD000x)", scenario, (unsigned long)rc);
 }
