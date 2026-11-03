@@ -109,10 +109,11 @@ typedef struct CxFilter {
     DWORD last_reject_type, last_retry_callee;
     DWORD ret_pending;
     DWORD incoming_tid;
+    INTERFACEINFO log_info[8]; DWORD log_type[8]; DWORD log_caller[8]; int log_have[8];   /* first 8 incoming calls */
 } CxFilter;
 void cx_filter_init(CxFilter *f);
 
-/* ---- mock: IClassFactory used as a trivially marshalable object ---- */
+/* ---- mock: an IStream (standard-marshalable) whose Revert() is the instrumented remote call ---- */
 typedef struct CxCF {
     const void *lpVtbl;
     LONG ref;
@@ -122,6 +123,8 @@ typedef struct CxCF {
     HANDLE entered;                  /* signaled when LockServer entered, may be NULL */
     HANDLE release;                  /* if non-NULL, LockServer blocks on it (<= 9 s) */
     HRESULT lock_ret;
+    int poll_cancel;                 /* while blocked, call CoTestCancel every 20 ms */
+    LONG test_polls; HRESULT test_last;
 } CxCF;
 void cx_cf_init(CxCF *c);
 
@@ -138,7 +141,7 @@ typedef struct CxSrv {
     void *user;
 } CxSrv;
 int  cx_srv_start(CxSrv *s, DWORD model, CxFilter *filter);   /* returns 1 when ready */
-IClassFactory *cx_srv_proxy(CxSrv *s);                         /* unmarshal in the calling thread (once) */
+IStream *cx_srv_proxy(CxSrv *s);                         /* unmarshal in the calling thread (once) */
 void cx_srv_stop(CxSrv *s);
 
 /* ---- a parked thread: initializes COM, records its identity, then waits (pumping when STA) until stopped ---- */
@@ -154,6 +157,8 @@ typedef struct CxPark {
 } CxPark;
 int  cx_park_start(CxPark *p, DWORD model);   /* returns 1 when the thread is up and COM init succeeded (or CXM_NONE) */
 void cx_park_stop(CxPark *p);
+
+#define CX_WINE_SKIP() do { if (t_is_wine()) { t_skip("combase entry point is an aborting stub under Wine"); return; } } while (0)
 
 /* Child-process failure counting */
 extern int g_cx_cf;

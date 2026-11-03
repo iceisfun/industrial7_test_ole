@@ -108,6 +108,7 @@ static DWORD WINAPI flt_Incoming(IMessageFilter *i, DWORD calltype, HTASK caller
     f->last_calltype = calltype; f->last_caller = (DWORD)(ULONG_PTR)caller; f->last_tick = tick;
     f->incoming_tid = GetCurrentThreadId();
     if (info) { f->last_info = *info; f->have_info = 1; } else f->have_info = 0;
+    if (n >= 1 && n <= 8) { f->log_type[n - 1] = calltype; f->log_caller[n - 1] = f->last_caller; f->log_have[n - 1] = info != NULL; if (info) f->log_info[n - 1] = *info; }
     if (f->seq_len > 0) return f->ret_incoming_seq[(n - 1) < f->seq_len ? (n - 1) : f->seq_len - 1];
     return f->ret_incoming;
 }
@@ -130,34 +131,38 @@ void cx_filter_init(CxFilter *f)
     f->lpVtbl = flt_vtbl; f->ref = 1;
     f->ret_incoming = 0 /* SERVERCALL_ISHANDLED */;
     f->ret_retry = (DWORD)-1;
-    f->ret_pending = 1 /* PENDINGMSG_WAITDEFPROCESS */;
+    f->ret_pending = 2 /* PENDINGMSG_WAITDEFPROCESS */;
 }
 
-/* ---------------- CxCF (IClassFactory) ---------------- */
+/* ---------------- CxCF: an IStream whose only instrumented method is Revert() ---------------- */
 static HRESULT WINAPI cf_QI(IUnknown *i, REFIID riid, void **ppv)
 {
-    if (IsEqualGUID(riid, &CX_IID_IUnknown) || IsEqualGUID(riid, &CX_IID_IClassFactory)) { *ppv = i; InterlockedIncrement(&((CxCF *)i)->ref); return S_OK; }
+    if (IsEqualGUID(riid, &CX_IID_IUnknown) || IsEqualGUID(riid, &CX_IID_IStream)) { *ppv = i; InterlockedIncrement(&((CxCF *)i)->ref); return S_OK; }
     *ppv = NULL; return E_NOINTERFACE;
 }
 static ULONG WINAPI cf_AddRef(IUnknown *i) { return InterlockedIncrement(&((CxCF *)i)->ref); }
 static ULONG WINAPI cf_Release(IUnknown *i) { return InterlockedDecrement(&((CxCF *)i)->ref); }
-static HRESULT WINAPI cf_Create(IUnknown *i, IUnknown *outer, REFIID riid, void **ppv)
-{
-    CxCF *c = (CxCF *)i;
-    InterlockedIncrement(&c->create_calls);
-    *ppv = NULL; return E_NOTIMPL;
-}
-static HRESULT WINAPI cf_Lock(IUnknown *i, BOOL lock)
+static HRESULT WINAPI cf_Notimpl(IUnknown *i) { return E_NOTIMPL; }
+static HRESULT WINAPI cf_Revert(IUnknown *i)
 {
     CxCF *c = (CxCF *)i;
     InterlockedIncrement(&c->lock_calls);
     c->last_tid = GetCurrentThreadId();
-    if (lock) InterlockedIncrement(&c->locks); else InterlockedDecrement(&c->locks);
     if (c->entered) SetEvent(c->entered);
-    if (c->release) WaitForSingleObject(c->release, 9000);
+    if (c->release) {
+        if (c->poll_cancel) {
+            DWORD t0 = GetTickCount();
+            while (WaitForSingleObject(c->release, 20) != WAIT_OBJECT_0 && GetTickCount() - t0 < 9000) {
+                c->test_last = U(CoTestCancel)();
+                InterlockedIncrement(&c->test_polls);
+            }
+        } else WaitForSingleObject(c->release, 9000);
+    }
     return c->lock_ret;
 }
-static const void *cf_vtbl[5] = { cf_QI, cf_AddRef, cf_Release, cf_Create, cf_Lock };
+/* IUnknown(3) + Read Write Seek SetSize CopyTo Commit Revert LockRegion UnlockRegion Stat Clone */
+static const void *cf_vtbl[14] = { cf_QI, cf_AddRef, cf_Release, cf_Notimpl, cf_Notimpl, cf_Notimpl, cf_Notimpl, cf_Notimpl,
+                                   cf_Notimpl, cf_Revert, cf_Notimpl, cf_Notimpl, cf_Notimpl, cf_Notimpl };
 void cx_cf_init(CxCF *c)
 {
     memset(c, 0, sizeof *c);
@@ -177,7 +182,7 @@ static DWORD WINAPI srv_thread(LPVOID p)
             if (prev) IMessageFilter_Release(prev);
         }
         if (s->on_start) s->on_start(s);
-        s->marshal_hr = U(CoMarshalInterThreadInterfaceInStream)(&CX_IID_IClassFactory, (IUnknown *)&s->cf, &s->stream);
+        s->marshal_hr = U(CoMarshalInterThreadInterfaceInStream)(&CX_IID_IStream, (IUnknown *)&s->cf, &s->stream);
         SetEvent(s->ready);
         if (s->model == CXM_STA) cx_pump_until(s->stop, 60000);
         else WaitForSingleObject(s->stop, 60000);
@@ -205,12 +210,12 @@ int cx_srv_start(CxSrv *s, DWORD model, CxFilter *filter)
     if (WaitForSingleObject(s->ready, 10000) != WAIT_OBJECT_0) return 0;
     return !CX_FAILED(s->init_hr) && !CX_FAILED(s->marshal_hr);
 }
-IClassFactory *cx_srv_proxy(CxSrv *s)
+IStream *cx_srv_proxy(CxSrv *s)
 {
     void *p = NULL;
-    HRESULT hr = U(CoGetInterfaceAndReleaseStream)(s->stream, &CX_IID_IClassFactory, &p);
+    HRESULT hr = U(CoGetInterfaceAndReleaseStream)(s->stream, &CX_IID_IStream, &p);
     s->stream = NULL;
-    return CX_FAILED(hr) ? NULL : (IClassFactory *)p;
+    return CX_FAILED(hr) ? NULL : (IStream *)p;
 }
 void cx_srv_stop(CxSrv *s)
 {
