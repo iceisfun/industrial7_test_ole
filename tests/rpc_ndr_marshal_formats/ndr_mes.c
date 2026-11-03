@@ -306,3 +306,30 @@ TEST(ndr_mes_incremental_handles_create_and_free) {
     EXPECT_EQ(st, RPC_S_OK); CHECK(h != NULL);
     if (st == RPC_S_OK) EXPECT_EQ(U(MesHandleFree)(h), RPC_S_OK);
 }
+
+/* MesInqProcEncodingId: NdrpValidateMesHandleReturnStatus returns 0x57 (ERROR_INVALID_PARAMETER) for NULL handle (decomp) */
+TEST(ndr_mes_inq_proc_encoding_id_null_handle) {
+    WSTUB("MesInqProcEncodingId");
+    REQUIRE(U(MesInqProcEncodingId));
+    RPC_SYNTAX_IDENTIFIER id; ULONG ver = 0;
+    EXPECT_EQ(U(MesInqProcEncodingId)(NULL, &id, &ver), ERROR_INVALID_PARAMETER);
+}
+TEST(ndr_mes_inq_proc_encoding_id_null_outputs) {
+    WSTUB("MesInqProcEncodingId");
+    REQUIRE(U(MesInqProcEncodingId)); REQUIRE(U(MesEncodeDynBufferHandleCreate)); REQUIRE(U(MesHandleFree));
+    char *buf = NULL; ULONG enc = 0; handle_t h = NULL;
+    if (U(MesEncodeDynBufferHandleCreate)(&buf, &enc, &h) != RPC_S_OK) { CHECK(0); return; }
+    ULONG ver = 0; RPC_SYNTAX_IDENTIFIER id;
+    EXPECT_EQ(U(MesInqProcEncodingId)(h, NULL, &ver), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(U(MesInqProcEncodingId)(h, &id, NULL), ERROR_INVALID_PARAMETER);
+    /* encode handle with no procedure header yet: RPC_X_INVALID_ES_ACTION (0x723) */
+    EXPECT_EQ(U(MesInqProcEncodingId)(h, &id, &ver), X_INVALID_ES);
+    U(MesHandleFree)(h);
+}
+TEST(ndr_mes_dyn_handle_create_free_leaves_buffer_null) {
+    REQUIRE(U(MesEncodeDynBufferHandleCreate)); REQUIRE(U(MesHandleFree));
+    char *buf = NULL; ULONG enc = 0; handle_t h = NULL;
+    EXPECT_EQ(U(MesEncodeDynBufferHandleCreate)(&buf, &enc, &h), RPC_S_OK);
+    EXPECT_EQ(U(MesHandleFree)(h), RPC_S_OK);
+    CHECK(buf == NULL);
+}
