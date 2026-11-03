@@ -143,7 +143,7 @@ TEST(epm_status_raise_exception_propagates_code) {
 TEST(epm_status_raise_exception_record_is_noncontinuable_without_parameters) {
     REQUIRE(U(RpcRaiseException));
     g_raise_code = 0x1234;
-    EXPECT_EQ(epx_try(do_raise, NULL), 0x1234);
+    EQ(epx_try(do_raise, NULL), 0x1234);
     CHECK(epx_last_flags & EXCEPTION_NONCONTINUABLE);
     EXPECT_EQ(epx_last_nparams, 0);
 }
@@ -152,7 +152,7 @@ TEST(epm_status_raise_exception_access_violation_is_translated) {
     /* RpcpRaiseException maps STATUS_ACCESS_VIOLATION (0xC0000005) to ERROR_NOACCESS (998) */
     REQUIRE(U(RpcRaiseException));
     g_raise_code = 0xC0000005u;
-    EXPECT_EQ(epx_try(do_raise, NULL), 998);
+    EQ(epx_try(do_raise, NULL), 998);
 }
 
 /* the filter accepts what RpcRaiseException raises for ordinary RPC statuses */
@@ -160,7 +160,7 @@ TEST(epm_status_raised_rpc_codes_pass_the_filter) {
     unsigned i;
     REQUIRE(U(I_RpcExceptionFilter));
     for (i = 1700; i < 1800; i++) {
-        EXPECT_EQ(U(I_RpcExceptionFilter)(i), EXCEPTION_EXECUTE_HANDLER);
+        EQ(U(I_RpcExceptionFilter)(i), EXCEPTION_EXECUTE_HANDLER);
     }
 }
 
@@ -170,8 +170,8 @@ TEST(epm_status_ns_inq_entry_name_cannot_support) {
     REQUIRE(U(RpcNsBindingInqEntryNameW) && U(RpcNsBindingInqEntryNameA));
     WINE_STUB();
     for (s = 0; s < 4; s++) {
-        EXPECT_EQ(U(RpcNsBindingInqEntryNameW)(NULL, s, &w), EPX_CANNOT_SUPPORT);
-        EXPECT_EQ(U(RpcNsBindingInqEntryNameA)(NULL, s, &a), EPX_CANNOT_SUPPORT);
+        EQ(U(RpcNsBindingInqEntryNameW)(NULL, s, &w), EPX_CANNOT_SUPPORT);
+        EQ(U(RpcNsBindingInqEntryNameA)(NULL, s, &a), EPX_CANNOT_SUPPORT);
     }
     EXPECT_EQ((ULONG_PTR)w, 0x77);       /* output untouched */
     EXPECT_EQ((ULONG_PTR)a, 0x77);
@@ -181,9 +181,9 @@ TEST(epm_status_ns_inq_entry_name_ignores_binding_validity) {
     RPC_WSTR w = NULL; RPC_BINDING_HANDLE h;
     REQUIRE(U(RpcNsBindingInqEntryNameW));
     WINE_STUB();
-    EXPECT_EQ(U(RpcNsBindingInqEntryNameW)((RPC_BINDING_HANDLE)epx_fake, 1, &w), EPX_CANNOT_SUPPORT);   /* handle is never looked at */
+    EQ(U(RpcNsBindingInqEntryNameW)((RPC_BINDING_HANDLE)epx_fake, 1, &w), EPX_CANNOT_SUPPORT);   /* handle is never looked at */
     h = epx_mkbind();
-    if (h) { EXPECT_EQ(U(RpcNsBindingInqEntryNameW)(h, 1, &w), EPX_CANNOT_SUPPORT); U(RpcBindingFree)(&h); }
+    if (h) { EQ(U(RpcNsBindingInqEntryNameW)(h, 1, &w), EPX_CANNOT_SUPPORT); U(RpcBindingFree)(&h); }
     CHECK(w == NULL);
 }
 
@@ -194,11 +194,11 @@ UDECL(RPC_STATUS, I_RpcNsInterfaceUnexported, (ULONG, unsigned short *, RPC_SERV
 TEST(epm_status_ns_internal_stubs_cannot_support) {
     REQUIRE(UN(I_RpcNsBindingSetEntryNameA) && UN(I_RpcNsBindingSetEntryNameW) && UN(I_RpcNsInterfaceExported) && UN(I_RpcNsInterfaceUnexported));
     WINE_STUB();
-    EXPECT_EQ(UN(I_RpcNsBindingSetEntryNameA)(NULL, 0, NULL), EPX_CANNOT_SUPPORT);
-    EXPECT_EQ(UN(I_RpcNsBindingSetEntryNameW)(NULL, 0, NULL), EPX_CANNOT_SUPPORT);
-    EXPECT_EQ(UN(I_RpcNsBindingSetEntryNameW)(NULL, 3, (RPC_WSTR)L"/.:/x"), EPX_CANNOT_SUPPORT);
-    EXPECT_EQ(UN(I_RpcNsInterfaceExported)(0, NULL, NULL), EPX_CANNOT_SUPPORT);
-    EXPECT_EQ(UN(I_RpcNsInterfaceUnexported)(0, NULL, NULL), EPX_CANNOT_SUPPORT);
+    EQ(UN(I_RpcNsBindingSetEntryNameA)(NULL, 0, NULL), EPX_CANNOT_SUPPORT);
+    EQ(UN(I_RpcNsBindingSetEntryNameW)(NULL, 0, NULL), EPX_CANNOT_SUPPORT);
+    EQ(UN(I_RpcNsBindingSetEntryNameW)(NULL, 3, (RPC_WSTR)L"/.:/x"), EPX_CANNOT_SUPPORT);
+    EQ(UN(I_RpcNsInterfaceExported)(0, NULL, NULL), EPX_CANNOT_SUPPORT);
+    EQ(UN(I_RpcNsInterfaceUnexported)(0, NULL, NULL), EPX_CANNOT_SUPPORT);
 }
 
 /* ---------------------------------------------------------------- endpoint-mapper client: validation paths */
@@ -209,17 +209,17 @@ TEST(epm_status_ep_register_a_annotation_and_vector_validation) {
     REQUIRE(U(RpcEpRegisterA) && U(RpcEpRegisterNoReplaceA));
     WINE_STUB();
     fill(ann, 64);
-    EXPECT_EQ(U(RpcEpRegisterA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_INVALID_ENTRY);          /* annotation >= 64 chars */
-    EXPECT_EQ(U(RpcEpRegisterNoReplaceA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_INVALID_ENTRY);
+    EQ(U(RpcEpRegisterA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_INVALID_ENTRY);          /* annotation >= 64 chars */
+    EQ(U(RpcEpRegisterNoReplaceA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_INVALID_ENTRY);
     fill(ann, 99);
-    EXPECT_EQ(U(RpcEpRegisterA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_INVALID_ENTRY);
+    EQ(U(RpcEpRegisterA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_INVALID_ENTRY);
     fill(ann, 63);
-    EXPECT_EQ(U(RpcEpRegisterA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_NOTHING_TO_EXPORT);      /* 63 is fine; NULL vector */
-    EXPECT_EQ(U(RpcEpRegisterNoReplaceA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_NOTHING_TO_EXPORT);
+    EQ(U(RpcEpRegisterA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_NOTHING_TO_EXPORT);      /* 63 is fine; NULL vector */
+    EQ(U(RpcEpRegisterNoReplaceA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_NOTHING_TO_EXPORT);
     fill(ann, 0);
-    EXPECT_EQ(U(RpcEpRegisterA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_NOTHING_TO_EXPORT);
-    EXPECT_EQ(U(RpcEpRegisterA)(NULL, NULL, NULL, NULL), EPX_NOTHING_TO_EXPORT);
-    EXPECT_EQ(U(RpcEpRegisterNoReplaceA)(NULL, NULL, NULL, NULL), EPX_NOTHING_TO_EXPORT);
+    EQ(U(RpcEpRegisterA)(NULL, NULL, NULL, (RPC_CSTR)ann), EPX_NOTHING_TO_EXPORT);
+    EQ(U(RpcEpRegisterA)(NULL, NULL, NULL, NULL), EPX_NOTHING_TO_EXPORT);
+    EQ(U(RpcEpRegisterNoReplaceA)(NULL, NULL, NULL, NULL), EPX_NOTHING_TO_EXPORT);
 }
 
 TEST(epm_status_ep_register_w_annotation_and_vector_validation) {
@@ -228,13 +228,13 @@ TEST(epm_status_ep_register_w_annotation_and_vector_validation) {
     WINE_STUB();
     for (i = 0; i < 64; i++) { ann[i] = L'a'; }
     ann[64] = 0;
-    EXPECT_EQ(U(RpcEpRegisterW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_INVALID_ENTRY);
-    EXPECT_EQ(U(RpcEpRegisterNoReplaceW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_INVALID_ENTRY);
+    EQ(U(RpcEpRegisterW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_INVALID_ENTRY);
+    EQ(U(RpcEpRegisterNoReplaceW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_INVALID_ENTRY);
     ann[63] = 0;
-    EXPECT_EQ(U(RpcEpRegisterW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_NOTHING_TO_EXPORT);
-    EXPECT_EQ(U(RpcEpRegisterNoReplaceW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_NOTHING_TO_EXPORT);
-    EXPECT_EQ(U(RpcEpRegisterW)(NULL, NULL, NULL, NULL), EPX_NOTHING_TO_EXPORT);
-    EXPECT_EQ(U(RpcEpRegisterNoReplaceW)(NULL, NULL, NULL, NULL), EPX_NOTHING_TO_EXPORT);
+    EQ(U(RpcEpRegisterW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_NOTHING_TO_EXPORT);
+    EQ(U(RpcEpRegisterNoReplaceW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_NOTHING_TO_EXPORT);
+    EQ(U(RpcEpRegisterW)(NULL, NULL, NULL, NULL), EPX_NOTHING_TO_EXPORT);
+    EQ(U(RpcEpRegisterNoReplaceW)(NULL, NULL, NULL, NULL), EPX_NOTHING_TO_EXPORT);
 }
 
 TEST(epm_status_ep_register_w_counts_ansi_length_of_annotation) {
@@ -244,23 +244,23 @@ TEST(epm_status_ep_register_w_counts_ansi_length_of_annotation) {
     WINE_STUB();
     for (i = 0; i < 63; i++) { ann[i] = L'z'; }
     ann[63] = 0;
-    EXPECT_EQ(U(RpcEpRegisterW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_NOTHING_TO_EXPORT);
+    EQ(U(RpcEpRegisterW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_NOTHING_TO_EXPORT);
     ann[63] = L'z'; ann[64] = 0;
-    EXPECT_EQ(U(RpcEpRegisterW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_INVALID_ENTRY);
+    EQ(U(RpcEpRegisterW)(NULL, NULL, NULL, (RPC_WSTR)ann), EPX_INVALID_ENTRY);
 }
 
 TEST(epm_status_ep_unregister_null_vector) {
     REQUIRE(U(RpcEpUnregister));
     WINE_STUB();
-    EXPECT_EQ(U(RpcEpUnregister)(NULL, NULL, NULL), EPX_NOTHING_TO_EXPORT);
+    EQ(U(RpcEpUnregister)(NULL, NULL, NULL), EPX_NOTHING_TO_EXPORT);
 }
 
 TEST(epm_status_ep_resolve_binding_invalid_handles) {
     RPC_BINDING_HANDLE h;
     REQUIRE(U(RpcEpResolveBinding));
     WINE_STUB();
-    EXPECT_EQ(U(RpcEpResolveBinding)(NULL, NULL), EPX_INVALID_BINDING);
-    EXPECT_EQ(U(RpcEpResolveBinding)((RPC_BINDING_HANDLE)epx_fake, NULL), EPX_INVALID_BINDING);
+    EQ(U(RpcEpResolveBinding)(NULL, NULL), EPX_INVALID_BINDING);
+    EQ(U(RpcEpResolveBinding)((RPC_BINDING_HANDLE)epx_fake, NULL), EPX_INVALID_BINDING);
     h = epx_mkbind();
     if (h) {   /* a handle with a dynamic... endpoint-less binding is valid input; here the endpoint is set so no mapper is needed */
         t_note("RpcEpResolveBinding(ncalrpc handle with endpoint) = %lu", (unsigned long)U(RpcEpResolveBinding)(h, NULL));
@@ -274,18 +274,18 @@ TEST(epm_status_mgmt_ep_inq_begin_argument_validation) {
     WINE_STUB();
     memset(&id, 0, sizeof id); memset(&u, 0, sizeof u);
     /* inquiry type: 0 ALL, 1 BY_IF, 2 BY_OBJ, 3 BY_BOTH; anything else is invalid */
-    for (t = 4; t < 8; t++) EXPECT_EQ(U(RpcMgmtEpEltInqBegin)(NULL, t, &id, 1, &u, &ctx), RPC_S_INVALID_ARG);
-    EXPECT_EQ(U(RpcMgmtEpEltInqBegin)(NULL, 0xFFFFFFFFu, &id, 1, &u, &ctx), RPC_S_INVALID_ARG);
+    for (t = 4; t < 8; t++) EQ(U(RpcMgmtEpEltInqBegin)(NULL, t, &id, 1, &u, &ctx), RPC_S_INVALID_ARG);
+    EQ(U(RpcMgmtEpEltInqBegin)(NULL, 0xFFFFFFFFu, &id, 1, &u, &ctx), RPC_S_INVALID_ARG);
     /* BY_OBJ needs an object UUID */
-    EXPECT_EQ(U(RpcMgmtEpEltInqBegin)(NULL, 2, &id, 1, NULL, &ctx), RPC_S_INVALID_ARG);
+    EQ(U(RpcMgmtEpEltInqBegin)(NULL, 2, &id, 1, NULL, &ctx), RPC_S_INVALID_ARG);
     /* BY_IF / BY_BOTH need an interface id and a version option in 1..5 */
-    EXPECT_EQ(U(RpcMgmtEpEltInqBegin)(NULL, 1, NULL, 1, &u, &ctx), RPC_S_INVALID_ARG);
-    EXPECT_EQ(U(RpcMgmtEpEltInqBegin)(NULL, 3, NULL, 1, &u, &ctx), RPC_S_INVALID_ARG);
-    EXPECT_EQ(U(RpcMgmtEpEltInqBegin)(NULL, 3, &id, 1, NULL, &ctx), RPC_S_INVALID_ARG);
+    EQ(U(RpcMgmtEpEltInqBegin)(NULL, 1, NULL, 1, &u, &ctx), RPC_S_INVALID_ARG);
+    EQ(U(RpcMgmtEpEltInqBegin)(NULL, 3, NULL, 1, &u, &ctx), RPC_S_INVALID_ARG);
+    EQ(U(RpcMgmtEpEltInqBegin)(NULL, 3, &id, 1, NULL, &ctx), RPC_S_INVALID_ARG);
     for (v = 0; v < 8; v++) {
         if (v >= 1 && v <= 5) continue;
-        EXPECT_EQ(U(RpcMgmtEpEltInqBegin)(NULL, 1, &id, v, &u, &ctx), RPC_S_INVALID_ARG);
-        EXPECT_EQ(U(RpcMgmtEpEltInqBegin)(NULL, 3, &id, v, &u, &ctx), RPC_S_INVALID_ARG);
+        EQ(U(RpcMgmtEpEltInqBegin)(NULL, 1, &id, v, &u, &ctx), RPC_S_INVALID_ARG);
+        EQ(U(RpcMgmtEpEltInqBegin)(NULL, 3, &id, v, &u, &ctx), RPC_S_INVALID_ARG);
     }
     EXPECT_EQ((ULONG_PTR)ctx, 0x55);     /* never written on failure */
 }
@@ -296,10 +296,10 @@ TEST(epm_status_mgmt_ep_inq_done_and_next_reject_foreign_context) {
     WINE_STUB();
     memset(block, 0, sizeof block);
     ctx = (RPC_EP_INQ_HANDLE)block;
-    EXPECT_EQ(U(RpcMgmtEpEltInqDone)(&ctx), RPC_S_INVALID_ARG);
+    EQ(U(RpcMgmtEpEltInqDone)(&ctx), RPC_S_INVALID_ARG);
     CHECK(ctx == (RPC_EP_INQ_HANDLE)block);        /* not cleared on failure */
-    EXPECT_EQ(U(RpcMgmtEpEltInqNextA)(ctx, &id, NULL, &u, NULL), RPC_S_INVALID_ARG);
-    EXPECT_EQ(U(RpcMgmtEpEltInqNextW)(ctx, &id, NULL, &u, NULL), RPC_S_INVALID_ARG);
+    EQ(U(RpcMgmtEpEltInqNextA)(ctx, &id, NULL, &u, NULL), RPC_S_INVALID_ARG);
+    EQ(U(RpcMgmtEpEltInqNextW)(ctx, &id, NULL, &u, NULL), RPC_S_INVALID_ARG);
 }
 
 static void do_epunreg(void *p) {
@@ -308,5 +308,5 @@ static void do_epunreg(void *p) {
 TEST(epm_status_mgmt_ep_unregister_raises_cant_perform_op) {
     REQUIRE(U(RpcMgmtEpUnregister));
     WINE_STUB();
-    EXPECT_EQ(epx_try(do_epunreg, NULL), EPX_CANT_PERFORM_OP);    /* the function body is just RpcRaiseException(EPT_S_CANT_PERFORM_OP) */
+    EQ(epx_try(do_epunreg, NULL), EPX_CANT_PERFORM_OP);    /* the function body is just RpcRaiseException(EPT_S_CANT_PERFORM_OP) */
 }

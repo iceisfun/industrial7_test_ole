@@ -25,6 +25,9 @@
 /* Wine stubs (aborts the process on call) most of the APIs of this area; on Windows this is a no-op. */
 #define WINE_STUB() do { if (t_is_wine()) { t_skip("stubbed in wine"); return; } } while (0)
 
+/* Like EXPECT_EQ but evaluates the call exactly once (EXPECT_EQ evaluates its arguments twice). */
+#define EQ(call, want) do { ULONG_PTR v_ = (ULONG_PTR)(call); t_check(v_ == (ULONG_PTR)(want), __FILE__, __LINE__, #call " == " #want, "got 0x%llx want 0x%llx", (unsigned long long)v_, (unsigned long long)(ULONG_PTR)(want)); } while (0)
+
 typedef void (*epx_fn)(void *);
 
 /* Run fn(arg) on the calling thread; returns 0, or the code of the exception it raised (the call is abandoned). */

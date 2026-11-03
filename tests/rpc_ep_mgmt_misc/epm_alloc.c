@@ -388,8 +388,8 @@ TEST(epm_alloc_sm_client_hooks_return_success_and_swap) {
 TEST(epm_alloc_sm_free_and_client_free_accept_null) {
     REQUIRE(U(RpcSmFree) && U(RpcSmClientFree));
     WINE_STUB();
-    EXPECT_EQ(U(RpcSmFree)(NULL), 0);
-    EXPECT_EQ(U(RpcSmClientFree)(NULL), 0);
+    EQ(U(RpcSmFree)(NULL), 0);
+    EQ(U(RpcSmClientFree)(NULL), 0);
 }
 
 /* ---------------- Ndr* hooks ---------------- */
@@ -468,7 +468,7 @@ TEST(epm_alloc_ss_get_context_binding_rejects_foreign_block) {
     RPC_BINDING_HANDLE b = (RPC_BINDING_HANDLE)(ULONG_PTR)0x1234;
     REQUIRE(U(RpcSsGetContextBinding));
     WINE_STUB();
-    EXPECT_EQ(U(RpcSsGetContextBinding)(epx_fake, &b), RPC_S_INVALID_ARG);
+    EQ(U(RpcSsGetContextBinding)(epx_fake, &b), RPC_S_INVALID_ARG);
     EXPECT_EQ((ULONG_PTR)b, 0x1234);       /* *Binding untouched on failure */
 }
 
