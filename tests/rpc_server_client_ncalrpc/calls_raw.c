@@ -337,12 +337,19 @@ TEST(ncalrpc_raw_binding_copy_independent) {
     raw_down(&f);
 }
 TEST(ncalrpc_raw_binding_reset) {
-    rawfx f; ULONG n; RPC_STATUS st;
+    rawfx f; RPC_WSTR str = NULL, ept = NULL; RPC_STATUS st;
     REQUIRE(U(RpcBindingReset));
     RUP(f, 0x78, 1, 0);
     EQ(U(RpcBindingReset)(f.h), RPC_S_OK);
-    st = rx_raw_call(f.h, &f.r, 4, NULL, 0, NULL, 0, &n);
-    t_note("call on a binding after RpcBindingReset (endpoint cleared, no endpoint-mapper registration) -> %lu", (unsigned long)st);
+    /* the endpoint is cleared (binding becomes partially bound); not called through, since resolving it would
+       go to the endpoint mapper */
+    EQ(U(RpcBindingToStringBindingW)(f.h, &str), RPC_S_OK);
+    st = U(RpcStringBindingParseW)(str, NULL, NULL, NULL, &ept, NULL);
+    EQ(st, RPC_S_OK);
+    t_note("after RpcBindingReset: string binding %ls, endpoint component %ls", str ? (WCHAR *)str : L"", ept ? (WCHAR *)ept : L"(null)");
+    CHECK(!ept || !*ept || lstrcmpiW((WCHAR *)ept, f.ep) != 0);
+    if (ept) U(RpcStringFreeW)(&ept);
+    if (str) U(RpcStringFreeW)(&str);
     raw_down(&f);
 }
 TEST(ncalrpc_raw_binding_to_string_roundtrip) {
