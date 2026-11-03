@@ -13,6 +13,9 @@
 /* Single-evaluation equality check (arguments may have side effects). */
 #define EQ(a, b) do { long long a_ = (long long)(a), b_ = (long long)(b); \
     t_check(a_ == b_, __FILE__, __LINE__, #a " == " #b, "got 0x%llx want 0x%llx", a_, b_); } while (0)
+#ifndef CP_WINUNICODE
+#define CP_WINUNICODE 1200
+#endif
 #define N_ELEM(a) ((int)(sizeof(a) / sizeof((a)[0])))
 
 #ifndef PID_BEHAVIOR
