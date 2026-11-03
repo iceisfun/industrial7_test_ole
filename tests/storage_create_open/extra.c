@@ -395,3 +395,36 @@ TEST(sco_open_write_only_modes) {
     sco_rel(s);
     sco_rm(p);
 }
+
+TEST(sco_review_commit_roundtrip_clsid_and_stream) {
+    REQUIRE(U(StgCreateDocfile)); REQUIRE(U(StgOpenStorage));
+    WCHAR p[MAX_PATH]; sco_wpath(p, "rv_rt.stg"); sco_rm(p);
+    IStorage *s = NULL; IStream *st = NULL;
+    EQ(sco_create(p, SCO_RW_EXCL, &s), S_OK);
+    EQ(IStorage_SetClass(s, &sco_CLS_A), S_OK);
+    EQ(IStorage_CreateStream(s, L"data", EXCL | RW, 0, 0, &st), S_OK);
+    ULONG w = 0; EQ(IStream_Write(st, "hello", 5, &w), S_OK); EQ(w, 5);
+    IStream_Release(st);
+    EQ(IStorage_Commit(s, STGC_DEFAULT), S_OK);
+    sco_rel(s);
+    EQ(U(StgIsStorageFile)(p), S_OK);
+    EQ(sco_open(p, EXCL | STGM_READ, &s), S_OK);
+    STATSTG ss; EQ(IStorage_Stat(s, &ss, STATFLAG_NONAME), S_OK);
+    CHECK(IsEqualGUID(&ss.clsid, &sco_CLS_A));
+    EQ(IStorage_OpenStream(s, L"data", NULL, EXCL | STGM_READ, 0, &st), S_OK);
+    char buf[8] = {0}; ULONG r = 0; EQ(IStream_Read(st, buf, 8, &r), S_OK);
+    EQ(r, 5); CHECK(!memcmp(buf, "hello", 5));
+    IStream_Release(st); sco_rel(s); sco_rm(p);
+}
+
+TEST(sco_review_open_missing_stream_and_storage) {
+    REQUIRE(U(StgCreateDocfile));
+    WCHAR p[MAX_PATH]; sco_wpath(p, "rv_miss.stg"); sco_rm(p);
+    IStorage *s = NULL, *sub = NULL; IStream *st = NULL;
+    EQ(sco_create(p, SCO_RW_EXCL, &s), S_OK);
+    EQ(IStorage_OpenStream(s, L"nope", NULL, EXCL | STGM_READ, 0, &st), STG_E_FILENOTFOUND);
+    CHECK(st == NULL);
+    EQ(IStorage_OpenStorage(s, L"nope", NULL, EXCL | RW, NULL, 0, &sub), STG_E_FILENOTFOUND);
+    CHECK(sub == NULL);
+    sco_rel(s); sco_rm(p);
+}

@@ -506,7 +506,6 @@ TEST(sco_setimes_stgsettimes_file) {
     CHECK(!memcmp(&rc, &c, sizeof c));
     CHECK(!memcmp(&rm, &m, sizeof m));
     if (memcmp(&ra, &a, sizeof a)) t_note("access time not exactly stored (file system granularity)");
-    CHECK(ra.dwHighDateTime == a.dwHighDateTime || 1);
     /* NULL pointers leave a time untouched */
     FILETIME m2 = ft_at(40);
     EQ(U(StgSetTimes)(p, NULL, NULL, &m2), S_OK);
