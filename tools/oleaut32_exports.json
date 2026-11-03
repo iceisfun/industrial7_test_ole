@@ -1,0 +1,2991 @@
+[
+{
+"name": "SysAllocString",
+"ordinal": 2,
+"rva": 74464,
+"forwarder": null,
+"ref": "oleaut32.dll!0x122e0"
+},
+{
+"name": "SysReAllocString",
+"ordinal": 3,
+"rva": 7632,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1dd0"
+},
+{
+"name": "SysAllocStringLen",
+"ordinal": 4,
+"rva": 74240,
+"forwarder": null,
+"ref": "oleaut32.dll!0x12200"
+},
+{
+"name": "SysReAllocStringLen",
+"ordinal": 5,
+"rva": 81104,
+"forwarder": null,
+"ref": "oleaut32.dll!0x13cd0"
+},
+{
+"name": "SysFreeString",
+"ordinal": 6,
+"rva": 74864,
+"forwarder": null,
+"ref": "oleaut32.dll!0x12470"
+},
+{
+"name": "SysStringLen",
+"ordinal": 7,
+"rva": 16560,
+"forwarder": null,
+"ref": "oleaut32.dll!0x40b0"
+},
+{
+"name": "VariantInit",
+"ordinal": 8,
+"rva": 609504,
+"forwarder": null,
+"ref": "oleaut32.dll!0x94ce0"
+},
+{
+"name": "VariantClear",
+"ordinal": 9,
+"rva": 610240,
+"forwarder": null,
+"ref": "oleaut32.dll!0x94fc0"
+},
+{
+"name": "VariantCopy",
+"ordinal": 10,
+"rva": 609712,
+"forwarder": null,
+"ref": "oleaut32.dll!0x94db0"
+},
+{
+"name": "VariantCopyInd",
+"ordinal": 11,
+"rva": 609536,
+"forwarder": null,
+"ref": "oleaut32.dll!0x94d00"
+},
+{
+"name": "VariantChangeType",
+"ordinal": 12,
+"rva": 70528,
+"forwarder": null,
+"ref": "oleaut32.dll!0x11380"
+},
+{
+"name": "VariantTimeToDosDateTime",
+"ordinal": 13,
+"rva": 390496,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5f560"
+},
+{
+"name": "DosDateTimeToVariantTime",
+"ordinal": 14,
+"rva": 120768,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1d7c0"
+},
+{
+"name": "SafeArrayCreate",
+"ordinal": 15,
+"rva": 15968,
+"forwarder": null,
+"ref": "oleaut32.dll!0x3e60"
+},
+{
+"name": "SafeArrayDestroy",
+"ordinal": 16,
+"rva": 69424,
+"forwarder": null,
+"ref": "oleaut32.dll!0x10f30"
+},
+{
+"name": "SafeArrayGetDim",
+"ordinal": 17,
+"rva": 21392,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5390"
+},
+{
+"name": "SafeArrayGetElemsize",
+"ordinal": 18,
+"rva": 23296,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5b00"
+},
+{
+"name": "SafeArrayGetUBound",
+"ordinal": 19,
+"rva": 16592,
+"forwarder": null,
+"ref": "oleaut32.dll!0x40d0"
+},
+{
+"name": "SafeArrayGetLBound",
+"ordinal": 20,
+"rva": 20880,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5190"
+},
+{
+"name": "SafeArrayLock",
+"ordinal": 21,
+"rva": 30032,
+"forwarder": null,
+"ref": "oleaut32.dll!0x7550"
+},
+{
+"name": "SafeArrayUnlock",
+"ordinal": 22,
+"rva": 19392,
+"forwarder": null,
+"ref": "oleaut32.dll!0x4bc0"
+},
+{
+"name": "SafeArrayAccessData",
+"ordinal": 23,
+"rva": 19440,
+"forwarder": null,
+"ref": "oleaut32.dll!0x4bf0"
+},
+{
+"name": "SafeArrayUnaccessData",
+"ordinal": 24,
+"rva": 21136,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5290"
+},
+{
+"name": "SafeArrayGetElement",
+"ordinal": 25,
+"rva": 68464,
+"forwarder": null,
+"ref": "oleaut32.dll!0x10b70"
+},
+{
+"name": "SafeArrayPutElement",
+"ordinal": 26,
+"rva": 68944,
+"forwarder": null,
+"ref": "oleaut32.dll!0x10d50"
+},
+{
+"name": "SafeArrayCopy",
+"ordinal": 27,
+"rva": 86640,
+"forwarder": null,
+"ref": "oleaut32.dll!0x15270"
+},
+{
+"name": "DispGetParam",
+"ordinal": 28,
+"rva": 387984,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5eb90"
+},
+{
+"name": "DispGetIDsOfNames",
+"ordinal": 29,
+"rva": 12880,
+"forwarder": null,
+"ref": "oleaut32.dll!0x3250"
+},
+{
+"name": "DispInvoke",
+"ordinal": 30,
+"rva": 14032,
+"forwarder": null,
+"ref": "oleaut32.dll!0x36d0"
+},
+{
+"name": "CreateDispTypeInfo",
+"ordinal": 31,
+"rva": 387056,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5e7f0"
+},
+{
+"name": "CreateStdDispatch",
+"ordinal": 32,
+"rva": 387968,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5eb80"
+},
+{
+"name": "RegisterActiveObject",
+"ordinal": 33,
+"rva": 390752,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5f660"
+},
+{
+"name": "RevokeActiveObject",
+"ordinal": 34,
+"rva": 390864,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5f6d0"
+},
+{
+"name": "GetActiveObject",
+"ordinal": 35,
+"rva": 390656,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5f600"
+},
+{
+"name": "SafeArrayAllocDescriptor",
+"ordinal": 36,
+"rva": 87680,
+"forwarder": null,
+"ref": "oleaut32.dll!0x15680"
+},
+{
+"name": "SafeArrayAllocData",
+"ordinal": 37,
+"rva": 93872,
+"forwarder": null,
+"ref": "oleaut32.dll!0x16eb0"
+},
+{
+"name": "SafeArrayDestroyDescriptor",
+"ordinal": 38,
+"rva": 29888,
+"forwarder": null,
+"ref": "oleaut32.dll!0x74c0"
+},
+{
+"name": "SafeArrayDestroyData",
+"ordinal": 39,
+"rva": 417712,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65fb0"
+},
+{
+"name": "SafeArrayRedim",
+"ordinal": 40,
+"rva": 88864,
+"forwarder": null,
+"ref": "oleaut32.dll!0x15b20"
+},
+{
+"name": "SafeArrayAllocDescriptorEx",
+"ordinal": 41,
+"rva": 28416,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6f00"
+},
+{
+"name": "SafeArrayCreateEx",
+"ordinal": 42,
+"rva": 416736,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65be0"
+},
+{
+"name": "SafeArrayCreateVectorEx",
+"ordinal": 43,
+"rva": 417056,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65d20"
+},
+{
+"name": "SafeArraySetRecordInfo",
+"ordinal": 44,
+"rva": 417600,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65f40"
+},
+{
+"name": "SafeArrayGetRecordInfo",
+"ordinal": 45,
+"rva": 417488,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65ed0"
+},
+{
+"name": "VarParseNumFromStr",
+"ordinal": 46,
+"rva": 105328,
+"forwarder": null,
+"ref": "oleaut32.dll!0x19b70"
+},
+{
+"name": "VarNumFromParseNum",
+"ordinal": 47,
+"rva": 107328,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1a340"
+},
+{
+"name": "VarI2FromUI1",
+"ordinal": 48,
+"rva": 379680,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cb20"
+},
+{
+"name": "VarI2FromI4",
+"ordinal": 49,
+"rva": 379360,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c9e0"
+},
+{
+"name": "VarI2FromR4",
+"ordinal": 50,
+"rva": 379456,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5ca40"
+},
+{
+"name": "VarI2FromR8",
+"ordinal": 51,
+"rva": 379472,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5ca50"
+},
+{
+"name": "VarI2FromCy",
+"ordinal": 52,
+"rva": 435072,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a380"
+},
+{
+"name": "VarI2FromDate",
+"ordinal": 53,
+"rva": 379248,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c970"
+},
+{
+"name": "VarI2FromStr",
+"ordinal": 54,
+"rva": 379536,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5ca90"
+},
+{
+"name": "VarI2FromDisp",
+"ordinal": 55,
+"rva": 379264,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c980"
+},
+{
+"name": "VarI2FromBool",
+"ordinal": 56,
+"rva": 379232,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c960"
+},
+{
+"name": "SafeArraySetIID",
+"ordinal": 57,
+"rva": 118816,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1d020"
+},
+{
+"name": "VarI4FromUI1",
+"ordinal": 58,
+"rva": 379984,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cc50"
+},
+{
+"name": "VarI4FromI2",
+"ordinal": 59,
+"rva": 379792,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cb90"
+},
+{
+"name": "VarI4FromR4",
+"ordinal": 60,
+"rva": 379968,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cc40"
+},
+{
+"name": "VarI4FromR8",
+"ordinal": 61,
+"rva": 5632,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1600"
+},
+{
+"name": "VarI4FromCy",
+"ordinal": 62,
+"rva": 435152,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a3d0"
+},
+{
+"name": "VarI4FromDate",
+"ordinal": 63,
+"rva": 379808,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cba0"
+},
+{
+"name": "VarI4FromStr",
+"ordinal": 64,
+"rva": 105104,
+"forwarder": null,
+"ref": "oleaut32.dll!0x19a90"
+},
+{
+"name": "VarI4FromDisp",
+"ordinal": 65,
+"rva": 379824,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cbb0"
+},
+{
+"name": "VarI4FromBool",
+"ordinal": 66,
+"rva": 379792,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cb90"
+},
+{
+"name": "SafeArrayGetIID",
+"ordinal": 67,
+"rva": 417440,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65ea0"
+},
+{
+"name": "VarR4FromUI1",
+"ordinal": 68,
+"rva": 380992,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d040"
+},
+{
+"name": "VarR4FromI2",
+"ordinal": 69,
+"rva": 380752,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cf50"
+},
+{
+"name": "VarR4FromI4",
+"ordinal": 70,
+"rva": 380928,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d000"
+},
+{
+"name": "VarR4FromR8",
+"ordinal": 71,
+"rva": 14864,
+"forwarder": null,
+"ref": "oleaut32.dll!0x3a10"
+},
+{
+"name": "VarR4FromCy",
+"ordinal": 72,
+"rva": 435296,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a460"
+},
+{
+"name": "VarR4FromDate",
+"ordinal": 73,
+"rva": 380784,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cf70"
+},
+{
+"name": "VarR4FromStr",
+"ordinal": 74,
+"rva": 9824,
+"forwarder": null,
+"ref": "oleaut32.dll!0x2660"
+},
+{
+"name": "VarR4FromDisp",
+"ordinal": 75,
+"rva": 380800,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cf80"
+},
+{
+"name": "VarR4FromBool",
+"ordinal": 76,
+"rva": 380752,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cf50"
+},
+{
+"name": "SafeArrayGetVartype",
+"ordinal": 77,
+"rva": 20944,
+"forwarder": null,
+"ref": "oleaut32.dll!0x51d0"
+},
+{
+"name": "VarR8FromUI1",
+"ordinal": 78,
+"rva": 378400,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c620"
+},
+{
+"name": "VarR8FromI2",
+"ordinal": 79,
+"rva": 377920,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c440"
+},
+{
+"name": "VarR8FromI4",
+"ordinal": 80,
+"rva": 381296,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d170"
+},
+{
+"name": "VarR8FromR4",
+"ordinal": 81,
+"rva": 381360,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d1b0"
+},
+{
+"name": "VarR8FromCy",
+"ordinal": 82,
+"rva": 435344,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a490"
+},
+{
+"name": "VarR8FromDate",
+"ordinal": 83,
+"rva": 381152,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d0e0"
+},
+{
+"name": "VarR8FromStr",
+"ordinal": 84,
+"rva": 104960,
+"forwarder": null,
+"ref": "oleaut32.dll!0x19a00"
+},
+{
+"name": "VarR8FromDisp",
+"ordinal": 85,
+"rva": 381168,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d0f0"
+},
+{
+"name": "VarR8FromBool",
+"ordinal": 86,
+"rva": 377920,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c440"
+},
+{
+"name": "VarFormat",
+"ordinal": 87,
+"rva": 441248,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6bba0"
+},
+{
+"name": "VarDateFromUI1",
+"ordinal": 88,
+"rva": 378400,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c620"
+},
+{
+"name": "VarDateFromI2",
+"ordinal": 89,
+"rva": 377920,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c440"
+},
+{
+"name": "VarDateFromI4",
+"ordinal": 90,
+"rva": 378176,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c540"
+},
+{
+"name": "VarDateFromR4",
+"ordinal": 91,
+"rva": 378304,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c5c0"
+},
+{
+"name": "VarDateFromR8",
+"ordinal": 92,
+"rva": 378352,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c5f0"
+},
+{
+"name": "VarDateFromCy",
+"ordinal": 93,
+"rva": 377952,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c460"
+},
+{
+"name": "VarDateFromStr",
+"ordinal": 94,
+"rva": 432464,
+"forwarder": null,
+"ref": "oleaut32.dll!0x69950"
+},
+{
+"name": "VarDateFromDisp",
+"ordinal": 95,
+"rva": 378016,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c4a0"
+},
+{
+"name": "VarDateFromBool",
+"ordinal": 96,
+"rva": 377920,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c440"
+},
+{
+"name": "VarFormatDateTime",
+"ordinal": 97,
+"rva": 441776,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6bdb0"
+},
+{
+"name": "VarCyFromUI1",
+"ordinal": 98,
+"rva": 377776,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c3b0"
+},
+{
+"name": "VarCyFromI2",
+"ordinal": 99,
+"rva": 434720,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a220"
+},
+{
+"name": "VarCyFromI4",
+"ordinal": 100,
+"rva": 434752,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a240"
+},
+{
+"name": "VarCyFromR4",
+"ordinal": 101,
+"rva": 434784,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a260"
+},
+{
+"name": "VarCyFromR8",
+"ordinal": 102,
+"rva": 434800,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a270"
+},
+{
+"name": "VarCyFromDate",
+"ordinal": 103,
+"rva": 434800,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a270"
+},
+{
+"name": "VarCyFromStr",
+"ordinal": 104,
+"rva": 377632,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c320"
+},
+{
+"name": "VarCyFromDisp",
+"ordinal": 105,
+"rva": 377520,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c2b0"
+},
+{
+"name": "VarCyFromBool",
+"ordinal": 106,
+"rva": 434720,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a220"
+},
+{
+"name": "VarFormatNumber",
+"ordinal": 107,
+"rva": 450176,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6de80"
+},
+{
+"name": "VarBstrFromUI1",
+"ordinal": 108,
+"rva": 377488,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c290"
+},
+{
+"name": "VarBstrFromI2",
+"ordinal": 109,
+"rva": 377008,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c0b0"
+},
+{
+"name": "VarBstrFromI4",
+"ordinal": 110,
+"rva": 88528,
+"forwarder": null,
+"ref": "oleaut32.dll!0x159d0"
+},
+{
+"name": "VarBstrFromR4",
+"ordinal": 111,
+"rva": 377184,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c160"
+},
+{
+"name": "VarBstrFromR8",
+"ordinal": 112,
+"rva": 102192,
+"forwarder": null,
+"ref": "oleaut32.dll!0x18f30"
+},
+{
+"name": "VarBstrFromCy",
+"ordinal": 113,
+"rva": 375936,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bc80"
+},
+{
+"name": "VarBstrFromDate",
+"ordinal": 114,
+"rva": 116256,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1c620"
+},
+{
+"name": "VarBstrFromDisp",
+"ordinal": 115,
+"rva": 376912,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c050"
+},
+{
+"name": "VarBstrFromBool",
+"ordinal": 116,
+"rva": 102832,
+"forwarder": null,
+"ref": "oleaut32.dll!0x191b0"
+},
+{
+"name": "VarFormatPercent",
+"ordinal": 117,
+"rva": 450448,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6df90"
+},
+{
+"name": "VarBoolFromUI1",
+"ordinal": 118,
+"rva": 375744,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bbc0"
+},
+{
+"name": "VarBoolFromI2",
+"ordinal": 119,
+"rva": 375776,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bbe0"
+},
+{
+"name": "VarBoolFromI4",
+"ordinal": 120,
+"rva": 375808,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bc00"
+},
+{
+"name": "VarBoolFromR4",
+"ordinal": 121,
+"rva": 375872,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bc40"
+},
+{
+"name": "VarBoolFromR8",
+"ordinal": 122,
+"rva": 375904,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bc60"
+},
+{
+"name": "VarBoolFromDate",
+"ordinal": 123,
+"rva": 375648,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bb60"
+},
+{
+"name": "VarBoolFromCy",
+"ordinal": 124,
+"rva": 375616,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bb40"
+},
+{
+"name": "VarBoolFromStr",
+"ordinal": 125,
+"rva": 102944,
+"forwarder": null,
+"ref": "oleaut32.dll!0x19220"
+},
+{
+"name": "VarBoolFromDisp",
+"ordinal": 126,
+"rva": 375664,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bb70"
+},
+{
+"name": "VarFormatCurrency",
+"ordinal": 127,
+"rva": 441488,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6bc90"
+},
+{
+"name": "VarWeekdayName",
+"ordinal": 128,
+"rva": 451568,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6e3f0"
+},
+{
+"name": "VarMonthName",
+"ordinal": 129,
+"rva": 450704,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6e090"
+},
+{
+"name": "VarUI1FromI2",
+"ordinal": 130,
+"rva": 381712,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d310"
+},
+{
+"name": "VarUI1FromI4",
+"ordinal": 131,
+"rva": 381744,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d330"
+},
+{
+"name": "VarUI1FromR4",
+"ordinal": 132,
+"rva": 381808,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d370"
+},
+{
+"name": "VarUI1FromR8",
+"ordinal": 133,
+"rva": 381824,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d380"
+},
+{
+"name": "VarUI1FromCy",
+"ordinal": 134,
+"rva": 381520,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d250"
+},
+{
+"name": "VarUI1FromDate",
+"ordinal": 135,
+"rva": 381584,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d290"
+},
+{
+"name": "VarUI1FromStr",
+"ordinal": 136,
+"rva": 381888,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d3c0"
+},
+{
+"name": "VarUI1FromDisp",
+"ordinal": 137,
+"rva": 381600,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d2a0"
+},
+{
+"name": "VarUI1FromBool",
+"ordinal": 138,
+"rva": 378656,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c720"
+},
+{
+"name": "VarFormatFromTokens",
+"ordinal": 139,
+"rva": 441920,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6be40"
+},
+{
+"name": "VarTokenizeFormatString",
+"ordinal": 140,
+"rva": 450912,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6e160"
+},
+{
+"name": "VarAdd",
+"ordinal": 141,
+"rva": 350400,
+"forwarder": null,
+"ref": "oleaut32.dll!0x558c0"
+},
+{
+"name": "VarAnd",
+"ordinal": 142,
+"rva": 360896,
+"forwarder": null,
+"ref": "oleaut32.dll!0x581c0"
+},
+{
+"name": "VarDiv",
+"ordinal": 143,
+"rva": 353328,
+"forwarder": null,
+"ref": "oleaut32.dll!0x56430"
+},
+{
+"name": "BSTR_UserFree64",
+"ordinal": 144,
+"rva": 87984,
+"forwarder": null,
+"ref": "oleaut32.dll!0x157b0"
+},
+{
+"name": "BSTR_UserMarshal64",
+"ordinal": 145,
+"rva": 25136,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6230"
+},
+{
+"name": "DispCallFunc",
+"ordinal": 146,
+"rva": 75664,
+"forwarder": null,
+"ref": "oleaut32.dll!0x12790"
+},
+{
+"name": "VariantChangeTypeEx",
+"ordinal": 147,
+"rva": 70576,
+"forwarder": null,
+"ref": "oleaut32.dll!0x113b0"
+},
+{
+"name": "SafeArrayPtrOfIndex",
+"ordinal": 148,
+"rva": 25264,
+"forwarder": null,
+"ref": "oleaut32.dll!0x62b0"
+},
+{
+"name": "SysStringByteLen",
+"ordinal": 149,
+"rva": 23088,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5a30"
+},
+{
+"name": "SysAllocStringByteLen",
+"ordinal": 150,
+"rva": 69680,
+"forwarder": null,
+"ref": "oleaut32.dll!0x11030"
+},
+{
+"name": "BSTR_UserSize64",
+"ordinal": 151,
+"rva": 26224,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6670"
+},
+{
+"name": "VarEqv",
+"ordinal": 152,
+"rva": 361296,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58350"
+},
+{
+"name": "VarIdiv",
+"ordinal": 153,
+"rva": 361344,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58380"
+},
+{
+"name": "VarImp",
+"ordinal": 154,
+"rva": 361792,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58540"
+},
+{
+"name": "VarMod",
+"ordinal": 155,
+"rva": 362032,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58630"
+},
+{
+"name": "VarMul",
+"ordinal": 156,
+"rva": 355008,
+"forwarder": null,
+"ref": "oleaut32.dll!0x56ac0"
+},
+{
+"name": "VarOr",
+"ordinal": 157,
+"rva": 362592,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58860"
+},
+{
+"name": "VarPow",
+"ordinal": 158,
+"rva": 357296,
+"forwarder": null,
+"ref": "oleaut32.dll!0x573b0"
+},
+{
+"name": "VarSub",
+"ordinal": 159,
+"rva": 357888,
+"forwarder": null,
+"ref": "oleaut32.dll!0x57600"
+},
+{
+"name": "CreateTypeLib",
+"ordinal": 160,
+"rva": 201136,
+"forwarder": null,
+"ref": "oleaut32.dll!0x311b0"
+},
+{
+"name": "LoadTypeLib",
+"ordinal": 161,
+"rva": 31808,
+"forwarder": null,
+"ref": "oleaut32.dll!0x7c40"
+},
+{
+"name": "LoadRegTypeLib",
+"ordinal": 162,
+"rva": 97152,
+"forwarder": null,
+"ref": "oleaut32.dll!0x17b80"
+},
+{
+"name": "RegisterTypeLib",
+"ordinal": 163,
+"rva": 211952,
+"forwarder": null,
+"ref": "oleaut32.dll!0x33bf0"
+},
+{
+"name": "QueryPathOfRegTypeLib",
+"ordinal": 164,
+"rva": 211680,
+"forwarder": null,
+"ref": "oleaut32.dll!0x33ae0"
+},
+{
+"name": "LHashValOfNameSys",
+"ordinal": 165,
+"rva": 30368,
+"forwarder": null,
+"ref": "oleaut32.dll!0x76a0"
+},
+{
+"name": "LHashValOfNameSysA",
+"ordinal": 166,
+"rva": 78784,
+"forwarder": null,
+"ref": "oleaut32.dll!0x133c0"
+},
+{
+"name": "VarXor",
+"ordinal": 167,
+"rva": 363008,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58a00"
+},
+{
+"name": "VarAbs",
+"ordinal": 168,
+"rva": 346816,
+"forwarder": null,
+"ref": "oleaut32.dll!0x54ac0"
+},
+{
+"name": "VarFix",
+"ordinal": 169,
+"rva": 347552,
+"forwarder": null,
+"ref": "oleaut32.dll!0x54da0"
+},
+{
+"name": "OaBuildVersion",
+"ordinal": 170,
+"rva": 218528,
+"forwarder": null,
+"ref": "oleaut32.dll!0x355a0"
+},
+{
+"name": "ClearCustData",
+"ordinal": 171,
+"rva": 305568,
+"forwarder": null,
+"ref": "oleaut32.dll!0x4a9a0"
+},
+{
+"name": "VarInt",
+"ordinal": 172,
+"rva": 348064,
+"forwarder": null,
+"ref": "oleaut32.dll!0x54fa0"
+},
+{
+"name": "VarNeg",
+"ordinal": 173,
+"rva": 348544,
+"forwarder": null,
+"ref": "oleaut32.dll!0x55180"
+},
+{
+"name": "VarNot",
+"ordinal": 174,
+"rva": 362432,
+"forwarder": null,
+"ref": "oleaut32.dll!0x587c0"
+},
+{
+"name": "VarRound",
+"ordinal": 175,
+"rva": 349456,
+"forwarder": null,
+"ref": "oleaut32.dll!0x55510"
+},
+{
+"name": "VarCmp",
+"ordinal": 176,
+"rva": 26656,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6820"
+},
+{
+"name": "VarDecAdd",
+"ordinal": 177,
+"rva": 366432,
+"forwarder": null,
+"ref": "oleaut32.dll!0x59760"
+},
+{
+"name": "VarDecDiv",
+"ordinal": 178,
+"rva": 366448,
+"forwarder": null,
+"ref": "oleaut32.dll!0x59770"
+},
+{
+"name": "VarDecMul",
+"ordinal": 179,
+"rva": 368160,
+"forwarder": null,
+"ref": "oleaut32.dll!0x59e20"
+},
+{
+"name": "CreateTypeLib2",
+"ordinal": 180,
+"rva": 305712,
+"forwarder": null,
+"ref": "oleaut32.dll!0x4aa30"
+},
+{
+"name": "VarDecSub",
+"ordinal": 181,
+"rva": 368832,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5a0c0"
+},
+{
+"name": "VarDecAbs",
+"ordinal": 182,
+"rva": 366384,
+"forwarder": null,
+"ref": "oleaut32.dll!0x59730"
+},
+{
+"name": "LoadTypeLibEx",
+"ordinal": 183,
+"rva": 45472,
+"forwarder": null,
+"ref": "oleaut32.dll!0xb1a0"
+},
+{
+"name": "SystemTimeToVariantTime",
+"ordinal": 184,
+"rva": 108656,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1a870"
+},
+{
+"name": "VariantTimeToSystemTime",
+"ordinal": 185,
+"rva": 109552,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1abf0"
+},
+{
+"name": "UnRegisterTypeLib",
+"ordinal": 186,
+"rva": 203344,
+"forwarder": null,
+"ref": "oleaut32.dll!0x31a50"
+},
+{
+"name": "VarDecFix",
+"ordinal": 187,
+"rva": 9312,
+"forwarder": null,
+"ref": "oleaut32.dll!0x2460"
+},
+{
+"name": "VarDecInt",
+"ordinal": 188,
+"rva": 368096,
+"forwarder": null,
+"ref": "oleaut32.dll!0x59de0"
+},
+{
+"name": "VarDecNeg",
+"ordinal": 189,
+"rva": 368784,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5a090"
+},
+{
+"name": "VarDecFromUI1",
+"ordinal": 190,
+"rva": 419440,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66670"
+},
+{
+"name": "VarDecFromI2",
+"ordinal": 191,
+"rva": 419136,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66540"
+},
+{
+"name": "VarDecFromI4",
+"ordinal": 192,
+"rva": 13920,
+"forwarder": null,
+"ref": "oleaut32.dll!0x3660"
+},
+{
+"name": "VarDecFromR4",
+"ordinal": 193,
+"rva": 6512,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1970"
+},
+{
+"name": "VarDecFromR8",
+"ordinal": 194,
+"rva": 5760,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1680"
+},
+{
+"name": "VarDecFromDate",
+"ordinal": 195,
+"rva": 418976,
+"forwarder": null,
+"ref": "oleaut32.dll!0x664a0"
+},
+{
+"name": "VarDecFromCy",
+"ordinal": 196,
+"rva": 418928,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66470"
+},
+{
+"name": "VarDecFromStr",
+"ordinal": 197,
+"rva": 419280,
+"forwarder": null,
+"ref": "oleaut32.dll!0x665d0"
+},
+{
+"name": "VarDecFromDisp",
+"ordinal": 198,
+"rva": 418992,
+"forwarder": null,
+"ref": "oleaut32.dll!0x664b0"
+},
+{
+"name": "VarDecFromBool",
+"ordinal": 199,
+"rva": 418880,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66440"
+},
+{
+"name": "GetErrorInfo",
+"ordinal": 200,
+"rva": 126576,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1ee70"
+},
+{
+"name": "SetErrorInfo",
+"ordinal": 201,
+"rva": 126592,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1ee80"
+},
+{
+"name": "CreateErrorInfo",
+"ordinal": 202,
+"rva": 126560,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1ee60"
+},
+{
+"name": "VarDecRound",
+"ordinal": 203,
+"rva": 6160,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1810"
+},
+{
+"name": "VarDecCmp",
+"ordinal": 204,
+"rva": 23328,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5b20"
+},
+{
+"name": "VarI2FromI1",
+"ordinal": 205,
+"rva": 379344,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c9d0"
+},
+{
+"name": "VarI2FromUI2",
+"ordinal": 206,
+"rva": 379696,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cb30"
+},
+{
+"name": "VarI2FromUI4",
+"ordinal": 207,
+"rva": 379728,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cb50"
+},
+{
+"name": "VarI2FromDec",
+"ordinal": 208,
+"rva": 419696,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66770"
+},
+{
+"name": "VarI4FromI1",
+"ordinal": 209,
+"rva": 379904,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cc00"
+},
+{
+"name": "VarI4FromUI2",
+"ordinal": 210,
+"rva": 380000,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cc60"
+},
+{
+"name": "VarI4FromUI4",
+"ordinal": 211,
+"rva": 380016,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cc70"
+},
+{
+"name": "VarI4FromDec",
+"ordinal": 212,
+"rva": 419840,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66800"
+},
+{
+"name": "VarR4FromI1",
+"ordinal": 213,
+"rva": 380896,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cfe0"
+},
+{
+"name": "VarR4FromUI2",
+"ordinal": 214,
+"rva": 381024,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d060"
+},
+{
+"name": "VarR4FromUI4",
+"ordinal": 215,
+"rva": 381056,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d080"
+},
+{
+"name": "VarR4FromDec",
+"ordinal": 216,
+"rva": 420144,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66930"
+},
+{
+"name": "VarR8FromI1",
+"ordinal": 217,
+"rva": 381264,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d150"
+},
+{
+"name": "VarR8FromUI2",
+"ordinal": 218,
+"rva": 381392,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d1d0"
+},
+{
+"name": "VarR8FromUI4",
+"ordinal": 219,
+"rva": 381424,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d1f0"
+},
+{
+"name": "VarR8FromDec",
+"ordinal": 220,
+"rva": 112768,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1b880"
+},
+{
+"name": "VarDateFromI1",
+"ordinal": 221,
+"rva": 378112,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c500"
+},
+{
+"name": "VarDateFromUI2",
+"ordinal": 222,
+"rva": 378432,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c640"
+},
+{
+"name": "VarDateFromUI4",
+"ordinal": 223,
+"rva": 378496,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c680"
+},
+{
+"name": "VarDateFromDec",
+"ordinal": 224,
+"rva": 418784,
+"forwarder": null,
+"ref": "oleaut32.dll!0x663e0"
+},
+{
+"name": "VarCyFromI1",
+"ordinal": 225,
+"rva": 377600,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c300"
+},
+{
+"name": "VarCyFromUI2",
+"ordinal": 226,
+"rva": 377808,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c3d0"
+},
+{
+"name": "VarCyFromUI4",
+"ordinal": 227,
+"rva": 377840,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c3f0"
+},
+{
+"name": "VarCyFromDec",
+"ordinal": 228,
+"rva": 417952,
+"forwarder": null,
+"ref": "oleaut32.dll!0x660a0"
+},
+{
+"name": "VarBstrFromI1",
+"ordinal": 229,
+"rva": 376992,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c0a0"
+},
+{
+"name": "VarBstrFromUI2",
+"ordinal": 230,
+"rva": 377504,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c2a0"
+},
+{
+"name": "VarBstrFromUI4",
+"ordinal": 231,
+"rva": 102368,
+"forwarder": null,
+"ref": "oleaut32.dll!0x18fe0"
+},
+{
+"name": "VarBstrFromDec",
+"ordinal": 232,
+"rva": 5088,
+"forwarder": null,
+"ref": "oleaut32.dll!0x13e0"
+},
+{
+"name": "VarBoolFromI1",
+"ordinal": 233,
+"rva": 375744,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bbc0"
+},
+{
+"name": "VarBoolFromUI2",
+"ordinal": 234,
+"rva": 375776,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bbe0"
+},
+{
+"name": "VarBoolFromUI4",
+"ordinal": 235,
+"rva": 375808,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bc00"
+},
+{
+"name": "VarBoolFromDec",
+"ordinal": 236,
+"rva": 417904,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66070"
+},
+{
+"name": "VarUI1FromI1",
+"ordinal": 237,
+"rva": 381680,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d2f0"
+},
+{
+"name": "VarUI1FromUI2",
+"ordinal": 238,
+"rva": 381712,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d310"
+},
+{
+"name": "VarUI1FromUI4",
+"ordinal": 239,
+"rva": 381744,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d330"
+},
+{
+"name": "VarUI1FromDec",
+"ordinal": 240,
+"rva": 420224,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66980"
+},
+{
+"name": "VarDecFromI1",
+"ordinal": 241,
+"rva": 419088,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66510"
+},
+{
+"name": "VarDecFromUI2",
+"ordinal": 242,
+"rva": 419472,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66690"
+},
+{
+"name": "VarDecFromUI4",
+"ordinal": 243,
+"rva": 419504,
+"forwarder": null,
+"ref": "oleaut32.dll!0x666b0"
+},
+{
+"name": "VarI1FromUI1",
+"ordinal": 244,
+"rva": 379104,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c8e0"
+},
+{
+"name": "VarI1FromI2",
+"ordinal": 245,
+"rva": 378832,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c7d0"
+},
+{
+"name": "VarI1FromI4",
+"ordinal": 246,
+"rva": 378880,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c800"
+},
+{
+"name": "VarI1FromR4",
+"ordinal": 247,
+"rva": 378960,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c850"
+},
+{
+"name": "VarI1FromR8",
+"ordinal": 248,
+"rva": 378976,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c860"
+},
+{
+"name": "VarI1FromDate",
+"ordinal": 249,
+"rva": 378736,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c770"
+},
+{
+"name": "VarI1FromCy",
+"ordinal": 250,
+"rva": 378672,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c730"
+},
+{
+"name": "VarI1FromStr",
+"ordinal": 251,
+"rva": 379040,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c8a0"
+},
+{
+"name": "VarI1FromDisp",
+"ordinal": 252,
+"rva": 378752,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c780"
+},
+{
+"name": "VarI1FromBool",
+"ordinal": 253,
+"rva": 378656,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c720"
+},
+{
+"name": "VarI1FromUI2",
+"ordinal": 254,
+"rva": 379136,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c900"
+},
+{
+"name": "VarI1FromUI4",
+"ordinal": 255,
+"rva": 379168,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c920"
+},
+{
+"name": "VarI1FromDec",
+"ordinal": 256,
+"rva": 419568,
+"forwarder": null,
+"ref": "oleaut32.dll!0x666f0"
+},
+{
+"name": "VarUI2FromUI1",
+"ordinal": 257,
+"rva": 379680,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cb20"
+},
+{
+"name": "VarUI2FromI2",
+"ordinal": 258,
+"rva": 382144,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d4c0"
+},
+{
+"name": "VarUI2FromI4",
+"ordinal": 259,
+"rva": 382176,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d4e0"
+},
+{
+"name": "VarUI2FromR4",
+"ordinal": 260,
+"rva": 382240,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d520"
+},
+{
+"name": "VarUI2FromR8",
+"ordinal": 261,
+"rva": 382256,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d530"
+},
+{
+"name": "VarUI2FromDate",
+"ordinal": 262,
+"rva": 382016,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d440"
+},
+{
+"name": "VarUI2FromCy",
+"ordinal": 263,
+"rva": 381952,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d400"
+},
+{
+"name": "VarUI2FromStr",
+"ordinal": 264,
+"rva": 382320,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d570"
+},
+{
+"name": "VarUI2FromDisp",
+"ordinal": 265,
+"rva": 382032,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d450"
+},
+{
+"name": "VarUI2FromBool",
+"ordinal": 266,
+"rva": 379232,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c960"
+},
+{
+"name": "VarUI2FromI1",
+"ordinal": 267,
+"rva": 382112,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d4a0"
+},
+{
+"name": "VarUI2FromUI4",
+"ordinal": 268,
+"rva": 382176,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d4e0"
+},
+{
+"name": "VarUI2FromDec",
+"ordinal": 269,
+"rva": 420352,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66a00"
+},
+{
+"name": "VarUI4FromUI1",
+"ordinal": 270,
+"rva": 379984,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cc50"
+},
+{
+"name": "VarUI4FromI2",
+"ordinal": 271,
+"rva": 382544,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d650"
+},
+{
+"name": "VarUI4FromI4",
+"ordinal": 272,
+"rva": 382576,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d670"
+},
+{
+"name": "VarUI4FromR4",
+"ordinal": 273,
+"rva": 382640,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d6b0"
+},
+{
+"name": "VarUI4FromR8",
+"ordinal": 274,
+"rva": 382656,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d6c0"
+},
+{
+"name": "VarUI4FromDate",
+"ordinal": 275,
+"rva": 382416,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d5d0"
+},
+{
+"name": "VarUI4FromCy",
+"ordinal": 276,
+"rva": 382384,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d5b0"
+},
+{
+"name": "VarUI4FromStr",
+"ordinal": 277,
+"rva": 382720,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d700"
+},
+{
+"name": "VarUI4FromDisp",
+"ordinal": 278,
+"rva": 382432,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d5e0"
+},
+{
+"name": "VarUI4FromBool",
+"ordinal": 279,
+"rva": 379792,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cb90"
+},
+{
+"name": "VarUI4FromI1",
+"ordinal": 280,
+"rva": 382512,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d630"
+},
+{
+"name": "VarUI4FromUI2",
+"ordinal": 281,
+"rva": 380000,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cc60"
+},
+{
+"name": "VarUI4FromDec",
+"ordinal": 282,
+"rva": 8992,
+"forwarder": null,
+"ref": "oleaut32.dll!0x2320"
+},
+{
+"name": "BSTR_UserSize",
+"ordinal": 283,
+"rva": 19680,
+"forwarder": null,
+"ref": "oleaut32.dll!0x4ce0"
+},
+{
+"name": "BSTR_UserMarshal",
+"ordinal": 284,
+"rva": 19552,
+"forwarder": null,
+"ref": "oleaut32.dll!0x4c60"
+},
+{
+"name": "BSTR_UserUnmarshal",
+"ordinal": 285,
+"rva": 84560,
+"forwarder": null,
+"ref": "oleaut32.dll!0x14a50"
+},
+{
+"name": "BSTR_UserFree",
+"ordinal": 286,
+"rva": 81024,
+"forwarder": null,
+"ref": "oleaut32.dll!0x13c80"
+},
+{
+"name": "VARIANT_UserSize",
+"ordinal": 287,
+"rva": 16704,
+"forwarder": null,
+"ref": "oleaut32.dll!0x4140"
+},
+{
+"name": "VARIANT_UserMarshal",
+"ordinal": 288,
+"rva": 17536,
+"forwarder": null,
+"ref": "oleaut32.dll!0x4480"
+},
+{
+"name": "VARIANT_UserUnmarshal",
+"ordinal": 289,
+"rva": 81664,
+"forwarder": null,
+"ref": "oleaut32.dll!0x13f00"
+},
+{
+"name": "VARIANT_UserFree",
+"ordinal": 290,
+"rva": 22016,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5600"
+},
+{
+"name": "LPSAFEARRAY_UserSize",
+"ordinal": 291,
+"rva": 374224,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5b5d0"
+},
+{
+"name": "LPSAFEARRAY_UserMarshal",
+"ordinal": 292,
+"rva": 374208,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5b5c0"
+},
+{
+"name": "LPSAFEARRAY_UserUnmarshal",
+"ordinal": 293,
+"rva": 374240,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5b5e0"
+},
+{
+"name": "LPSAFEARRAY_UserFree",
+"ordinal": 294,
+"rva": 22208,
+"forwarder": null,
+"ref": "oleaut32.dll!0x56c0"
+},
+{
+"name": "LPSAFEARRAY_Size",
+"ordinal": 295,
+"rva": 18080,
+"forwarder": null,
+"ref": "oleaut32.dll!0x46a0"
+},
+{
+"name": "LPSAFEARRAY_Marshal",
+"ordinal": 296,
+"rva": 18896,
+"forwarder": null,
+"ref": "oleaut32.dll!0x49d0"
+},
+{
+"name": "LPSAFEARRAY_Unmarshal",
+"ordinal": 297,
+"rva": 97200,
+"forwarder": null,
+"ref": "oleaut32.dll!0x17bb0"
+},
+{
+"name": "VarDecCmpR8",
+"ordinal": 298,
+"rva": 363872,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58d60"
+},
+{
+"name": "VarCyAdd",
+"ordinal": 299,
+"rva": 364112,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58e50"
+},
+{
+"name": "BSTR_UserUnmarshal64",
+"ordinal": 300,
+"rva": 88000,
+"forwarder": null,
+"ref": "oleaut32.dll!0x157c0"
+},
+{
+"name": "DllCanUnloadNow",
+"ordinal": 301,
+"rva": 30672,
+"forwarder": null,
+"ref": "oleaut32.dll!0x77d0"
+},
+{
+"name": "DllGetClassObject",
+"ordinal": 302,
+"rva": 42368,
+"forwarder": null,
+"ref": "oleaut32.dll!0xa580"
+},
+{
+"name": "VarCyMul",
+"ordinal": 303,
+"rva": 364464,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58fb0"
+},
+{
+"name": "VarCyMulI4",
+"ordinal": 304,
+"rva": 364800,
+"forwarder": null,
+"ref": "oleaut32.dll!0x59100"
+},
+{
+"name": "VarCySub",
+"ordinal": 305,
+"rva": 364960,
+"forwarder": null,
+"ref": "oleaut32.dll!0x591a0"
+},
+{
+"name": "VarCyAbs",
+"ordinal": 306,
+"rva": 364064,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58e20"
+},
+{
+"name": "VarCyFix",
+"ordinal": 307,
+"rva": 364288,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58f00"
+},
+{
+"name": "VarCyInt",
+"ordinal": 308,
+"rva": 364352,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58f40"
+},
+{
+"name": "VarCyNeg",
+"ordinal": 309,
+"rva": 364912,
+"forwarder": null,
+"ref": "oleaut32.dll!0x59170"
+},
+{
+"name": "VarCyRound",
+"ordinal": 310,
+"rva": 347424,
+"forwarder": null,
+"ref": "oleaut32.dll!0x54d20"
+},
+{
+"name": "VarCyCmp",
+"ordinal": 311,
+"rva": 364160,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58e80"
+},
+{
+"name": "VarCyCmpR8",
+"ordinal": 312,
+"rva": 364192,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58ea0"
+},
+{
+"name": "VarBstrCat",
+"ordinal": 313,
+"rva": 28944,
+"forwarder": null,
+"ref": "oleaut32.dll!0x7110"
+},
+{
+"name": "VarBstrCmp",
+"ordinal": 314,
+"rva": 15712,
+"forwarder": null,
+"ref": "oleaut32.dll!0x3d60"
+},
+{
+"name": "VarR8Pow",
+"ordinal": 315,
+"rva": 357664,
+"forwarder": null,
+"ref": "oleaut32.dll!0x57520"
+},
+{
+"name": "VarR4CmpR8",
+"ordinal": 316,
+"rva": 363984,
+"forwarder": null,
+"ref": "oleaut32.dll!0x58dd0"
+},
+{
+"name": "VarR8Round",
+"ordinal": 317,
+"rva": 349216,
+"forwarder": null,
+"ref": "oleaut32.dll!0x55420"
+},
+{
+"name": "VarCat",
+"ordinal": 318,
+"rva": 352960,
+"forwarder": null,
+"ref": "oleaut32.dll!0x562c0"
+},
+{
+"name": "VarDateFromUdateEx",
+"ordinal": 319,
+"rva": 108928,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1a980"
+},
+{
+"name": "DllRegisterServer",
+"ordinal": 320,
+"rva": 389648,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5f210"
+},
+{
+"name": "DllUnregisterServer",
+"ordinal": 321,
+"rva": 390480,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5f550"
+},
+{
+"name": "GetRecordInfoFromGuids",
+"ordinal": 322,
+"rva": 411808,
+"forwarder": null,
+"ref": "oleaut32.dll!0x648a0"
+},
+{
+"name": "GetRecordInfoFromTypeInfo",
+"ordinal": 323,
+"rva": 412192,
+"forwarder": null,
+"ref": "oleaut32.dll!0x64a20"
+},
+{
+"name": "LPSAFEARRAY_UserFree64",
+"ordinal": 324,
+"rva": 374192,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5b5b0"
+},
+{
+"name": "SetVarConversionLocaleSetting",
+"ordinal": 325,
+"rva": 217280,
+"forwarder": null,
+"ref": "oleaut32.dll!0x350c0"
+},
+{
+"name": "GetVarConversionLocaleSetting",
+"ordinal": 326,
+"rva": 217168,
+"forwarder": null,
+"ref": "oleaut32.dll!0x35050"
+},
+{
+"name": "SetOaNoCache",
+"ordinal": 327,
+"rva": 217248,
+"forwarder": null,
+"ref": "oleaut32.dll!0x350a0"
+},
+{
+"name": "LPSAFEARRAY_UserMarshal64",
+"ordinal": 328,
+"rva": 12384,
+"forwarder": null,
+"ref": "oleaut32.dll!0x3060"
+},
+{
+"name": "VarCyMulI8",
+"ordinal": 329,
+"rva": 353184,
+"forwarder": null,
+"ref": "oleaut32.dll!0x563a0"
+},
+{
+"name": "VarDateFromUdate",
+"ordinal": 330,
+"rva": 13888,
+"forwarder": null,
+"ref": "oleaut32.dll!0x3640"
+},
+{
+"name": "VarUdateFromDate",
+"ordinal": 331,
+"rva": 109680,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1ac70"
+},
+{
+"name": "GetAltMonthNames",
+"ordinal": 332,
+"rva": 391904,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5fae0"
+},
+{
+"name": "VarI8FromUI1",
+"ordinal": 333,
+"rva": 380656,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cef0"
+},
+{
+"name": "VarI8FromI2",
+"ordinal": 334,
+"rva": 380080,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5ccb0"
+},
+{
+"name": "VarI8FromR4",
+"ordinal": 335,
+"rva": 380240,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cd50"
+},
+{
+"name": "VarI8FromR8",
+"ordinal": 336,
+"rva": 380256,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cd60"
+},
+{
+"name": "VarI8FromCy",
+"ordinal": 337,
+"rva": 435440,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a4f0"
+},
+{
+"name": "VarI8FromDate",
+"ordinal": 338,
+"rva": 380112,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5ccd0"
+},
+{
+"name": "VarI8FromStr",
+"ordinal": 339,
+"rva": 380320,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cda0"
+},
+{
+"name": "VarI8FromDisp",
+"ordinal": 340,
+"rva": 380128,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cce0"
+},
+{
+"name": "VarI8FromBool",
+"ordinal": 341,
+"rva": 380080,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5ccb0"
+},
+{
+"name": "VarI8FromI1",
+"ordinal": 342,
+"rva": 380208,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cd30"
+},
+{
+"name": "VarI8FromUI2",
+"ordinal": 343,
+"rva": 380672,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cf00"
+},
+{
+"name": "VarI8FromUI4",
+"ordinal": 344,
+"rva": 380688,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cf10"
+},
+{
+"name": "VarI8FromDec",
+"ordinal": 345,
+"rva": 419984,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66890"
+},
+{
+"name": "VarI2FromI8",
+"ordinal": 346,
+"rva": 379408,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5ca10"
+},
+{
+"name": "VarI2FromUI8",
+"ordinal": 347,
+"rva": 379760,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cb70"
+},
+{
+"name": "VarI4FromI8",
+"ordinal": 348,
+"rva": 379920,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cc10"
+},
+{
+"name": "VarI4FromUI8",
+"ordinal": 349,
+"rva": 380048,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cc90"
+},
+{
+"name": "LPSAFEARRAY_UserSize64",
+"ordinal": 350,
+"rva": 13040,
+"forwarder": null,
+"ref": "oleaut32.dll!0x32f0"
+},
+{
+"name": "LPSAFEARRAY_UserUnmarshal64",
+"ordinal": 351,
+"rva": 9968,
+"forwarder": null,
+"ref": "oleaut32.dll!0x26f0"
+},
+{
+"name": "OACreateTypeLib2",
+"ordinal": 352,
+"rva": 305712,
+"forwarder": null,
+"ref": "oleaut32.dll!0x4aa30"
+},
+{
+"name": "SafeArrayAddRef",
+"ordinal": 353,
+"rva": 416592,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65b50"
+},
+{
+"name": "SafeArrayReleaseData",
+"ordinal": 354,
+"rva": 417568,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65f20"
+},
+{
+"name": "SafeArrayReleaseDescriptor",
+"ordinal": 355,
+"rva": 417584,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65f30"
+},
+{
+"name": "SysAddRefString",
+"ordinal": 356,
+"rva": 13024,
+"forwarder": null,
+"ref": "oleaut32.dll!0x32e0"
+},
+{
+"name": "SysReleaseString",
+"ordinal": 357,
+"rva": 88480,
+"forwarder": null,
+"ref": "oleaut32.dll!0x159a0"
+},
+{
+"name": "VARIANT_UserFree64",
+"ordinal": 358,
+"rva": 22000,
+"forwarder": null,
+"ref": "oleaut32.dll!0x55f0"
+},
+{
+"name": "VARIANT_UserMarshal64",
+"ordinal": 359,
+"rva": 24640,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6040"
+},
+{
+"name": "VarR4FromI8",
+"ordinal": 360,
+"rva": 380960,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d020"
+},
+{
+"name": "VarR4FromUI8",
+"ordinal": 361,
+"rva": 381088,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d0a0"
+},
+{
+"name": "VarR8FromI8",
+"ordinal": 362,
+"rva": 381328,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d190"
+},
+{
+"name": "VarR8FromUI8",
+"ordinal": 363,
+"rva": 381456,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d210"
+},
+{
+"name": "VarDateFromI8",
+"ordinal": 364,
+"rva": 378240,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c580"
+},
+{
+"name": "VarDateFromUI8",
+"ordinal": 365,
+"rva": 378560,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c6c0"
+},
+{
+"name": "VarCyFromI8",
+"ordinal": 366,
+"rva": 435376,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6a4b0"
+},
+{
+"name": "VarCyFromUI8",
+"ordinal": 367,
+"rva": 377872,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c410"
+},
+{
+"name": "VarBstrFromI8",
+"ordinal": 368,
+"rva": 9424,
+"forwarder": null,
+"ref": "oleaut32.dll!0x24d0"
+},
+{
+"name": "VarBstrFromUI8",
+"ordinal": 369,
+"rva": 112960,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1b940"
+},
+{
+"name": "VarBoolFromI8",
+"ordinal": 370,
+"rva": 375840,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bc20"
+},
+{
+"name": "VarBoolFromUI8",
+"ordinal": 371,
+"rva": 375840,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5bc20"
+},
+{
+"name": "VarUI1FromI8",
+"ordinal": 372,
+"rva": 381776,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d350"
+},
+{
+"name": "VarUI1FromUI8",
+"ordinal": 373,
+"rva": 381776,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d350"
+},
+{
+"name": "VarDecFromI8",
+"ordinal": 374,
+"rva": 419200,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66580"
+},
+{
+"name": "VarDecFromUI8",
+"ordinal": 375,
+"rva": 419536,
+"forwarder": null,
+"ref": "oleaut32.dll!0x666d0"
+},
+{
+"name": "VarI1FromI8",
+"ordinal": 376,
+"rva": 378912,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c820"
+},
+{
+"name": "VarI1FromUI8",
+"ordinal": 377,
+"rva": 379200,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5c940"
+},
+{
+"name": "VarUI2FromI8",
+"ordinal": 378,
+"rva": 382208,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d500"
+},
+{
+"name": "VarUI2FromUI8",
+"ordinal": 379,
+"rva": 382208,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d500"
+},
+{
+"name": "VARIANT_UserSize64",
+"ordinal": 380,
+"rva": 25408,
+"forwarder": null,
+"ref": "oleaut32.dll!0x6340"
+},
+{
+"name": "VARIANT_UserUnmarshal64",
+"ordinal": 381,
+"rva": 90512,
+"forwarder": null,
+"ref": "oleaut32.dll!0x16190"
+},
+{
+"name": "OleLoadPictureEx",
+"ordinal": 401,
+"rva": 415568,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65750"
+},
+{
+"name": "OleLoadPictureFileEx",
+"ordinal": 402,
+"rva": 415776,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65820"
+},
+{
+"name": "SafeArrayCreateVector",
+"ordinal": 411,
+"rva": 89504,
+"forwarder": null,
+"ref": "oleaut32.dll!0x15da0"
+},
+{
+"name": "SafeArrayCopyData",
+"ordinal": 412,
+"rva": 87136,
+"forwarder": null,
+"ref": "oleaut32.dll!0x15460"
+},
+{
+"name": "VectorFromBstr",
+"ordinal": 413,
+"rva": 383312,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d950"
+},
+{
+"name": "BstrFromVector",
+"ordinal": 414,
+"rva": 374880,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5b860"
+},
+{
+"name": "OleIconToCursor",
+"ordinal": 415,
+"rva": 415424,
+"forwarder": null,
+"ref": "oleaut32.dll!0x656c0"
+},
+{
+"name": "OleCreatePropertyFrameIndirect",
+"ordinal": 416,
+"rva": 415360,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65680"
+},
+{
+"name": "OleCreatePropertyFrame",
+"ordinal": 417,
+"rva": 415264,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65620"
+},
+{
+"name": "OleLoadPicture",
+"ordinal": 418,
+"rva": 415520,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65720"
+},
+{
+"name": "OleCreatePictureIndirect",
+"ordinal": 419,
+"rva": 14128,
+"forwarder": null,
+"ref": "oleaut32.dll!0x3730"
+},
+{
+"name": "OleCreateFontIndirect",
+"ordinal": 420,
+"rva": 14240,
+"forwarder": null,
+"ref": "oleaut32.dll!0x37a0"
+},
+{
+"name": "OleTranslateColor",
+"ordinal": 421,
+"rva": 120000,
+"forwarder": null,
+"ref": "oleaut32.dll!0x1d4c0"
+},
+{
+"name": "OleLoadPictureFile",
+"ordinal": 422,
+"rva": 415712,
+"forwarder": null,
+"ref": "oleaut32.dll!0x657e0"
+},
+{
+"name": "OleSavePictureFile",
+"ordinal": 423,
+"rva": 416048,
+"forwarder": null,
+"ref": "oleaut32.dll!0x65930"
+},
+{
+"name": "OleLoadPicturePath",
+"ordinal": 424,
+"rva": 415920,
+"forwarder": null,
+"ref": "oleaut32.dll!0x658b0"
+},
+{
+"name": "VarUI4FromI8",
+"ordinal": 425,
+"rva": 382608,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d690"
+},
+{
+"name": "VarUI4FromUI8",
+"ordinal": 426,
+"rva": 382608,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d690"
+},
+{
+"name": "VarI8FromUI8",
+"ordinal": 427,
+"rva": 380704,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cf20"
+},
+{
+"name": "VarUI8FromI8",
+"ordinal": 428,
+"rva": 383056,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d850"
+},
+{
+"name": "VarUI8FromUI1",
+"ordinal": 429,
+"rva": 380656,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cef0"
+},
+{
+"name": "VarUI8FromI2",
+"ordinal": 430,
+"rva": 383024,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d830"
+},
+{
+"name": "VarUI8FromR4",
+"ordinal": 431,
+"rva": 383088,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d870"
+},
+{
+"name": "VarUI8FromR8",
+"ordinal": 432,
+"rva": 383104,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d880"
+},
+{
+"name": "VarUI8FromCy",
+"ordinal": 433,
+"rva": 382864,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d790"
+},
+{
+"name": "VarUI8FromDate",
+"ordinal": 434,
+"rva": 382896,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d7b0"
+},
+{
+"name": "VarUI8FromStr",
+"ordinal": 435,
+"rva": 383168,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d8c0"
+},
+{
+"name": "VarUI8FromDisp",
+"ordinal": 436,
+"rva": 382912,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d7c0"
+},
+{
+"name": "VarUI8FromBool",
+"ordinal": 437,
+"rva": 380080,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5ccb0"
+},
+{
+"name": "VarUI8FromI1",
+"ordinal": 438,
+"rva": 382992,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5d810"
+},
+{
+"name": "VarUI8FromUI2",
+"ordinal": 439,
+"rva": 380672,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cf00"
+},
+{
+"name": "VarUI8FromUI4",
+"ordinal": 440,
+"rva": 380688,
+"forwarder": null,
+"ref": "oleaut32.dll!0x5cf10"
+},
+{
+"name": "VarUI8FromDec",
+"ordinal": 441,
+"rva": 420480,
+"forwarder": null,
+"ref": "oleaut32.dll!0x66a80"
+},
+{
+"name": "RegisterTypeLibForUser",
+"ordinal": 442,
+"rva": 212128,
+"forwarder": null,
+"ref": "oleaut32.dll!0x33ca0"
+},
+{
+"name": "UnRegisterTypeLibForUser",
+"ordinal": 443,
+"rva": 203488,
+"forwarder": null,
+"ref": "oleaut32.dll!0x31ae0"
+},
+{
+"name": "OaEnablePerUserTLibRegistration",
+"ordinal": 444,
+"rva": 217216,
+"forwarder": null,
+"ref": "oleaut32.dll!0x35080"
+},
+{
+"name": "HWND_UserFree",
+"ordinal": 445,
+"rva": 753257,
+"forwarder": "COMBASE.HWND_UserFree",
+"ref": null
+},
+{
+"name": "HWND_UserMarshal",
+"ordinal": 446,
+"rva": 753336,
+"forwarder": "COMBASE.HWND_UserMarshal",
+"ref": null
+},
+{
+"name": "HWND_UserSize",
+"ordinal": 447,
+"rva": 753421,
+"forwarder": "COMBASE.HWND_UserSize",
+"ref": null
+},
+{
+"name": "HWND_UserUnmarshal",
+"ordinal": 448,
+"rva": 753502,
+"forwarder": "COMBASE.HWND_UserUnmarshal",
+"ref": null
+},
+{
+"name": "HWND_UserFree64",
+"ordinal": 449,
+"rva": 753295,
+"forwarder": "COMBASE.HWND_UserFree64",
+"ref": null
+},
+{
+"name": "HWND_UserMarshal64",
+"ordinal": 450,
+"rva": 753380,
+"forwarder": "COMBASE.HWND_UserMarshal64",
+"ref": null
+},
+{
+"name": "HWND_UserSize64",
+"ordinal": 451,
+"rva": 753459,
+"forwarder": "COMBASE.HWND_UserSize64",
+"ref": null
+},
+{
+"name": "HWND_UserUnmarshal64",
+"ordinal": 452,
+"rva": 753550,
+"forwarder": "COMBASE.HWND_UserUnmarshal64",
+"ref": null
+},
+{
+"name": "OACleanup",
+"ordinal": 500,
+"rva": 19920,
+"forwarder": null,
+"ref": "oleaut32.dll!0x4dd0"
+},
+{
+"name": null,
+"ordinal": 501,
+"rva": 210256,
+"forwarder": null,
+"ref": "oleaut32.dll!0x33550"
+},
+{
+"name": null,
+"ordinal": 502,
+"rva": 216736,
+"forwarder": null,
+"ref": "oleaut32.dll!0x34ea0"
+}
+]

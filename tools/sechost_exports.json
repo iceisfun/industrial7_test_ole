@@ -1,0 +1,1521 @@
+[
+{
+"name": "I_ScSetServiceBitsA",
+"ordinal": 1,
+"rva": 285456,
+"forwarder": null,
+"ref": "sechost.dll!0x45b10"
+},
+{
+"name": "I_ScSetServiceBitsW",
+"ordinal": 2,
+"rva": 116896,
+"forwarder": null,
+"ref": "sechost.dll!0x1c8a0"
+},
+{
+"name": "AuditComputeEffectivePolicyBySid",
+"ordinal": 3,
+"rva": 114240,
+"forwarder": null,
+"ref": "sechost.dll!0x1be40"
+},
+{
+"name": "AuditEnumerateCategories",
+"ordinal": 4,
+"rva": 327488,
+"forwarder": null,
+"ref": "sechost.dll!0x4ff40"
+},
+{
+"name": "AuditEnumeratePerUserPolicy",
+"ordinal": 5,
+"rva": 327824,
+"forwarder": null,
+"ref": "sechost.dll!0x50090"
+},
+{
+"name": "AuditEnumerateSubCategories",
+"ordinal": 6,
+"rva": 327968,
+"forwarder": null,
+"ref": "sechost.dll!0x50120"
+},
+{
+"name": "AuditFree",
+"ordinal": 7,
+"rva": 59920,
+"forwarder": null,
+"ref": "sechost.dll!0xea10"
+},
+{
+"name": "AuditLookupCategoryNameW",
+"ordinal": 8,
+"rva": 328336,
+"forwarder": null,
+"ref": "sechost.dll!0x50290"
+},
+{
+"name": "AuditLookupSubCategoryNameW",
+"ordinal": 9,
+"rva": 328720,
+"forwarder": null,
+"ref": "sechost.dll!0x50410"
+},
+{
+"name": "AuditQueryGlobalSaclW",
+"ordinal": 10,
+"rva": 329104,
+"forwarder": null,
+"ref": "sechost.dll!0x50590"
+},
+{
+"name": "AuditQueryPerUserPolicy",
+"ordinal": 11,
+"rva": 107296,
+"forwarder": null,
+"ref": "sechost.dll!0x1a320"
+},
+{
+"name": "AuditQuerySecurity",
+"ordinal": 12,
+"rva": 329216,
+"forwarder": null,
+"ref": "sechost.dll!0x50600"
+},
+{
+"name": "AuditQuerySystemPolicy",
+"ordinal": 13,
+"rva": 107632,
+"forwarder": null,
+"ref": "sechost.dll!0x1a470"
+},
+{
+"name": "AuditSetGlobalSaclW",
+"ordinal": 14,
+"rva": 329424,
+"forwarder": null,
+"ref": "sechost.dll!0x506d0"
+},
+{
+"name": "AuditSetPerUserPolicy",
+"ordinal": 15,
+"rva": 329536,
+"forwarder": null,
+"ref": "sechost.dll!0x50740"
+},
+{
+"name": "AuditSetSecurity",
+"ordinal": 16,
+"rva": 329712,
+"forwarder": null,
+"ref": "sechost.dll!0x507f0"
+},
+{
+"name": "AuditSetSystemPolicy",
+"ordinal": 17,
+"rva": 330064,
+"forwarder": null,
+"ref": "sechost.dll!0x50950"
+},
+{
+"name": "BuildSecurityDescriptorForSharingAccess",
+"ordinal": 18,
+"rva": 104256,
+"forwarder": null,
+"ref": "sechost.dll!0x19740"
+},
+{
+"name": "BuildSecurityDescriptorForSharingAccessEx",
+"ordinal": 19,
+"rva": 102576,
+"forwarder": null,
+"ref": "sechost.dll!0x190b0"
+},
+{
+"name": "CapabilityCheck",
+"ordinal": 20,
+"rva": 55056,
+"forwarder": null,
+"ref": "sechost.dll!0xd710"
+},
+{
+"name": "CapabilityCheckForSingleSessionSku",
+"ordinal": 21,
+"rva": 283632,
+"forwarder": null,
+"ref": "sechost.dll!0x453f0"
+},
+{
+"name": "ChangeServiceConfig2A",
+"ordinal": 22,
+"rva": 285888,
+"forwarder": null,
+"ref": "sechost.dll!0x45cc0"
+},
+{
+"name": "ChangeServiceConfig2W",
+"ordinal": 23,
+"rva": 116752,
+"forwarder": null,
+"ref": "sechost.dll!0x1c810"
+},
+{
+"name": "ChangeServiceConfigA",
+"ordinal": 24,
+"rva": 286320,
+"forwarder": null,
+"ref": "sechost.dll!0x45e70"
+},
+{
+"name": "ChangeServiceConfigW",
+"ordinal": 25,
+"rva": 58928,
+"forwarder": null,
+"ref": "sechost.dll!0xe630"
+},
+{
+"name": "CloseServiceHandle",
+"ordinal": 26,
+"rva": 34016,
+"forwarder": null,
+"ref": "sechost.dll!0x84e0"
+},
+{
+"name": "CloseTrace",
+"ordinal": 27,
+"rva": 47808,
+"forwarder": null,
+"ref": "sechost.dll!0xbac0"
+},
+{
+"name": "ControlService",
+"ordinal": 28,
+"rva": 59712,
+"forwarder": null,
+"ref": "sechost.dll!0xe940"
+},
+{
+"name": "ControlServiceExA",
+"ordinal": 29,
+"rva": 287056,
+"forwarder": null,
+"ref": "sechost.dll!0x46150"
+},
+{
+"name": "ControlServiceExW",
+"ordinal": 30,
+"rva": 58224,
+"forwarder": null,
+"ref": "sechost.dll!0xe370"
+},
+{
+"name": "ControlTraceA",
+"ordinal": 31,
+"rva": 309136,
+"forwarder": null,
+"ref": "sechost.dll!0x4b790"
+},
+{
+"name": "ControlTraceW",
+"ordinal": 32,
+"rva": 37632,
+"forwarder": null,
+"ref": "sechost.dll!0x9300"
+},
+{
+"name": "ConvertSDToStringSDRootDomainW",
+"ordinal": 33,
+"rva": 183136,
+"forwarder": null,
+"ref": "sechost.dll!0x2cb60"
+},
+{
+"name": "ConvertSecurityDescriptorToStringSecurityDescriptorW",
+"ordinal": 34,
+"rva": 69648,
+"forwarder": null,
+"ref": "sechost.dll!0x11010"
+},
+{
+"name": "ConvertSidToStringSidW",
+"ordinal": 35,
+"rva": 61632,
+"forwarder": null,
+"ref": "sechost.dll!0xf0c0"
+},
+{
+"name": "ConvertStringSDToSDDomainA",
+"ordinal": 36,
+"rva": 183264,
+"forwarder": null,
+"ref": "sechost.dll!0x2cbe0"
+},
+{
+"name": "ConvertStringSDToSDDomainW",
+"ordinal": 37,
+"rva": 183584,
+"forwarder": null,
+"ref": "sechost.dll!0x2cd20"
+},
+{
+"name": "ConvertStringSDToSDRootDomainW",
+"ordinal": 38,
+"rva": 183792,
+"forwarder": null,
+"ref": "sechost.dll!0x2cdf0"
+},
+{
+"name": "ConvertStringSecurityDescriptorToSecurityDescriptorW",
+"ordinal": 39,
+"rva": 69808,
+"forwarder": null,
+"ref": "sechost.dll!0x110b0"
+},
+{
+"name": "ConvertStringSidToSidW",
+"ordinal": 40,
+"rva": 72416,
+"forwarder": null,
+"ref": "sechost.dll!0x11ae0"
+},
+{
+"name": "CreateIsolatedProcess",
+"ordinal": 41,
+"rva": 398464,
+"forwarder": null,
+"ref": "sechost.dll!0x61480"
+},
+{
+"name": "CreateIsolationContainer",
+"ordinal": 42,
+"rva": 398608,
+"forwarder": null,
+"ref": "sechost.dll!0x61510"
+},
+{
+"name": "CreateServiceA",
+"ordinal": 43,
+"rva": 287408,
+"forwarder": null,
+"ref": "sechost.dll!0x462b0"
+},
+{
+"name": "CreateServiceEx",
+"ordinal": 44,
+"rva": 289296,
+"forwarder": null,
+"ref": "sechost.dll!0x46a10"
+},
+{
+"name": "CreateServiceW",
+"ordinal": 45,
+"rva": 290576,
+"forwarder": null,
+"ref": "sechost.dll!0x46f10"
+},
+{
+"name": "CredBackupCredentials",
+"ordinal": 46,
+"rva": 330832,
+"forwarder": null,
+"ref": "sechost.dll!0x50c50"
+},
+{
+"name": "CredDeleteA",
+"ordinal": 47,
+"rva": 331248,
+"forwarder": null,
+"ref": "sechost.dll!0x50df0"
+},
+{
+"name": "CredDeleteW",
+"ordinal": 48,
+"rva": 331488,
+"forwarder": null,
+"ref": "sechost.dll!0x50ee0"
+},
+{
+"name": "CredEncryptAndMarshalBinaryBlob",
+"ordinal": 49,
+"rva": 336528,
+"forwarder": null,
+"ref": "sechost.dll!0x52290"
+},
+{
+"name": "CredEnumerateA",
+"ordinal": 50,
+"rva": 331728,
+"forwarder": null,
+"ref": "sechost.dll!0x50fd0"
+},
+{
+"name": "CredEnumerateW",
+"ordinal": 51,
+"rva": 61952,
+"forwarder": null,
+"ref": "sechost.dll!0xf200"
+},
+{
+"name": "CredFindBestCredentialA",
+"ordinal": 52,
+"rva": 332080,
+"forwarder": null,
+"ref": "sechost.dll!0x51130"
+},
+{
+"name": "CredFindBestCredentialW",
+"ordinal": 53,
+"rva": 332400,
+"forwarder": null,
+"ref": "sechost.dll!0x51270"
+},
+{
+"name": "CredFree",
+"ordinal": 54,
+"rva": 59920,
+"forwarder": null,
+"ref": "sechost.dll!0xea10"
+},
+{
+"name": "CredGetSessionTypes",
+"ordinal": 55,
+"rva": 332720,
+"forwarder": null,
+"ref": "sechost.dll!0x513b0"
+},
+{
+"name": "CredGetTargetInfoA",
+"ordinal": 56,
+"rva": 332864,
+"forwarder": null,
+"ref": "sechost.dll!0x51440"
+},
+{
+"name": "CredGetTargetInfoW",
+"ordinal": 57,
+"rva": 333184,
+"forwarder": null,
+"ref": "sechost.dll!0x51580"
+},
+{
+"name": "CredIsMarshaledCredentialW",
+"ordinal": 58,
+"rva": 336576,
+"forwarder": null,
+"ref": "sechost.dll!0x522c0"
+},
+{
+"name": "CredIsProtectedA",
+"ordinal": 59,
+"rva": 336640,
+"forwarder": null,
+"ref": "sechost.dll!0x52300"
+},
+{
+"name": "CredIsProtectedW",
+"ordinal": 60,
+"rva": 104816,
+"forwarder": null,
+"ref": "sechost.dll!0x19970"
+},
+{
+"name": "CredMarshalCredentialA",
+"ordinal": 61,
+"rva": 336800,
+"forwarder": null,
+"ref": "sechost.dll!0x523a0"
+},
+{
+"name": "CredMarshalCredentialW",
+"ordinal": 62,
+"rva": 110336,
+"forwarder": null,
+"ref": "sechost.dll!0x1af00"
+},
+{
+"name": "CredParseUserNameWithType",
+"ordinal": 63,
+"rva": 104544,
+"forwarder": null,
+"ref": "sechost.dll!0x19860"
+},
+{
+"name": "CredProfileLoaded",
+"ordinal": 64,
+"rva": 333504,
+"forwarder": null,
+"ref": "sechost.dll!0x516c0"
+},
+{
+"name": "CredProfileLoadedEx",
+"ordinal": 65,
+"rva": 61536,
+"forwarder": null,
+"ref": "sechost.dll!0xf060"
+},
+{
+"name": "CredProfileUnloaded",
+"ordinal": 66,
+"rva": 106832,
+"forwarder": null,
+"ref": "sechost.dll!0x1a150"
+},
+{
+"name": "CredProtectA",
+"ordinal": 67,
+"rva": 336912,
+"forwarder": null,
+"ref": "sechost.dll!0x52410"
+},
+{
+"name": "CredProtectEx",
+"ordinal": 68,
+"rva": 109680,
+"forwarder": null,
+"ref": "sechost.dll!0x1ac70"
+},
+{
+"name": "CredProtectW",
+"ordinal": 69,
+"rva": 109648,
+"forwarder": null,
+"ref": "sechost.dll!0x1ac50"
+},
+{
+"name": "CredReadA",
+"ordinal": 70,
+"rva": 333632,
+"forwarder": null,
+"ref": "sechost.dll!0x51740"
+},
+{
+"name": "CredReadByTokenHandle",
+"ordinal": 71,
+"rva": 333952,
+"forwarder": null,
+"ref": "sechost.dll!0x51880"
+},
+{
+"name": "CredReadDomainCredentialsA",
+"ordinal": 72,
+"rva": 334288,
+"forwarder": null,
+"ref": "sechost.dll!0x519d0"
+},
+{
+"name": "CredReadDomainCredentialsW",
+"ordinal": 73,
+"rva": 334640,
+"forwarder": null,
+"ref": "sechost.dll!0x51b30"
+},
+{
+"name": "CredReadW",
+"ordinal": 74,
+"rva": 335008,
+"forwarder": null,
+"ref": "sechost.dll!0x51ca0"
+},
+{
+"name": "CredRestoreCredentials",
+"ordinal": 75,
+"rva": 335328,
+"forwarder": null,
+"ref": "sechost.dll!0x51de0"
+},
+{
+"name": "CredUnmarshalCredentialA",
+"ordinal": 76,
+"rva": 337296,
+"forwarder": null,
+"ref": "sechost.dll!0x52590"
+},
+{
+"name": "CredUnmarshalCredentialW",
+"ordinal": 77,
+"rva": 105040,
+"forwarder": null,
+"ref": "sechost.dll!0x19a50"
+},
+{
+"name": "CredUnprotectA",
+"ordinal": 78,
+"rva": 337472,
+"forwarder": null,
+"ref": "sechost.dll!0x52640"
+},
+{
+"name": "CredUnprotectEx",
+"ordinal": 79,
+"rva": 112064,
+"forwarder": null,
+"ref": "sechost.dll!0x1b5c0"
+},
+{
+"name": "CredUnprotectW",
+"ordinal": 80,
+"rva": 337888,
+"forwarder": null,
+"ref": "sechost.dll!0x527e0"
+},
+{
+"name": "CredWriteA",
+"ordinal": 81,
+"rva": 335712,
+"forwarder": null,
+"ref": "sechost.dll!0x51f60"
+},
+{
+"name": "CredWriteDomainCredentialsA",
+"ordinal": 82,
+"rva": 335936,
+"forwarder": null,
+"ref": "sechost.dll!0x52040"
+},
+{
+"name": "CredWriteDomainCredentialsW",
+"ordinal": 83,
+"rva": 336240,
+"forwarder": null,
+"ref": "sechost.dll!0x52170"
+},
+{
+"name": "CredWriteW",
+"ordinal": 84,
+"rva": 60848,
+"forwarder": null,
+"ref": "sechost.dll!0xedb0"
+},
+{
+"name": "CredpConvertCredential",
+"ordinal": 85,
+"rva": 61024,
+"forwarder": null,
+"ref": "sechost.dll!0xee60"
+},
+{
+"name": "CredpConvertOneCredentialSize",
+"ordinal": 86,
+"rva": 68224,
+"forwarder": null,
+"ref": "sechost.dll!0x10a80"
+},
+{
+"name": "CredpConvertTargetInfo",
+"ordinal": 87,
+"rva": 337920,
+"forwarder": null,
+"ref": "sechost.dll!0x52800"
+},
+{
+"name": "CredpDecodeCredential",
+"ordinal": 88,
+"rva": 338528,
+"forwarder": null,
+"ref": "sechost.dll!0x52a60"
+},
+{
+"name": "CredpEncodeCredential",
+"ordinal": 89,
+"rva": 338608,
+"forwarder": null,
+"ref": "sechost.dll!0x52ab0"
+},
+{
+"name": "CredpEncodeSecret",
+"ordinal": 90,
+"rva": 338736,
+"forwarder": null,
+"ref": "sechost.dll!0x52b30"
+},
+{
+"name": "DeleteIsolationContainer",
+"ordinal": 91,
+"rva": 398704,
+"forwarder": null,
+"ref": "sechost.dll!0x61570"
+},
+{
+"name": "DeleteService",
+"ordinal": 92,
+"rva": 291792,
+"forwarder": null,
+"ref": "sechost.dll!0x473d0"
+},
+{
+"name": "EnableTraceEx2",
+"ordinal": 93,
+"rva": 39312,
+"forwarder": null,
+"ref": "sechost.dll!0x9990"
+},
+{
+"name": "EnumDependentServicesW",
+"ordinal": 94,
+"rva": 106992,
+"forwarder": null,
+"ref": "sechost.dll!0x1a1f0"
+},
+{
+"name": "EnumServicesStatusExW",
+"ordinal": 95,
+"rva": 32400,
+"forwarder": null,
+"ref": "sechost.dll!0x7e90"
+},
+{
+"name": "EnumerateIdentityProviders",
+"ordinal": 96,
+"rva": 51920,
+"forwarder": null,
+"ref": "sechost.dll!0xcad0"
+},
+{
+"name": "EnumerateTraceGuidsEx",
+"ordinal": 97,
+"rva": 59424,
+"forwarder": null,
+"ref": "sechost.dll!0xe820"
+},
+{
+"name": "EtwQueryRealtimeConsumer",
+"ordinal": 98,
+"rva": 306912,
+"forwarder": null,
+"ref": "sechost.dll!0x4aee0"
+},
+{
+"name": "EventAccessControl",
+"ordinal": 99,
+"rva": 310784,
+"forwarder": null,
+"ref": "sechost.dll!0x4be00"
+},
+{
+"name": "EventAccessQuery",
+"ordinal": 100,
+"rva": 310864,
+"forwarder": null,
+"ref": "sechost.dll!0x4be50"
+},
+{
+"name": "EventAccessRemove",
+"ordinal": 101,
+"rva": 311456,
+"forwarder": null,
+"ref": "sechost.dll!0x4c0a0"
+},
+{
+"name": "FreeContainer",
+"ordinal": 102,
+"rva": 341600,
+"forwarder": null,
+"ref": "sechost.dll!0x53660"
+},
+{
+"name": "FreeTransientObjectSecurityDescriptor",
+"ordinal": 103,
+"rva": 99184,
+"forwarder": null,
+"ref": "sechost.dll!0x18370"
+},
+{
+"name": "GetDefaultIdentityProvider",
+"ordinal": 104,
+"rva": 113856,
+"forwarder": null,
+"ref": "sechost.dll!0x1bcc0"
+},
+{
+"name": "GetEmbeddedContainerIsolationPolicy",
+"ordinal": 105,
+"rva": 341680,
+"forwarder": null,
+"ref": "sechost.dll!0x536b0"
+},
+{
+"name": "GetEmbeddedImageMitigationPolicy",
+"ordinal": 106,
+"rva": 55440,
+"forwarder": null,
+"ref": "sechost.dll!0xd890"
+},
+{
+"name": "GetIdentityProviderInfoByGUID",
+"ordinal": 107,
+"rva": 113456,
+"forwarder": null,
+"ref": "sechost.dll!0x1bb30"
+},
+{
+"name": "GetIdentityProviderInfoByName",
+"ordinal": 108,
+"rva": 172400,
+"forwarder": null,
+"ref": "sechost.dll!0x2a170"
+},
+{
+"name": "GetServiceDirectory",
+"ordinal": 109,
+"rva": 57904,
+"forwarder": null,
+"ref": "sechost.dll!0xe230"
+},
+{
+"name": "GetServiceDisplayNameW",
+"ordinal": 110,
+"rva": 105744,
+"forwarder": null,
+"ref": "sechost.dll!0x19d10"
+},
+{
+"name": "GetServiceKeyNameW",
+"ordinal": 111,
+"rva": 105936,
+"forwarder": null,
+"ref": "sechost.dll!0x19dd0"
+},
+{
+"name": "GetServiceProcessToken",
+"ordinal": 112,
+"rva": 291920,
+"forwarder": null,
+"ref": "sechost.dll!0x47450"
+},
+{
+"name": "GetServiceRegistryStateKey",
+"ordinal": 113,
+"rva": 59312,
+"forwarder": null,
+"ref": "sechost.dll!0xe7b0"
+},
+{
+"name": "I_QueryTagInformation",
+"ordinal": 114,
+"rva": 29984,
+"forwarder": null,
+"ref": "sechost.dll!0x7520"
+},
+{
+"name": "I_RegisterSvchostNotificationCallback",
+"ordinal": 115,
+"rva": 59680,
+"forwarder": null,
+"ref": "sechost.dll!0xe920"
+},
+{
+"name": "I_ScBroadcastServiceControlMessage",
+"ordinal": 116,
+"rva": 113664,
+"forwarder": null,
+"ref": "sechost.dll!0x1bc00"
+},
+{
+"name": "I_ScIsSecurityProcess",
+"ordinal": 117,
+"rva": 117088,
+"forwarder": null,
+"ref": "sechost.dll!0x1c960"
+},
+{
+"name": "I_ScPnPGetServiceName",
+"ordinal": 118,
+"rva": 44032,
+"forwarder": null,
+"ref": "sechost.dll!0xac00"
+},
+{
+"name": "I_ScQueryServiceConfig",
+"ordinal": 119,
+"rva": 29696,
+"forwarder": null,
+"ref": "sechost.dll!0x7400"
+},
+{
+"name": "I_ScRegisterDeviceNotification",
+"ordinal": 120,
+"rva": 47840,
+"forwarder": null,
+"ref": "sechost.dll!0xbae0"
+},
+{
+"name": "I_ScRegisterPreshutdownRestart",
+"ordinal": 121,
+"rva": 292064,
+"forwarder": null,
+"ref": "sechost.dll!0x474e0"
+},
+{
+"name": "I_ScReparseServiceDatabase",
+"ordinal": 122,
+"rva": 292272,
+"forwarder": null,
+"ref": "sechost.dll!0x475b0"
+},
+{
+"name": "I_ScRpcBindA",
+"ordinal": 123,
+"rva": 299184,
+"forwarder": null,
+"ref": "sechost.dll!0x490b0"
+},
+{
+"name": "I_ScRpcBindW",
+"ordinal": 124,
+"rva": 114128,
+"forwarder": null,
+"ref": "sechost.dll!0x1bdd0"
+},
+{
+"name": "I_ScSendPnPMessage",
+"ordinal": 125,
+"rva": 30608,
+"forwarder": null,
+"ref": "sechost.dll!0x7790"
+},
+{
+"name": "I_ScSendTSMessage",
+"ordinal": 126,
+"rva": 113664,
+"forwarder": null,
+"ref": "sechost.dll!0x1bc00"
+},
+{
+"name": "I_ScUnregisterDeviceNotification",
+"ordinal": 127,
+"rva": 58752,
+"forwarder": null,
+"ref": "sechost.dll!0xe580"
+},
+{
+"name": "I_ScValidatePnPService",
+"ordinal": 128,
+"rva": 44112,
+"forwarder": null,
+"ref": "sechost.dll!0xac50"
+},
+{
+"name": "LocalGetConditionForString",
+"ordinal": 129,
+"rva": 66400,
+"forwarder": null,
+"ref": "sechost.dll!0x10360"
+},
+{
+"name": "LocalGetReferencedTokenTypesForCondition",
+"ordinal": 130,
+"rva": 190096,
+"forwarder": null,
+"ref": "sechost.dll!0x2e690"
+},
+{
+"name": "LocalGetStringForCondition",
+"ordinal": 131,
+"rva": 193808,
+"forwarder": null,
+"ref": "sechost.dll!0x2f510"
+},
+{
+"name": "LocalRpcBindingCreateWithSecurity",
+"ordinal": 132,
+"rva": 284160,
+"forwarder": null,
+"ref": "sechost.dll!0x45600"
+},
+{
+"name": "LocalRpcBindingSetAuthInfoEx",
+"ordinal": 133,
+"rva": 284592,
+"forwarder": null,
+"ref": "sechost.dll!0x457b0"
+},
+{
+"name": "LookupAccountNameLocalA",
+"ordinal": 134,
+"rva": 172656,
+"forwarder": null,
+"ref": "sechost.dll!0x2a270"
+},
+{
+"name": "LookupAccountNameLocalW",
+"ordinal": 135,
+"rva": 85776,
+"forwarder": null,
+"ref": "sechost.dll!0x14f10"
+},
+{
+"name": "LookupAccountSidLocalA",
+"ordinal": 136,
+"rva": 173040,
+"forwarder": null,
+"ref": "sechost.dll!0x2a3f0"
+},
+{
+"name": "LookupAccountSidLocalW",
+"ordinal": 137,
+"rva": 86944,
+"forwarder": null,
+"ref": "sechost.dll!0x153a0"
+},
+{
+"name": "LsaAddAccountRights",
+"ordinal": 138,
+"rva": 320784,
+"forwarder": null,
+"ref": "sechost.dll!0x4e510"
+},
+{
+"name": "LsaClose",
+"ordinal": 139,
+"rva": 64608,
+"forwarder": null,
+"ref": "sechost.dll!0xfc60"
+},
+{
+"name": "LsaCreateSecret",
+"ordinal": 140,
+"rva": 323728,
+"forwarder": null,
+"ref": "sechost.dll!0x4f090"
+},
+{
+"name": "LsaDelete",
+"ordinal": 141,
+"rva": 321344,
+"forwarder": null,
+"ref": "sechost.dll!0x4e740"
+},
+{
+"name": "LsaEnumerateAccountRights",
+"ordinal": 142,
+"rva": 107440,
+"forwarder": null,
+"ref": "sechost.dll!0x1a3b0"
+},
+{
+"name": "LsaEnumerateAccountsWithUserRight",
+"ordinal": 143,
+"rva": 320944,
+"forwarder": null,
+"ref": "sechost.dll!0x4e5b0"
+},
+{
+"name": "LsaFreeMemory",
+"ordinal": 144,
+"rva": 55408,
+"forwarder": null,
+"ref": "sechost.dll!0xd870"
+},
+{
+"name": "LsaICLookupNames",
+"ordinal": 145,
+"rva": 62384,
+"forwarder": null,
+"ref": "sechost.dll!0xf3b0"
+},
+{
+"name": "LsaICLookupNamesWithCreds",
+"ordinal": 146,
+"rva": 321504,
+"forwarder": null,
+"ref": "sechost.dll!0x4e7e0"
+},
+{
+"name": "LsaICLookupSids",
+"ordinal": 147,
+"rva": 64032,
+"forwarder": null,
+"ref": "sechost.dll!0xfa20"
+},
+{
+"name": "LsaICLookupSidsWithCreds",
+"ordinal": 148,
+"rva": 322032,
+"forwarder": null,
+"ref": "sechost.dll!0x4e9f0"
+},
+{
+"name": "LsaLookupClose",
+"ordinal": 149,
+"rva": 88240,
+"forwarder": null,
+"ref": "sechost.dll!0x158b0"
+},
+{
+"name": "LsaLookupFreeMemory",
+"ordinal": 150,
+"rva": 55408,
+"forwarder": null,
+"ref": "sechost.dll!0xd870"
+},
+{
+"name": "LsaLookupGetDomainInfo",
+"ordinal": 151,
+"rva": 85616,
+"forwarder": null,
+"ref": "sechost.dll!0x14e70"
+},
+{
+"name": "LsaLookupManageSidNameMapping",
+"ordinal": 152,
+"rva": 57632,
+"forwarder": null,
+"ref": "sechost.dll!0xe120"
+},
+{
+"name": "LsaLookupNames2",
+"ordinal": 153,
+"rva": 62272,
+"forwarder": null,
+"ref": "sechost.dll!0xf340"
+},
+{
+"name": "LsaLookupOpenLocalPolicy",
+"ordinal": 154,
+"rva": 88352,
+"forwarder": null,
+"ref": "sechost.dll!0x15920"
+},
+{
+"name": "LsaLookupSids",
+"ordinal": 155,
+"rva": 63600,
+"forwarder": null,
+"ref": "sechost.dll!0xf870"
+},
+{
+"name": "LsaLookupSids2",
+"ordinal": 156,
+"rva": 322624,
+"forwarder": null,
+"ref": "sechost.dll!0x4ec40"
+},
+{
+"name": "LsaLookupTranslateNames",
+"ordinal": 157,
+"rva": 114688,
+"forwarder": null,
+"ref": "sechost.dll!0x1c000"
+},
+{
+"name": "LsaLookupTranslateSids",
+"ordinal": 158,
+"rva": 55616,
+"forwarder": null,
+"ref": "sechost.dll!0xd940"
+},
+{
+"name": "LsaLookupUserAccountType",
+"ordinal": 159,
+"rva": 55968,
+"forwarder": null,
+"ref": "sechost.dll!0xdaa0"
+},
+{
+"name": "LsaOpenPolicy",
+"ordinal": 160,
+"rva": 59952,
+"forwarder": null,
+"ref": "sechost.dll!0xea30"
+},
+{
+"name": "LsaOpenSecret",
+"ordinal": 161,
+"rva": 324000,
+"forwarder": null,
+"ref": "sechost.dll!0x4f1a0"
+},
+{
+"name": "LsaQueryInformationPolicy",
+"ordinal": 162,
+"rva": 63280,
+"forwarder": null,
+"ref": "sechost.dll!0xf730"
+},
+{
+"name": "LsaQuerySecret",
+"ordinal": 163,
+"rva": 324272,
+"forwarder": null,
+"ref": "sechost.dll!0x4f2b0"
+},
+{
+"name": "LsaRemoveAccountRights",
+"ordinal": 164,
+"rva": 321168,
+"forwarder": null,
+"ref": "sechost.dll!0x4e690"
+},
+{
+"name": "LsaRetrievePrivateData",
+"ordinal": 165,
+"rva": 107760,
+"forwarder": null,
+"ref": "sechost.dll!0x1a4f0"
+},
+{
+"name": "LsaSetInformationPolicy",
+"ordinal": 166,
+"rva": 322640,
+"forwarder": null,
+"ref": "sechost.dll!0x4ec50"
+},
+{
+"name": "LsaSetSecret",
+"ordinal": 167,
+"rva": 325456,
+"forwarder": null,
+"ref": "sechost.dll!0x4f750"
+},
+{
+"name": "LsaStorePrivateData",
+"ordinal": 168,
+"rva": 326048,
+"forwarder": null,
+"ref": "sechost.dll!0x4f9a0"
+},
+{
+"name": "NotifyServiceStatusChange",
+"ordinal": 169,
+"rva": 27376,
+"forwarder": null,
+"ref": "sechost.dll!0x6af0"
+},
+{
+"name": "NotifyServiceStatusChangeA",
+"ordinal": 170,
+"rva": 106800,
+"forwarder": null,
+"ref": "sechost.dll!0x1a130"
+},
+{
+"name": "NotifyServiceStatusChangeW",
+"ordinal": 171,
+"rva": 27376,
+"forwarder": null,
+"ref": "sechost.dll!0x6af0"
+},
+{
+"name": "OpenSCManagerA",
+"ordinal": 172,
+"rva": 33328,
+"forwarder": null,
+"ref": "sechost.dll!0x8230"
+},
+{
+"name": "OpenSCManagerW",
+"ordinal": 173,
+"rva": 33760,
+"forwarder": null,
+"ref": "sechost.dll!0x83e0"
+},
+{
+"name": "OpenServiceA",
+"ordinal": 174,
+"rva": 106592,
+"forwarder": null,
+"ref": "sechost.dll!0x1a060"
+},
+{
+"name": "OpenServiceW",
+"ordinal": 175,
+"rva": 33632,
+"forwarder": null,
+"ref": "sechost.dll!0x8360"
+},
+{
+"name": "OpenTraceW",
+"ordinal": 176,
+"rva": 45200,
+"forwarder": null,
+"ref": "sechost.dll!0xb090"
+},
+{
+"name": "ProcessTrace",
+"ordinal": 177,
+"rva": 46944,
+"forwarder": null,
+"ref": "sechost.dll!0xb760"
+},
+{
+"name": "QueryAllTracesA",
+"ordinal": 178,
+"rva": 312000,
+"forwarder": null,
+"ref": "sechost.dll!0x4c2c0"
+},
+{
+"name": "QueryAllTracesW",
+"ordinal": 179,
+"rva": 5104,
+"forwarder": null,
+"ref": "sechost.dll!0x13f0"
+},
+{
+"name": "QueryLocalUserServiceName",
+"ordinal": 180,
+"rva": 292464,
+"forwarder": null,
+"ref": "sechost.dll!0x47670"
+},
+{
+"name": "QueryServiceConfig2A",
+"ordinal": 181,
+"rva": 293360,
+"forwarder": null,
+"ref": "sechost.dll!0x479f0"
+},
+{
+"name": "QueryServiceConfig2W",
+"ordinal": 182,
+"rva": 30928,
+"forwarder": null,
+"ref": "sechost.dll!0x78d0"
+},
+{
+"name": "QueryServiceConfigA",
+"ordinal": 183,
+"rva": 294496,
+"forwarder": null,
+"ref": "sechost.dll!0x47e60"
+},
+{
+"name": "QueryServiceConfigW",
+"ordinal": 184,
+"rva": 33040,
+"forwarder": null,
+"ref": "sechost.dll!0x8110"
+},
+{
+"name": "QueryServiceDynamicInformation",
+"ordinal": 185,
+"rva": 296080,
+"forwarder": null,
+"ref": "sechost.dll!0x48490"
+},
+{
+"name": "QueryServiceObjectSecurity",
+"ordinal": 186,
+"rva": 294896,
+"forwarder": null,
+"ref": "sechost.dll!0x47ff0"
+},
+{
+"name": "QueryServiceStatus",
+"ordinal": 187,
+"rva": 31664,
+"forwarder": null,
+"ref": "sechost.dll!0x7bb0"
+},
+{
+"name": "QueryServiceStatusEx",
+"ordinal": 188,
+"rva": 33472,
+"forwarder": null,
+"ref": "sechost.dll!0x82c0"
+},
+{
+"name": "QueryTraceProcessingHandle",
+"ordinal": 189,
+"rva": 307040,
+"forwarder": null,
+"ref": "sechost.dll!0x4af60"
+},
+{
+"name": "QueryTransientObjectSecurityDescriptor",
+"ordinal": 190,
+"rva": 98768,
+"forwarder": null,
+"ref": "sechost.dll!0x181d0"
+},
+{
+"name": "QueryUserServiceName",
+"ordinal": 191,
+"rva": 32016,
+"forwarder": null,
+"ref": "sechost.dll!0x7d10"
+},
+{
+"name": "QueryUserServiceNameForContext",
+"ordinal": 192,
+"rva": 295120,
+"forwarder": null,
+"ref": "sechost.dll!0x480d0"
+},
+{
+"name": "RegisterServiceCtrlHandlerA",
+"ordinal": 193,
+"rva": 296240,
+"forwarder": null,
+"ref": "sechost.dll!0x48530"
+},
+{
+"name": "RegisterServiceCtrlHandlerExA",
+"ordinal": 194,
+"rva": 106272,
+"forwarder": null,
+"ref": "sechost.dll!0x19f20"
+},
+{
+"name": "RegisterServiceCtrlHandlerExW",
+"ordinal": 195,
+"rva": 21872,
+"forwarder": null,
+"ref": "sechost.dll!0x5570"
+},
+{
+"name": "RegisterServiceCtrlHandlerW",
+"ordinal": 196,
+"rva": 59888,
+"forwarder": null,
+"ref": "sechost.dll!0xe9f0"
+},
+{
+"name": "RegisterTraceGuidsA",
+"ordinal": 197,
+"rva": 567337,
+"forwarder": "NTDLL.EtwRegisterTraceGuidsA",
+"ref": null
+},
+{
+"name": "ReleaseIdentityProviderEnumContext",
+"ordinal": 198,
+"rva": 54480,
+"forwarder": null,
+"ref": "sechost.dll!0xd4d0"
+},
+{
+"name": "RemoveTraceCallback",
+"ordinal": 199,
+"rva": 307584,
+"forwarder": null,
+"ref": "sechost.dll!0x4b180"
+},
+{
+"name": "RpcClientCapabilityCheck",
+"ordinal": 200,
+"rva": 54832,
+"forwarder": null,
+"ref": "sechost.dll!0xd630"
+},
+{
+"name": "SetLocalRpcServerInterfaceSecurity",
+"ordinal": 201,
+"rva": 284864,
+"forwarder": null,
+"ref": "sechost.dll!0x458c0"
+},
+{
+"name": "SetLocalRpcServerProtseqSecurity",
+"ordinal": 202,
+"rva": 285088,
+"forwarder": null,
+"ref": "sechost.dll!0x459a0"
+},
+{
+"name": "SetServiceObjectSecurity",
+"ordinal": 203,
+"rva": 116480,
+"forwarder": null,
+"ref": "sechost.dll!0x1c700"
+},
+{
+"name": "SetServiceStatus",
+"ordinal": 204,
+"rva": 31760,
+"forwarder": null,
+"ref": "sechost.dll!0x7c10"
+},
+{
+"name": "SetTraceCallback",
+"ordinal": 205,
+"rva": 307824,
+"forwarder": null,
+"ref": "sechost.dll!0x4b270"
+},
+{
+"name": "StartServiceA",
+"ordinal": 206,
+"rva": 106704,
+"forwarder": null,
+"ref": "sechost.dll!0x1a0d0"
+},
+{
+"name": "StartServiceCtrlDispatcherA",
+"ordinal": 207,
+"rva": 296352,
+"forwarder": null,
+"ref": "sechost.dll!0x485a0"
+},
+{
+"name": "StartServiceCtrlDispatcherW",
+"ordinal": 208,
+"rva": 23264,
+"forwarder": null,
+"ref": "sechost.dll!0x5ae0"
+},
+{
+"name": "StartServiceW",
+"ordinal": 209,
+"rva": 21760,
+"forwarder": null,
+"ref": "sechost.dll!0x5500"
+},
+{
+"name": "StartTraceA",
+"ordinal": 210,
+"rva": 312016,
+"forwarder": null,
+"ref": "sechost.dll!0x4c2d0"
+},
+{
+"name": "StartTraceW",
+"ordinal": 211,
+"rva": 42032,
+"forwarder": null,
+"ref": "sechost.dll!0xa430"
+},
+{
+"name": "StopTraceW",
+"ordinal": 212,
+"rva": 114096,
+"forwarder": null,
+"ref": "sechost.dll!0x1bdb0"
+},
+{
+"name": "SubscribeServiceChangeNotifications",
+"ordinal": 213,
+"rva": 57376,
+"forwarder": null,
+"ref": "sechost.dll!0xe020"
+},
+{
+"name": "TraceQueryInformation",
+"ordinal": 214,
+"rva": 313344,
+"forwarder": null,
+"ref": "sechost.dll!0x4c800"
+},
+{
+"name": "TraceSetInformation",
+"ordinal": 215,
+"rva": 314288,
+"forwarder": null,
+"ref": "sechost.dll!0x4cbb0"
+},
+{
+"name": "UnsubscribeServiceChangeNotifications",
+"ordinal": 216,
+"rva": 59824,
+"forwarder": null,
+"ref": "sechost.dll!0xe9b0"
+},
+{
+"name": "WaitServiceState",
+"ordinal": 217,
+"rva": 56496,
+"forwarder": null,
+"ref": "sechost.dll!0xdcb0"
+}
+]

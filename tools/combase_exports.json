@@ -1,0 +1,4139 @@
+[
+{
+"name": null,
+"ordinal": 1,
+"rva": 1686528,
+"forwarder": null,
+"ref": "combase.dll!0x19bc00"
+},
+{
+"name": "ObjectStublessClient3",
+"ordinal": 2,
+"rva": 1209616,
+"forwarder": null,
+"ref": "combase.dll!0x127510"
+},
+{
+"name": "ObjectStublessClient4",
+"ordinal": 3,
+"rva": 1209632,
+"forwarder": null,
+"ref": "combase.dll!0x127520"
+},
+{
+"name": "ObjectStublessClient5",
+"ordinal": 4,
+"rva": 1209648,
+"forwarder": null,
+"ref": "combase.dll!0x127530"
+},
+{
+"name": "ObjectStublessClient6",
+"ordinal": 5,
+"rva": 1209664,
+"forwarder": null,
+"ref": "combase.dll!0x127540"
+},
+{
+"name": "ObjectStublessClient7",
+"ordinal": 6,
+"rva": 1209680,
+"forwarder": null,
+"ref": "combase.dll!0x127550"
+},
+{
+"name": "ObjectStublessClient8",
+"ordinal": 7,
+"rva": 1209696,
+"forwarder": null,
+"ref": "combase.dll!0x127560"
+},
+{
+"name": "ObjectStublessClient9",
+"ordinal": 8,
+"rva": 1209712,
+"forwarder": null,
+"ref": "combase.dll!0x127570"
+},
+{
+"name": "ObjectStublessClient10",
+"ordinal": 9,
+"rva": 1209728,
+"forwarder": null,
+"ref": "combase.dll!0x127580"
+},
+{
+"name": "ObjectStublessClient11",
+"ordinal": 10,
+"rva": 1209744,
+"forwarder": null,
+"ref": "combase.dll!0x127590"
+},
+{
+"name": "ObjectStublessClient12",
+"ordinal": 11,
+"rva": 1209760,
+"forwarder": null,
+"ref": "combase.dll!0x1275a0"
+},
+{
+"name": "ObjectStublessClient13",
+"ordinal": 12,
+"rva": 1209776,
+"forwarder": null,
+"ref": "combase.dll!0x1275b0"
+},
+{
+"name": "ObjectStublessClient14",
+"ordinal": 13,
+"rva": 1209792,
+"forwarder": null,
+"ref": "combase.dll!0x1275c0"
+},
+{
+"name": "ObjectStublessClient15",
+"ordinal": 14,
+"rva": 1209808,
+"forwarder": null,
+"ref": "combase.dll!0x1275d0"
+},
+{
+"name": "ObjectStublessClient16",
+"ordinal": 15,
+"rva": 1209824,
+"forwarder": null,
+"ref": "combase.dll!0x1275e0"
+},
+{
+"name": "ObjectStublessClient17",
+"ordinal": 16,
+"rva": 1209840,
+"forwarder": null,
+"ref": "combase.dll!0x1275f0"
+},
+{
+"name": "ObjectStublessClient18",
+"ordinal": 17,
+"rva": 1209856,
+"forwarder": null,
+"ref": "combase.dll!0x127600"
+},
+{
+"name": "ObjectStublessClient19",
+"ordinal": 18,
+"rva": 1209872,
+"forwarder": null,
+"ref": "combase.dll!0x127610"
+},
+{
+"name": "ObjectStublessClient20",
+"ordinal": 19,
+"rva": 1209888,
+"forwarder": null,
+"ref": "combase.dll!0x127620"
+},
+{
+"name": "ObjectStublessClient21",
+"ordinal": 20,
+"rva": 1209904,
+"forwarder": null,
+"ref": "combase.dll!0x127630"
+},
+{
+"name": "ObjectStublessClient22",
+"ordinal": 21,
+"rva": 1209920,
+"forwarder": null,
+"ref": "combase.dll!0x127640"
+},
+{
+"name": "ObjectStublessClient23",
+"ordinal": 22,
+"rva": 1209936,
+"forwarder": null,
+"ref": "combase.dll!0x127650"
+},
+{
+"name": "ObjectStublessClient24",
+"ordinal": 23,
+"rva": 1209952,
+"forwarder": null,
+"ref": "combase.dll!0x127660"
+},
+{
+"name": "ObjectStublessClient25",
+"ordinal": 24,
+"rva": 1209968,
+"forwarder": null,
+"ref": "combase.dll!0x127670"
+},
+{
+"name": "ObjectStublessClient26",
+"ordinal": 25,
+"rva": 1209984,
+"forwarder": null,
+"ref": "combase.dll!0x127680"
+},
+{
+"name": "ObjectStublessClient27",
+"ordinal": 26,
+"rva": 1210000,
+"forwarder": null,
+"ref": "combase.dll!0x127690"
+},
+{
+"name": "ObjectStublessClient28",
+"ordinal": 27,
+"rva": 1210016,
+"forwarder": null,
+"ref": "combase.dll!0x1276a0"
+},
+{
+"name": "ObjectStublessClient29",
+"ordinal": 28,
+"rva": 1210032,
+"forwarder": null,
+"ref": "combase.dll!0x1276b0"
+},
+{
+"name": "ObjectStublessClient30",
+"ordinal": 29,
+"rva": 1210048,
+"forwarder": null,
+"ref": "combase.dll!0x1276c0"
+},
+{
+"name": "ObjectStublessClient31",
+"ordinal": 30,
+"rva": 1210064,
+"forwarder": null,
+"ref": "combase.dll!0x1276d0"
+},
+{
+"name": "ObjectStublessClient32",
+"ordinal": 31,
+"rva": 1210080,
+"forwarder": null,
+"ref": "combase.dll!0x1276e0"
+},
+{
+"name": "NdrProxyForwardingFunction3",
+"ordinal": 32,
+"rva": 1046000,
+"forwarder": null,
+"ref": "combase.dll!0xff5f0"
+},
+{
+"name": "NdrProxyForwardingFunction4",
+"ordinal": 33,
+"rva": 1046080,
+"forwarder": null,
+"ref": "combase.dll!0xff640"
+},
+{
+"name": "NdrProxyForwardingFunction5",
+"ordinal": 34,
+"rva": 1046160,
+"forwarder": null,
+"ref": "combase.dll!0xff690"
+},
+{
+"name": "NdrProxyForwardingFunction6",
+"ordinal": 35,
+"rva": 1046240,
+"forwarder": null,
+"ref": "combase.dll!0xff6e0"
+},
+{
+"name": "NdrProxyForwardingFunction7",
+"ordinal": 36,
+"rva": 1046320,
+"forwarder": null,
+"ref": "combase.dll!0xff730"
+},
+{
+"name": "NdrProxyForwardingFunction8",
+"ordinal": 37,
+"rva": 1046400,
+"forwarder": null,
+"ref": "combase.dll!0xff780"
+},
+{
+"name": "NdrProxyForwardingFunction9",
+"ordinal": 38,
+"rva": 1046480,
+"forwarder": null,
+"ref": "combase.dll!0xff7d0"
+},
+{
+"name": "NdrProxyForwardingFunction10",
+"ordinal": 39,
+"rva": 1046560,
+"forwarder": null,
+"ref": "combase.dll!0xff820"
+},
+{
+"name": "NdrProxyForwardingFunction11",
+"ordinal": 40,
+"rva": 1046640,
+"forwarder": null,
+"ref": "combase.dll!0xff870"
+},
+{
+"name": "NdrProxyForwardingFunction12",
+"ordinal": 41,
+"rva": 1046720,
+"forwarder": null,
+"ref": "combase.dll!0xff8c0"
+},
+{
+"name": "NdrProxyForwardingFunction13",
+"ordinal": 42,
+"rva": 1046800,
+"forwarder": null,
+"ref": "combase.dll!0xff910"
+},
+{
+"name": "NdrProxyForwardingFunction14",
+"ordinal": 43,
+"rva": 1046880,
+"forwarder": null,
+"ref": "combase.dll!0xff960"
+},
+{
+"name": "NdrProxyForwardingFunction15",
+"ordinal": 44,
+"rva": 1046960,
+"forwarder": null,
+"ref": "combase.dll!0xff9b0"
+},
+{
+"name": "NdrProxyForwardingFunction16",
+"ordinal": 45,
+"rva": 1047040,
+"forwarder": null,
+"ref": "combase.dll!0xffa00"
+},
+{
+"name": "NdrProxyForwardingFunction17",
+"ordinal": 46,
+"rva": 1047120,
+"forwarder": null,
+"ref": "combase.dll!0xffa50"
+},
+{
+"name": "NdrProxyForwardingFunction18",
+"ordinal": 47,
+"rva": 1047200,
+"forwarder": null,
+"ref": "combase.dll!0xffaa0"
+},
+{
+"name": "NdrProxyForwardingFunction19",
+"ordinal": 48,
+"rva": 1047280,
+"forwarder": null,
+"ref": "combase.dll!0xffaf0"
+},
+{
+"name": "NdrProxyForwardingFunction20",
+"ordinal": 49,
+"rva": 1047360,
+"forwarder": null,
+"ref": "combase.dll!0xffb40"
+},
+{
+"name": "NdrProxyForwardingFunction21",
+"ordinal": 50,
+"rva": 1047440,
+"forwarder": null,
+"ref": "combase.dll!0xffb90"
+},
+{
+"name": "NdrProxyForwardingFunction22",
+"ordinal": 51,
+"rva": 1047520,
+"forwarder": null,
+"ref": "combase.dll!0xffbe0"
+},
+{
+"name": "NdrProxyForwardingFunction23",
+"ordinal": 52,
+"rva": 1047600,
+"forwarder": null,
+"ref": "combase.dll!0xffc30"
+},
+{
+"name": "NdrProxyForwardingFunction24",
+"ordinal": 53,
+"rva": 1047680,
+"forwarder": null,
+"ref": "combase.dll!0xffc80"
+},
+{
+"name": "NdrProxyForwardingFunction25",
+"ordinal": 54,
+"rva": 1047760,
+"forwarder": null,
+"ref": "combase.dll!0xffcd0"
+},
+{
+"name": "NdrProxyForwardingFunction26",
+"ordinal": 55,
+"rva": 1047840,
+"forwarder": null,
+"ref": "combase.dll!0xffd20"
+},
+{
+"name": "NdrProxyForwardingFunction27",
+"ordinal": 56,
+"rva": 1047920,
+"forwarder": null,
+"ref": "combase.dll!0xffd70"
+},
+{
+"name": "NdrProxyForwardingFunction28",
+"ordinal": 57,
+"rva": 1048000,
+"forwarder": null,
+"ref": "combase.dll!0xffdc0"
+},
+{
+"name": "NdrProxyForwardingFunction29",
+"ordinal": 58,
+"rva": 1048080,
+"forwarder": null,
+"ref": "combase.dll!0xffe10"
+},
+{
+"name": "NdrProxyForwardingFunction30",
+"ordinal": 59,
+"rva": 1048160,
+"forwarder": null,
+"ref": "combase.dll!0xffe60"
+},
+{
+"name": "NdrProxyForwardingFunction31",
+"ordinal": 60,
+"rva": 1048240,
+"forwarder": null,
+"ref": "combase.dll!0xffeb0"
+},
+{
+"name": "NdrProxyForwardingFunction32",
+"ordinal": 61,
+"rva": 1048320,
+"forwarder": null,
+"ref": "combase.dll!0xfff00"
+},
+{
+"name": "HRGN_UserFree64",
+"ordinal": 62,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": null,
+"ordinal": 63,
+"rva": 2073328,
+"forwarder": null,
+"ref": "combase.dll!0x1fa2f0"
+},
+{
+"name": null,
+"ordinal": 64,
+"rva": 2073296,
+"forwarder": null,
+"ref": "combase.dll!0x1fa2d0"
+},
+{
+"name": null,
+"ordinal": 65,
+"rva": 73136,
+"forwarder": null,
+"ref": "combase.dll!0x11db0"
+},
+{
+"name": null,
+"ordinal": 66,
+"rva": 691936,
+"forwarder": null,
+"ref": "combase.dll!0xa8ee0"
+},
+{
+"name": null,
+"ordinal": 67,
+"rva": 694096,
+"forwarder": null,
+"ref": "combase.dll!0xa9750"
+},
+{
+"name": null,
+"ordinal": 68,
+"rva": 786544,
+"forwarder": null,
+"ref": "combase.dll!0xc0070"
+},
+{
+"name": null,
+"ordinal": 69,
+"rva": 691264,
+"forwarder": null,
+"ref": "combase.dll!0xa8c40"
+},
+{
+"name": null,
+"ordinal": 70,
+"rva": 1670448,
+"forwarder": null,
+"ref": "combase.dll!0x197d30"
+},
+{
+"name": null,
+"ordinal": 71,
+"rva": 1671040,
+"forwarder": null,
+"ref": "combase.dll!0x197f80"
+},
+{
+"name": "HRGN_UserFree",
+"ordinal": 72,
+"rva": 1940960,
+"forwarder": null,
+"ref": "combase.dll!0x1d9de0"
+},
+{
+"name": "HRGN_UserMarshal64",
+"ordinal": 73,
+"rva": 1941008,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e10"
+},
+{
+"name": "HRGN_UserMarshal",
+"ordinal": 74,
+"rva": 1941008,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e10"
+},
+{
+"name": "HRGN_UserSize64",
+"ordinal": 75,
+"rva": 1941024,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e20"
+},
+{
+"name": "HRGN_UserSize",
+"ordinal": 76,
+"rva": 1941024,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e20"
+},
+{
+"name": "HRGN_UserUnmarshal64",
+"ordinal": 77,
+"rva": 1941040,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e30"
+},
+{
+"name": "HRGN_UserUnmarshal",
+"ordinal": 78,
+"rva": 1941040,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e30"
+},
+{
+"name": null,
+"ordinal": 79,
+"rva": 2213344,
+"forwarder": null,
+"ref": "combase.dll!0x21c5e0"
+},
+{
+"name": null,
+"ordinal": 80,
+"rva": 2139584,
+"forwarder": null,
+"ref": "combase.dll!0x20a5c0"
+},
+{
+"name": null,
+"ordinal": 81,
+"rva": 2139248,
+"forwarder": null,
+"ref": "combase.dll!0x20a470"
+},
+{
+"name": "NdrOleInitializeExtension",
+"ordinal": 82,
+"rva": 868560,
+"forwarder": null,
+"ref": "combase.dll!0xd40d0"
+},
+{
+"name": "RoFailFastWithErrorContextInternal2",
+"ordinal": 83,
+"rva": 2081360,
+"forwarder": null,
+"ref": "combase.dll!0x1fc250"
+},
+{
+"name": "RoFailFastWithErrorContextInternal",
+"ordinal": 84,
+"rva": 2082752,
+"forwarder": null,
+"ref": "combase.dll!0x1fc7c0"
+},
+{
+"name": "UpdateProcessTracing",
+"ordinal": 85,
+"rva": 1686208,
+"forwarder": null,
+"ref": "combase.dll!0x19bac0"
+},
+{
+"name": null,
+"ordinal": 86,
+"rva": 560736,
+"forwarder": null,
+"ref": "combase.dll!0x88e60"
+},
+{
+"name": null,
+"ordinal": 87,
+"rva": 548896,
+"forwarder": null,
+"ref": "combase.dll!0x86020"
+},
+{
+"name": null,
+"ordinal": 88,
+"rva": 561056,
+"forwarder": null,
+"ref": "combase.dll!0x88fa0"
+},
+{
+"name": "CLIPFORMAT_UserFree",
+"ordinal": 89,
+"rva": 1940960,
+"forwarder": null,
+"ref": "combase.dll!0x1d9de0"
+},
+{
+"name": null,
+"ordinal": 90,
+"rva": 865936,
+"forwarder": null,
+"ref": "combase.dll!0xd3690"
+},
+{
+"name": "CLIPFORMAT_UserFree64",
+"ordinal": 91,
+"rva": 945840,
+"forwarder": null,
+"ref": "combase.dll!0xe6eb0"
+},
+{
+"name": null,
+"ordinal": 92,
+"rva": 1774848,
+"forwarder": null,
+"ref": "combase.dll!0x1b1500"
+},
+{
+"name": null,
+"ordinal": 93,
+"rva": 768400,
+"forwarder": null,
+"ref": "combase.dll!0xbb990"
+},
+{
+"name": "CLIPFORMAT_UserMarshal",
+"ordinal": 94,
+"rva": 1941648,
+"forwarder": null,
+"ref": "combase.dll!0x1da090"
+},
+{
+"name": null,
+"ordinal": 95,
+"rva": 1669312,
+"forwarder": null,
+"ref": "combase.dll!0x1978c0"
+},
+{
+"name": null,
+"ordinal": 96,
+"rva": 1737936,
+"forwarder": null,
+"ref": "combase.dll!0x1a84d0"
+},
+{
+"name": null,
+"ordinal": 97,
+"rva": 1768384,
+"forwarder": null,
+"ref": "combase.dll!0x1afbc0"
+},
+{
+"name": null,
+"ordinal": 98,
+"rva": 1768432,
+"forwarder": null,
+"ref": "combase.dll!0x1afbf0"
+},
+{
+"name": null,
+"ordinal": 99,
+"rva": 950624,
+"forwarder": null,
+"ref": "combase.dll!0xe8160"
+},
+{
+"name": null,
+"ordinal": 100,
+"rva": 951248,
+"forwarder": null,
+"ref": "combase.dll!0xe83d0"
+},
+{
+"name": null,
+"ordinal": 101,
+"rva": 928080,
+"forwarder": null,
+"ref": "combase.dll!0xe2950"
+},
+{
+"name": null,
+"ordinal": 102,
+"rva": 928032,
+"forwarder": null,
+"ref": "combase.dll!0xe2920"
+},
+{
+"name": null,
+"ordinal": 103,
+"rva": 1905184,
+"forwarder": null,
+"ref": "combase.dll!0x1d1220"
+},
+{
+"name": null,
+"ordinal": 104,
+"rva": 1903520,
+"forwarder": null,
+"ref": "combase.dll!0x1d0ba0"
+},
+{
+"name": "CLIPFORMAT_UserMarshal64",
+"ordinal": 105,
+"rva": 758080,
+"forwarder": null,
+"ref": "combase.dll!0xb9140"
+},
+{
+"name": "CLIPFORMAT_UserSize",
+"ordinal": 106,
+"rva": 1942000,
+"forwarder": null,
+"ref": "combase.dll!0x1da1f0"
+},
+{
+"name": "CLIPFORMAT_UserSize64",
+"ordinal": 107,
+"rva": 757776,
+"forwarder": null,
+"ref": "combase.dll!0xb9010"
+},
+{
+"name": "CLIPFORMAT_UserUnmarshal",
+"ordinal": 108,
+"rva": 1942288,
+"forwarder": null,
+"ref": "combase.dll!0x1da310"
+},
+{
+"name": "CLIPFORMAT_UserUnmarshal64",
+"ordinal": 109,
+"rva": 759680,
+"forwarder": null,
+"ref": "combase.dll!0xb9780"
+},
+{
+"name": null,
+"ordinal": 110,
+"rva": 919696,
+"forwarder": null,
+"ref": "combase.dll!0xe0890"
+},
+{
+"name": null,
+"ordinal": 111,
+"rva": 789696,
+"forwarder": null,
+"ref": "combase.dll!0xc0cc0"
+},
+{
+"name": null,
+"ordinal": 112,
+"rva": 678224,
+"forwarder": null,
+"ref": "combase.dll!0xa5950"
+},
+{
+"name": "CLSIDFromOle1Class",
+"ordinal": 113,
+"rva": 718608,
+"forwarder": null,
+"ref": "combase.dll!0xaf710"
+},
+{
+"name": "CLSIDFromProgID",
+"ordinal": 114,
+"rva": 689520,
+"forwarder": null,
+"ref": "combase.dll!0xa8570"
+},
+{
+"name": "CLSIDFromProgIDEx",
+"ordinal": 115,
+"rva": 690752,
+"forwarder": null,
+"ref": "combase.dll!0xa8a40"
+},
+{
+"name": "CLSIDFromString",
+"ordinal": 116,
+"rva": 719840,
+"forwarder": null,
+"ref": "combase.dll!0xafbe0"
+},
+{
+"name": "CStdAsyncStubBuffer2_Connect",
+"ordinal": 117,
+"rva": 2100752,
+"forwarder": null,
+"ref": "combase.dll!0x200e10"
+},
+{
+"name": "CStdAsyncStubBuffer2_Disconnect",
+"ordinal": 118,
+"rva": 803904,
+"forwarder": null,
+"ref": "combase.dll!0xc4440"
+},
+{
+"name": "CStdAsyncStubBuffer2_Release",
+"ordinal": 119,
+"rva": 2100832,
+"forwarder": null,
+"ref": "combase.dll!0x200e60"
+},
+{
+"name": null,
+"ordinal": 120,
+"rva": 854688,
+"forwarder": null,
+"ref": "combase.dll!0xd0aa0"
+},
+{
+"name": null,
+"ordinal": 121,
+"rva": 1670800,
+"forwarder": null,
+"ref": "combase.dll!0x197e90"
+},
+{
+"name": null,
+"ordinal": 122,
+"rva": 855328,
+"forwarder": null,
+"ref": "combase.dll!0xd0d20"
+},
+{
+"name": null,
+"ordinal": 123,
+"rva": 1737328,
+"forwarder": null,
+"ref": "combase.dll!0x1a8270"
+},
+{
+"name": null,
+"ordinal": 124,
+"rva": 1737392,
+"forwarder": null,
+"ref": "combase.dll!0x1a82b0"
+},
+{
+"name": null,
+"ordinal": 125,
+"rva": 1737424,
+"forwarder": null,
+"ref": "combase.dll!0x1a82d0"
+},
+{
+"name": null,
+"ordinal": 126,
+"rva": 1737360,
+"forwarder": null,
+"ref": "combase.dll!0x1a8290"
+},
+{
+"name": null,
+"ordinal": 127,
+"rva": 1737296,
+"forwarder": null,
+"ref": "combase.dll!0x1a8250"
+},
+{
+"name": null,
+"ordinal": 128,
+"rva": 1791056,
+"forwarder": null,
+"ref": "combase.dll!0x1b5450"
+},
+{
+"name": null,
+"ordinal": 129,
+"rva": 1791024,
+"forwarder": null,
+"ref": "combase.dll!0x1b5430"
+},
+{
+"name": null,
+"ordinal": 130,
+"rva": 1784720,
+"forwarder": null,
+"ref": "combase.dll!0x1b3b90"
+},
+{
+"name": "CStdAsyncStubBuffer_AddRef",
+"ordinal": 131,
+"rva": 789232,
+"forwarder": null,
+"ref": "combase.dll!0xc0af0"
+},
+{
+"name": "CStdAsyncStubBuffer_Connect",
+"ordinal": 132,
+"rva": 2100960,
+"forwarder": null,
+"ref": "combase.dll!0x200ee0"
+},
+{
+"name": null,
+"ordinal": 133,
+"rva": 59152,
+"forwarder": null,
+"ref": "combase.dll!0xe710"
+},
+{
+"name": null,
+"ordinal": 134,
+"rva": 706784,
+"forwarder": null,
+"ref": "combase.dll!0xac8e0"
+},
+{
+"name": null,
+"ordinal": 135,
+"rva": 1667792,
+"forwarder": null,
+"ref": "combase.dll!0x1972d0"
+},
+{
+"name": null,
+"ordinal": 136,
+"rva": 1726880,
+"forwarder": null,
+"ref": "combase.dll!0x1a59a0"
+},
+{
+"name": null,
+"ordinal": 137,
+"rva": 1737904,
+"forwarder": null,
+"ref": "combase.dll!0x1a84b0"
+},
+{
+"name": null,
+"ordinal": 138,
+"rva": 1759696,
+"forwarder": null,
+"ref": "combase.dll!0x1ad9d0"
+},
+{
+"name": null,
+"ordinal": 139,
+"rva": 1819136,
+"forwarder": null,
+"ref": "combase.dll!0x1bc200"
+},
+{
+"name": null,
+"ordinal": 140,
+"rva": 926592,
+"forwarder": null,
+"ref": "combase.dll!0xe2380"
+},
+{
+"name": null,
+"ordinal": 141,
+"rva": 1782176,
+"forwarder": null,
+"ref": "combase.dll!0x1b31a0"
+},
+{
+"name": null,
+"ordinal": 142,
+"rva": 1786080,
+"forwarder": null,
+"ref": "combase.dll!0x1b40e0"
+},
+{
+"name": null,
+"ordinal": 143,
+"rva": 1678560,
+"forwarder": null,
+"ref": "combase.dll!0x199ce0"
+},
+{
+"name": "CStdAsyncStubBuffer_Disconnect",
+"ordinal": 144,
+"rva": 800128,
+"forwarder": null,
+"ref": "combase.dll!0xc3580"
+},
+{
+"name": null,
+"ordinal": 145,
+"rva": 1909840,
+"forwarder": null,
+"ref": "combase.dll!0x1d2450"
+},
+{
+"name": null,
+"ordinal": 146,
+"rva": 1909872,
+"forwarder": null,
+"ref": "combase.dll!0x1d2470"
+},
+{
+"name": null,
+"ordinal": 147,
+"rva": 694560,
+"forwarder": null,
+"ref": "combase.dll!0xa9920"
+},
+{
+"name": null,
+"ordinal": 148,
+"rva": 951232,
+"forwarder": null,
+"ref": "combase.dll!0xe83c0"
+},
+{
+"name": null,
+"ordinal": 149,
+"rva": 1702784,
+"forwarder": null,
+"ref": "combase.dll!0x19fb80"
+},
+{
+"name": null,
+"ordinal": 150,
+"rva": 1761648,
+"forwarder": null,
+"ref": "combase.dll!0x1ae170"
+},
+{
+"name": null,
+"ordinal": 151,
+"rva": 1667296,
+"forwarder": null,
+"ref": "combase.dll!0x1970e0"
+},
+{
+"name": null,
+"ordinal": 152,
+"rva": 1719024,
+"forwarder": null,
+"ref": "combase.dll!0x1a3af0"
+},
+{
+"name": null,
+"ordinal": 153,
+"rva": 276480,
+"forwarder": null,
+"ref": "combase.dll!0x43800"
+},
+{
+"name": null,
+"ordinal": 154,
+"rva": 809456,
+"forwarder": null,
+"ref": "combase.dll!0xc59f0"
+},
+{
+"name": null,
+"ordinal": 155,
+"rva": 1761632,
+"forwarder": null,
+"ref": "combase.dll!0x1ae160"
+},
+{
+"name": null,
+"ordinal": 156,
+"rva": 1702832,
+"forwarder": null,
+"ref": "combase.dll!0x19fbb0"
+},
+{
+"name": null,
+"ordinal": 157,
+"rva": 865824,
+"forwarder": null,
+"ref": "combase.dll!0xd3620"
+},
+{
+"name": null,
+"ordinal": 158,
+"rva": 1792048,
+"forwarder": null,
+"ref": "combase.dll!0x1b5830"
+},
+{
+"name": null,
+"ordinal": 159,
+"rva": 80272,
+"forwarder": null,
+"ref": "combase.dll!0x13990"
+},
+{
+"name": null,
+"ordinal": 160,
+"rva": 9328,
+"forwarder": null,
+"ref": "combase.dll!0x2470"
+},
+{
+"name": null,
+"ordinal": 161,
+"rva": 1795024,
+"forwarder": null,
+"ref": "combase.dll!0x1b63d0"
+},
+{
+"name": null,
+"ordinal": 162,
+"rva": 1667824,
+"forwarder": null,
+"ref": "combase.dll!0x1972f0"
+},
+{
+"name": null,
+"ordinal": 163,
+"rva": 1739392,
+"forwarder": null,
+"ref": "combase.dll!0x1a8a80"
+},
+{
+"name": null,
+"ordinal": 164,
+"rva": 754944,
+"forwarder": null,
+"ref": "combase.dll!0xb8500"
+},
+{
+"name": null,
+"ordinal": 165,
+"rva": 2093104,
+"forwarder": null,
+"ref": "combase.dll!0x1ff030"
+},
+{
+"name": null,
+"ordinal": 166,
+"rva": 2093472,
+"forwarder": null,
+"ref": "combase.dll!0x1ff1a0"
+},
+{
+"name": null,
+"ordinal": 167,
+"rva": 877984,
+"forwarder": null,
+"ref": "combase.dll!0xd65a0"
+},
+{
+"name": null,
+"ordinal": 168,
+"rva": 877840,
+"forwarder": null,
+"ref": "combase.dll!0xd6510"
+},
+{
+"name": null,
+"ordinal": 169,
+"rva": 2139664,
+"forwarder": null,
+"ref": "combase.dll!0x20a610"
+},
+{
+"name": null,
+"ordinal": 170,
+"rva": 2139328,
+"forwarder": null,
+"ref": "combase.dll!0x20a4c0"
+},
+{
+"name": null,
+"ordinal": 171,
+"rva": 1667344,
+"forwarder": null,
+"ref": "combase.dll!0x197110"
+},
+{
+"name": null,
+"ordinal": 172,
+"rva": 1702864,
+"forwarder": null,
+"ref": "combase.dll!0x19fbd0"
+},
+{
+"name": null,
+"ordinal": 173,
+"rva": 1702176,
+"forwarder": null,
+"ref": "combase.dll!0x19f920"
+},
+{
+"name": null,
+"ordinal": 174,
+"rva": 1703216,
+"forwarder": null,
+"ref": "combase.dll!0x19fd30"
+},
+{
+"name": null,
+"ordinal": 175,
+"rva": 1702480,
+"forwarder": null,
+"ref": "combase.dll!0x19fa50"
+},
+{
+"name": null,
+"ordinal": 176,
+"rva": 755488,
+"forwarder": null,
+"ref": "combase.dll!0xb8720"
+},
+{
+"name": null,
+"ordinal": 177,
+"rva": 824608,
+"forwarder": null,
+"ref": "combase.dll!0xc9520"
+},
+{
+"name": null,
+"ordinal": 178,
+"rva": 840720,
+"forwarder": null,
+"ref": "combase.dll!0xcd410"
+},
+{
+"name": null,
+"ordinal": 179,
+"rva": 1667936,
+"forwarder": null,
+"ref": "combase.dll!0x197360"
+},
+{
+"name": null,
+"ordinal": 180,
+"rva": 790592,
+"forwarder": null,
+"ref": "combase.dll!0xc1040"
+},
+{
+"name": null,
+"ordinal": 181,
+"rva": 790448,
+"forwarder": null,
+"ref": "combase.dll!0xc0fb0"
+},
+{
+"name": null,
+"ordinal": 182,
+"rva": 1718976,
+"forwarder": null,
+"ref": "combase.dll!0x1a3ac0"
+},
+{
+"name": null,
+"ordinal": 183,
+"rva": 2821192,
+"forwarder": null,
+"ref": "combase.dll!0x2b0c48"
+},
+{
+"name": null,
+"ordinal": 184,
+"rva": 877696,
+"forwarder": null,
+"ref": "combase.dll!0xd6480"
+},
+{
+"name": null,
+"ordinal": 185,
+"rva": 1946224,
+"forwarder": null,
+"ref": "combase.dll!0x1db270"
+},
+{
+"name": null,
+"ordinal": 186,
+"rva": 1945728,
+"forwarder": null,
+"ref": "combase.dll!0x1db080"
+},
+{
+"name": null,
+"ordinal": 187,
+"rva": 1946656,
+"forwarder": null,
+"ref": "combase.dll!0x1db420"
+},
+{
+"name": null,
+"ordinal": 188,
+"rva": 1945632,
+"forwarder": null,
+"ref": "combase.dll!0x1db020"
+},
+{
+"name": null,
+"ordinal": 189,
+"rva": 1947904,
+"forwarder": null,
+"ref": "combase.dll!0x1db900"
+},
+{
+"name": null,
+"ordinal": 190,
+"rva": 1947088,
+"forwarder": null,
+"ref": "combase.dll!0x1db5d0"
+},
+{
+"name": null,
+"ordinal": 191,
+"rva": 1948640,
+"forwarder": null,
+"ref": "combase.dll!0x1dbbe0"
+},
+{
+"name": null,
+"ordinal": 192,
+"rva": 1946912,
+"forwarder": null,
+"ref": "combase.dll!0x1db520"
+},
+{
+"name": null,
+"ordinal": 193,
+"rva": 1949488,
+"forwarder": null,
+"ref": "combase.dll!0x1dbf30"
+},
+{
+"name": null,
+"ordinal": 194,
+"rva": 1948992,
+"forwarder": null,
+"ref": "combase.dll!0x1dbd40"
+},
+{
+"name": null,
+"ordinal": 195,
+"rva": 1949920,
+"forwarder": null,
+"ref": "combase.dll!0x1dc0e0"
+},
+{
+"name": null,
+"ordinal": 196,
+"rva": 1948896,
+"forwarder": null,
+"ref": "combase.dll!0x1dbce0"
+},
+{
+"name": null,
+"ordinal": 197,
+"rva": 1954000,
+"forwarder": null,
+"ref": "combase.dll!0x1dd0d0"
+},
+{
+"name": null,
+"ordinal": 198,
+"rva": 1953520,
+"forwarder": null,
+"ref": "combase.dll!0x1dcef0"
+},
+{
+"name": null,
+"ordinal": 199,
+"rva": 1954592,
+"forwarder": null,
+"ref": "combase.dll!0x1dd320"
+},
+{
+"name": null,
+"ordinal": 200,
+"rva": 1953424,
+"forwarder": null,
+"ref": "combase.dll!0x1dce90"
+},
+{
+"name": null,
+"ordinal": 201,
+"rva": 1959824,
+"forwarder": null,
+"ref": "combase.dll!0x1de790"
+},
+{
+"name": null,
+"ordinal": 202,
+"rva": 1959264,
+"forwarder": null,
+"ref": "combase.dll!0x1de560"
+},
+{
+"name": null,
+"ordinal": 203,
+"rva": 1960432,
+"forwarder": null,
+"ref": "combase.dll!0x1de9f0"
+},
+{
+"name": null,
+"ordinal": 204,
+"rva": 55856,
+"forwarder": null,
+"ref": "combase.dll!0xda30"
+},
+{
+"name": null,
+"ordinal": 205,
+"rva": 1946416,
+"forwarder": null,
+"ref": "combase.dll!0x1db330"
+},
+{
+"name": null,
+"ordinal": 206,
+"rva": 1945968,
+"forwarder": null,
+"ref": "combase.dll!0x1db170"
+},
+{
+"name": null,
+"ordinal": 207,
+"rva": 1946784,
+"forwarder": null,
+"ref": "combase.dll!0x1db4a0"
+},
+{
+"name": null,
+"ordinal": 208,
+"rva": 1945632,
+"forwarder": null,
+"ref": "combase.dll!0x1db020"
+},
+{
+"name": null,
+"ordinal": 209,
+"rva": 1948240,
+"forwarder": null,
+"ref": "combase.dll!0x1dba50"
+},
+{
+"name": null,
+"ordinal": 210,
+"rva": 1947456,
+"forwarder": null,
+"ref": "combase.dll!0x1db740"
+},
+{
+"name": null,
+"ordinal": 211,
+"rva": 1948768,
+"forwarder": null,
+"ref": "combase.dll!0x1dbc60"
+},
+{
+"name": null,
+"ordinal": 212,
+"rva": 1946912,
+"forwarder": null,
+"ref": "combase.dll!0x1db520"
+},
+{
+"name": null,
+"ordinal": 213,
+"rva": 1949680,
+"forwarder": null,
+"ref": "combase.dll!0x1dbff0"
+},
+{
+"name": null,
+"ordinal": 214,
+"rva": 1949232,
+"forwarder": null,
+"ref": "combase.dll!0x1dbe30"
+},
+{
+"name": null,
+"ordinal": 215,
+"rva": 1950272,
+"forwarder": null,
+"ref": "combase.dll!0x1dc240"
+},
+{
+"name": null,
+"ordinal": 216,
+"rva": 1948896,
+"forwarder": null,
+"ref": "combase.dll!0x1dbce0"
+},
+{
+"name": null,
+"ordinal": 217,
+"rva": 1954288,
+"forwarder": null,
+"ref": "combase.dll!0x1dd1f0"
+},
+{
+"name": null,
+"ordinal": 218,
+"rva": 1953760,
+"forwarder": null,
+"ref": "combase.dll!0x1dcfe0"
+},
+{
+"name": null,
+"ordinal": 219,
+"rva": 1955408,
+"forwarder": null,
+"ref": "combase.dll!0x1dd650"
+},
+{
+"name": null,
+"ordinal": 220,
+"rva": 1953424,
+"forwarder": null,
+"ref": "combase.dll!0x1dce90"
+},
+{
+"name": null,
+"ordinal": 221,
+"rva": 56016,
+"forwarder": null,
+"ref": "combase.dll!0xdad0"
+},
+{
+"name": null,
+"ordinal": 222,
+"rva": 56912,
+"forwarder": null,
+"ref": "combase.dll!0xde50"
+},
+{
+"name": null,
+"ordinal": 223,
+"rva": 55152,
+"forwarder": null,
+"ref": "combase.dll!0xd770"
+},
+{
+"name": null,
+"ordinal": 224,
+"rva": 55280,
+"forwarder": null,
+"ref": "combase.dll!0xd7f0"
+},
+{
+"name": "CStdAsyncStubBuffer_Invoke",
+"ordinal": 225,
+"rva": 2101040,
+"forwarder": null,
+"ref": "combase.dll!0x200f30"
+},
+{
+"name": "CStdAsyncStubBuffer_QueryInterface",
+"ordinal": 226,
+"rva": 2101312,
+"forwarder": null,
+"ref": "combase.dll!0x201040"
+},
+{
+"name": "CStdAsyncStubBuffer_Release",
+"ordinal": 227,
+"rva": 2101616,
+"forwarder": null,
+"ref": "combase.dll!0x201170"
+},
+{
+"name": "CStdStubBuffer2_Connect",
+"ordinal": 228,
+"rva": 51808,
+"forwarder": null,
+"ref": "combase.dll!0xca60"
+},
+{
+"name": "CStdStubBuffer2_CountRefs",
+"ordinal": 229,
+"rva": 2101984,
+"forwarder": null,
+"ref": "combase.dll!0x2012e0"
+},
+{
+"name": "CStdStubBuffer2_Disconnect",
+"ordinal": 230,
+"rva": 803904,
+"forwarder": null,
+"ref": "combase.dll!0xc4440"
+},
+{
+"name": "CStdStubBuffer2_QueryInterface",
+"ordinal": 231,
+"rva": 791664,
+"forwarder": null,
+"ref": "combase.dll!0xc1470"
+},
+{
+"name": "CStdStubBuffer_AddRef",
+"ordinal": 232,
+"rva": 789232,
+"forwarder": null,
+"ref": "combase.dll!0xc0af0"
+},
+{
+"name": "CStdStubBuffer_Connect",
+"ordinal": 233,
+"rva": 51872,
+"forwarder": null,
+"ref": "combase.dll!0xcaa0"
+},
+{
+"name": "CStdStubBuffer_CountRefs",
+"ordinal": 234,
+"rva": 2102208,
+"forwarder": null,
+"ref": "combase.dll!0x2013c0"
+},
+{
+"name": "CStdStubBuffer_DebugServerQueryInterface",
+"ordinal": 235,
+"rva": 2102240,
+"forwarder": null,
+"ref": "combase.dll!0x2013e0"
+},
+{
+"name": "CStdStubBuffer_DebugServerRelease",
+"ordinal": 236,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "CStdStubBuffer_Disconnect",
+"ordinal": 237,
+"rva": 800128,
+"forwarder": null,
+"ref": "combase.dll!0xc3580"
+},
+{
+"name": "CStdStubBuffer_Invoke",
+"ordinal": 238,
+"rva": 745120,
+"forwarder": null,
+"ref": "combase.dll!0xb5ea0"
+},
+{
+"name": "CStdStubBuffer_IsIIDSupported",
+"ordinal": 239,
+"rva": 2102272,
+"forwarder": null,
+"ref": "combase.dll!0x201400"
+},
+{
+"name": "CStdStubBuffer_QueryInterface",
+"ordinal": 240,
+"rva": 791776,
+"forwarder": null,
+"ref": "combase.dll!0xc14e0"
+},
+{
+"name": "CleanupComl2StateInAllTls",
+"ordinal": 241,
+"rva": 904256,
+"forwarder": null,
+"ref": "combase.dll!0xdcc40"
+},
+{
+"name": "CleanupOleStateInAllTls",
+"ordinal": 242,
+"rva": 860624,
+"forwarder": null,
+"ref": "combase.dll!0xd21d0"
+},
+{
+"name": "CleanupTlsComl2State",
+"ordinal": 243,
+"rva": 904368,
+"forwarder": null,
+"ref": "combase.dll!0xdccb0"
+},
+{
+"name": "CleanupTlsOleState",
+"ordinal": 244,
+"rva": 860736,
+"forwarder": null,
+"ref": "combase.dll!0xd2240"
+},
+{
+"name": "ClearCleanupFlag",
+"ordinal": 245,
+"rva": 1670416,
+"forwarder": null,
+"ref": "combase.dll!0x197d10"
+},
+{
+"name": "CoAddRefServerProcess",
+"ordinal": 246,
+"rva": 787024,
+"forwarder": null,
+"ref": "combase.dll!0xc0250"
+},
+{
+"name": "CoAllowUnmarshalerCLSID",
+"ordinal": 247,
+"rva": 750288,
+"forwarder": null,
+"ref": "combase.dll!0xb72d0"
+},
+{
+"name": "CoCancelCall",
+"ordinal": 248,
+"rva": 1718448,
+"forwarder": null,
+"ref": "combase.dll!0x1a38b0"
+},
+{
+"name": "CoCopyProxy",
+"ordinal": 249,
+"rva": 812400,
+"forwarder": null,
+"ref": "combase.dll!0xc6570"
+},
+{
+"name": "CoCreateErrorInfo",
+"ordinal": 250,
+"rva": 930080,
+"forwarder": null,
+"ref": "combase.dll!0xe3120"
+},
+{
+"name": "CoCreateFreeThreadedMarshaler",
+"ordinal": 251,
+"rva": 493456,
+"forwarder": null,
+"ref": "combase.dll!0x78790"
+},
+{
+"name": "CoCreateGuid",
+"ordinal": 252,
+"rva": 341984,
+"forwarder": null,
+"ref": "combase.dll!0x537e0"
+},
+{
+"name": "CoCreateInstance",
+"ordinal": 253,
+"rva": 173088,
+"forwarder": null,
+"ref": "combase.dll!0x2a420"
+},
+{
+"name": "CoCreateInstanceEx",
+"ordinal": 254,
+"rva": 672128,
+"forwarder": null,
+"ref": "combase.dll!0xa4180"
+},
+{
+"name": "CoCreateInstanceFromApp",
+"ordinal": 255,
+"rva": 932576,
+"forwarder": null,
+"ref": "combase.dll!0xe3ae0"
+},
+{
+"name": "CoCreateObjectInContext",
+"ordinal": 256,
+"rva": 1735280,
+"forwarder": null,
+"ref": "combase.dll!0x1a7a70"
+},
+{
+"name": "CoDeactivateObject",
+"ordinal": 257,
+"rva": 1736176,
+"forwarder": null,
+"ref": "combase.dll!0x1a7df0"
+},
+{
+"name": "CoDecodeProxy",
+"ordinal": 258,
+"rva": 1736384,
+"forwarder": null,
+"ref": "combase.dll!0x1a7ec0"
+},
+{
+"name": "CoDecrementMTAUsage",
+"ordinal": 259,
+"rva": 703040,
+"forwarder": null,
+"ref": "combase.dll!0xaba40"
+},
+{
+"name": "CoDisableCallCancellation",
+"ordinal": 260,
+"rva": 858720,
+"forwarder": null,
+"ref": "combase.dll!0xd1a60"
+},
+{
+"name": "CoDisconnectContext",
+"ordinal": 261,
+"rva": 685568,
+"forwarder": null,
+"ref": "combase.dll!0xa7600"
+},
+{
+"name": "CoDisconnectObject",
+"ordinal": 262,
+"rva": 663712,
+"forwarder": null,
+"ref": "combase.dll!0xa20a0"
+},
+{
+"name": "CoEnableCallCancellation",
+"ordinal": 263,
+"rva": 860880,
+"forwarder": null,
+"ref": "combase.dll!0xd22d0"
+},
+{
+"name": "CoFileTimeNow",
+"ordinal": 264,
+"rva": 77040,
+"forwarder": null,
+"ref": "combase.dll!0x12cf0"
+},
+{
+"name": "CoFreeUnusedLibraries",
+"ordinal": 265,
+"rva": 824736,
+"forwarder": null,
+"ref": "combase.dll!0xc95a0"
+},
+{
+"name": "CoFreeUnusedLibrariesEx",
+"ordinal": 266,
+"rva": 825712,
+"forwarder": null,
+"ref": "combase.dll!0xc9970"
+},
+{
+"name": "CoGetActivationState",
+"ordinal": 267,
+"rva": 1736432,
+"forwarder": null,
+"ref": "combase.dll!0x1a7ef0"
+},
+{
+"name": "CoGetApartmentID",
+"ordinal": 268,
+"rva": 1751632,
+"forwarder": null,
+"ref": "combase.dll!0x1aba50"
+},
+{
+"name": "CoGetApartmentType",
+"ordinal": 269,
+"rva": 725360,
+"forwarder": null,
+"ref": "combase.dll!0xb1170"
+},
+{
+"name": "CoGetCallContext",
+"ordinal": 270,
+"rva": 375680,
+"forwarder": null,
+"ref": "combase.dll!0x5bb80"
+},
+{
+"name": "CoGetCallState",
+"ordinal": 271,
+"rva": 1736496,
+"forwarder": null,
+"ref": "combase.dll!0x1a7f30"
+},
+{
+"name": "CoGetCallerTID",
+"ordinal": 272,
+"rva": 926736,
+"forwarder": null,
+"ref": "combase.dll!0xe2410"
+},
+{
+"name": "CoGetCancelObject",
+"ordinal": 273,
+"rva": 1718544,
+"forwarder": null,
+"ref": "combase.dll!0x1a3910"
+},
+{
+"name": "CoGetClassObject",
+"ordinal": 274,
+"rva": 191232,
+"forwarder": null,
+"ref": "combase.dll!0x2eb00"
+},
+{
+"name": "CoGetClassVersion",
+"ordinal": 275,
+"rva": 1668704,
+"forwarder": null,
+"ref": "combase.dll!0x197660"
+},
+{
+"name": "CoGetContextToken",
+"ordinal": 276,
+"rva": 660144,
+"forwarder": null,
+"ref": "combase.dll!0xa12b0"
+},
+{
+"name": "CoGetCurrentLogicalThreadId",
+"ordinal": 277,
+"rva": 582048,
+"forwarder": null,
+"ref": "combase.dll!0x8e1a0"
+},
+{
+"name": "CoGetCurrentProcess",
+"ordinal": 278,
+"rva": 949392,
+"forwarder": null,
+"ref": "combase.dll!0xe7c90"
+},
+{
+"name": "CoGetDefaultContext",
+"ordinal": 279,
+"rva": 1736560,
+"forwarder": null,
+"ref": "combase.dll!0x1a7f70"
+},
+{
+"name": "CoGetErrorInfo",
+"ordinal": 280,
+"rva": 856736,
+"forwarder": null,
+"ref": "combase.dll!0xd12a0"
+},
+{
+"name": "CoGetInstanceFromFile",
+"ordinal": 281,
+"rva": 1926528,
+"forwarder": null,
+"ref": "combase.dll!0x1d6580"
+},
+{
+"name": "CoGetInstanceFromIStorage",
+"ordinal": 282,
+"rva": 1926848,
+"forwarder": null,
+"ref": "combase.dll!0x1d66c0"
+},
+{
+"name": "CoGetInterfaceAndReleaseStream",
+"ordinal": 283,
+"rva": 884800,
+"forwarder": null,
+"ref": "combase.dll!0xd8040"
+},
+{
+"name": "CoGetMalloc",
+"ordinal": 284,
+"rva": 770832,
+"forwarder": null,
+"ref": "combase.dll!0xbc310"
+},
+{
+"name": "CoGetMarshalSizeMax",
+"ordinal": 285,
+"rva": 443792,
+"forwarder": null,
+"ref": "combase.dll!0x6c590"
+},
+{
+"name": "CoGetModuleArchitecture",
+"ordinal": 286,
+"rva": 870960,
+"forwarder": null,
+"ref": "combase.dll!0xd4a30"
+},
+{
+"name": "CoGetModuleType",
+"ordinal": 287,
+"rva": 1965712,
+"forwarder": null,
+"ref": "combase.dll!0x1dfe90"
+},
+{
+"name": "CoGetObjectContext",
+"ordinal": 288,
+"rva": 861648,
+"forwarder": null,
+"ref": "combase.dll!0xd25d0"
+},
+{
+"name": "CoGetPSClsid",
+"ordinal": 289,
+"rva": 895488,
+"forwarder": null,
+"ref": "combase.dll!0xdaa00"
+},
+{
+"name": "CoGetProcessIdentifier",
+"ordinal": 290,
+"rva": 409520,
+"forwarder": null,
+"ref": "combase.dll!0x63fb0"
+},
+{
+"name": "CoGetStandardMarshal",
+"ordinal": 291,
+"rva": 451056,
+"forwarder": null,
+"ref": "combase.dll!0x6e1f0"
+},
+{
+"name": "CoGetStdMarshalEx",
+"ordinal": 292,
+"rva": 661632,
+"forwarder": null,
+"ref": "combase.dll!0xa1880"
+},
+{
+"name": "CoGetSystemSecurityPermissions",
+"ordinal": 293,
+"rva": 1736880,
+"forwarder": null,
+"ref": "combase.dll!0x1a80b0"
+},
+{
+"name": "CoGetTreatAsClass",
+"ordinal": 294,
+"rva": 608832,
+"forwarder": null,
+"ref": "combase.dll!0x94a40"
+},
+{
+"name": "CoImpersonateClient",
+"ordinal": 295,
+"rva": 375392,
+"forwarder": null,
+"ref": "combase.dll!0x5ba60"
+},
+{
+"name": "CoIncrementMTAUsage",
+"ordinal": 296,
+"rva": 666192,
+"forwarder": null,
+"ref": "combase.dll!0xa2a50"
+},
+{
+"name": "CoInitializeEx",
+"ordinal": 297,
+"rva": 188560,
+"forwarder": null,
+"ref": "combase.dll!0x2e090"
+},
+{
+"name": "CoInitializeSecurity",
+"ordinal": 298,
+"rva": 382384,
+"forwarder": null,
+"ref": "combase.dll!0x5d5b0"
+},
+{
+"name": "CoInitializeWOW",
+"ordinal": 299,
+"rva": 1670624,
+"forwarder": null,
+"ref": "combase.dll!0x197de0"
+},
+{
+"name": "CoInvalidateRemoteMachineBindings",
+"ordinal": 300,
+"rva": 1736928,
+"forwarder": null,
+"ref": "combase.dll!0x1a80e0"
+},
+{
+"name": "CoIsHandlerConnected",
+"ordinal": 301,
+"rva": 1736960,
+"forwarder": null,
+"ref": "combase.dll!0x1a8100"
+},
+{
+"name": "CoLockObjectExternal",
+"ordinal": 302,
+"rva": 990752,
+"forwarder": null,
+"ref": "combase.dll!0xf1e20"
+},
+{
+"name": "CoMarshalHresult",
+"ordinal": 303,
+"rva": 1668960,
+"forwarder": null,
+"ref": "combase.dll!0x197760"
+},
+{
+"name": "CoMarshalInterThreadInterfaceInStream",
+"ordinal": 304,
+"rva": 780528,
+"forwarder": null,
+"ref": "combase.dll!0xbe8f0"
+},
+{
+"name": "CoMarshalInterface",
+"ordinal": 305,
+"rva": 503968,
+"forwarder": null,
+"ref": "combase.dll!0x7b0a0"
+},
+{
+"name": "CoPopServiceDomain",
+"ordinal": 306,
+"rva": 1769040,
+"forwarder": null,
+"ref": "combase.dll!0x1afe50"
+},
+{
+"name": "CoPushServiceDomain",
+"ordinal": 307,
+"rva": 1769072,
+"forwarder": null,
+"ref": "combase.dll!0x1afe70"
+},
+{
+"name": "CoQueryAuthenticationServices",
+"ordinal": 308,
+"rva": 1725952,
+"forwarder": null,
+"ref": "combase.dll!0x1a5600"
+},
+{
+"name": "CoQueryClientBlanket",
+"ordinal": 309,
+"rva": 375216,
+"forwarder": null,
+"ref": "combase.dll!0x5b9b0"
+},
+{
+"name": "CoQueryProxyBlanket",
+"ordinal": 310,
+"rva": 863040,
+"forwarder": null,
+"ref": "combase.dll!0xd2b40"
+},
+{
+"name": "CoReactivateObject",
+"ordinal": 311,
+"rva": 1737088,
+"forwarder": null,
+"ref": "combase.dll!0x1a8180"
+},
+{
+"name": "CoRegisterActivationFilter",
+"ordinal": 312,
+"rva": 995136,
+"forwarder": null,
+"ref": "combase.dll!0xf2f40"
+},
+{
+"name": "CoRegisterClassObject",
+"ordinal": 313,
+"rva": 605120,
+"forwarder": null,
+"ref": "combase.dll!0x93bc0"
+},
+{
+"name": "CoRegisterConsoleHandles",
+"ordinal": 314,
+"rva": 1686224,
+"forwarder": null,
+"ref": "combase.dll!0x19bad0"
+},
+{
+"name": "CoRegisterDeviceCatalog",
+"ordinal": 315,
+"rva": 1978608,
+"forwarder": null,
+"ref": "combase.dll!0x1e30f0"
+},
+{
+"name": "CoRegisterInitializeSpy",
+"ordinal": 316,
+"rva": 658096,
+"forwarder": null,
+"ref": "combase.dll!0xa0ab0"
+},
+{
+"name": "CoRegisterMallocSpy",
+"ordinal": 317,
+"rva": 1673520,
+"forwarder": null,
+"ref": "combase.dll!0x198930"
+},
+{
+"name": "CoRegisterMessageFilter",
+"ordinal": 318,
+"rva": 877008,
+"forwarder": null,
+"ref": "combase.dll!0xd61d0"
+},
+{
+"name": "CoRegisterPSClsid",
+"ordinal": 319,
+"rva": 557152,
+"forwarder": null,
+"ref": "combase.dll!0x88060"
+},
+{
+"name": "CoRegisterRacActivationToken",
+"ordinal": 320,
+"rva": 657216,
+"forwarder": null,
+"ref": "combase.dll!0xa0740"
+},
+{
+"name": "CoRegisterSurrogate",
+"ordinal": 321,
+"rva": 78192,
+"forwarder": null,
+"ref": "combase.dll!0x13170"
+},
+{
+"name": "CoRegisterSurrogateEx",
+"ordinal": 322,
+"rva": 687392,
+"forwarder": null,
+"ref": "combase.dll!0xa7d20"
+},
+{
+"name": "CoReleaseMarshalData",
+"ordinal": 323,
+"rva": 190352,
+"forwarder": null,
+"ref": "combase.dll!0x2e790"
+},
+{
+"name": "CoReleaseServerProcess",
+"ordinal": 324,
+"rva": 786800,
+"forwarder": null,
+"ref": "combase.dll!0xc0170"
+},
+{
+"name": "CoResumeClassObjects",
+"ordinal": 325,
+"rva": 657440,
+"forwarder": null,
+"ref": "combase.dll!0xa0820"
+},
+{
+"name": "CoRetireServer",
+"ordinal": 326,
+"rva": 1737264,
+"forwarder": null,
+"ref": "combase.dll!0x1a8230"
+},
+{
+"name": "CoRevertToSelf",
+"ordinal": 327,
+"rva": 375536,
+"forwarder": null,
+"ref": "combase.dll!0x5baf0"
+},
+{
+"name": "CoRevokeClassObject",
+"ordinal": 328,
+"rva": 660352,
+"forwarder": null,
+"ref": "combase.dll!0xa1380"
+},
+{
+"name": "CoRevokeConsoleHandles",
+"ordinal": 329,
+"rva": 1686480,
+"forwarder": null,
+"ref": "combase.dll!0x19bbd0"
+},
+{
+"name": "CoRevokeDeviceCatalog",
+"ordinal": 330,
+"rva": 1978784,
+"forwarder": null,
+"ref": "combase.dll!0x1e31a0"
+},
+{
+"name": "CoRevokeInitializeSpy",
+"ordinal": 331,
+"rva": 827776,
+"forwarder": null,
+"ref": "combase.dll!0xca180"
+},
+{
+"name": "CoRevokeMallocSpy",
+"ordinal": 332,
+"rva": 1673824,
+"forwarder": null,
+"ref": "combase.dll!0x198a60"
+},
+{
+"name": "CoRevokeRacActivationToken",
+"ordinal": 333,
+"rva": 657024,
+"forwarder": null,
+"ref": "combase.dll!0xa0680"
+},
+{
+"name": "CoSetCancelObject",
+"ordinal": 334,
+"rva": 1718720,
+"forwarder": null,
+"ref": "combase.dll!0x1a39c0"
+},
+{
+"name": "CoSetErrorInfo",
+"ordinal": 335,
+"rva": 120160,
+"forwarder": null,
+"ref": "combase.dll!0x1d560"
+},
+{
+"name": "CoSetProxyBlanket",
+"ordinal": 336,
+"rva": 811728,
+"forwarder": null,
+"ref": "combase.dll!0xc62d0"
+},
+{
+"name": "CoSuspendClassObjects",
+"ordinal": 337,
+"rva": 787328,
+"forwarder": null,
+"ref": "combase.dll!0xc0380"
+},
+{
+"name": "CoSwitchCallContext",
+"ordinal": 338,
+"rva": 789264,
+"forwarder": null,
+"ref": "combase.dll!0xc0b10"
+},
+{
+"name": "CoTaskMemAlloc",
+"ordinal": 339,
+"rva": 732720,
+"forwarder": null,
+"ref": "combase.dll!0xb2e30"
+},
+{
+"name": "CoTaskMemFree",
+"ordinal": 340,
+"rva": 727840,
+"forwarder": null,
+"ref": "combase.dll!0xb1b20"
+},
+{
+"name": "CoTaskMemRealloc",
+"ordinal": 341,
+"rva": 841584,
+"forwarder": null,
+"ref": "combase.dll!0xcd770"
+},
+{
+"name": "CoTestCancel",
+"ordinal": 342,
+"rva": 1718880,
+"forwarder": null,
+"ref": "combase.dll!0x1a3a60"
+},
+{
+"name": "CoUninitialize",
+"ordinal": 343,
+"rva": 187968,
+"forwarder": null,
+"ref": "combase.dll!0x2de40"
+},
+{
+"name": "CoUnloadingWOW",
+"ordinal": 344,
+"rva": 974416,
+"forwarder": null,
+"ref": "combase.dll!0xede50"
+},
+{
+"name": "CoUnmarshalHresult",
+"ordinal": 345,
+"rva": 1669056,
+"forwarder": null,
+"ref": "combase.dll!0x1977c0"
+},
+{
+"name": "CoUnmarshalInterface",
+"ordinal": 346,
+"rva": 494400,
+"forwarder": null,
+"ref": "combase.dll!0x78b40"
+},
+{
+"name": "CoVrfCheckThreadState",
+"ordinal": 347,
+"rva": 1905488,
+"forwarder": null,
+"ref": "combase.dll!0x1d1350"
+},
+{
+"name": "CoVrfGetThreadState",
+"ordinal": 348,
+"rva": 1907040,
+"forwarder": null,
+"ref": "combase.dll!0x1d1960"
+},
+{
+"name": "CoVrfReleaseThreadState",
+"ordinal": 349,
+"rva": 1907312,
+"forwarder": null,
+"ref": "combase.dll!0x1d1a70"
+},
+{
+"name": "CoWaitForMultipleHandles",
+"ordinal": 350,
+"rva": 562896,
+"forwarder": null,
+"ref": "combase.dll!0x896d0"
+},
+{
+"name": "CoWaitForMultipleObjects",
+"ordinal": 351,
+"rva": 561392,
+"forwarder": null,
+"ref": "combase.dll!0x890f0"
+},
+{
+"name": "CreateErrorInfo",
+"ordinal": 352,
+"rva": 930080,
+"forwarder": null,
+"ref": "combase.dll!0xe3120"
+},
+{
+"name": "CreateStreamOnHGlobal",
+"ordinal": 353,
+"rva": 781024,
+"forwarder": null,
+"ref": "combase.dll!0xbeae0"
+},
+{
+"name": "DcomChannelSetHResult",
+"ordinal": 354,
+"rva": 700896,
+"forwarder": null,
+"ref": "combase.dll!0xab1e0"
+},
+{
+"name": "DllDebugObjectRPCHook",
+"ordinal": 355,
+"rva": 1801552,
+"forwarder": null,
+"ref": "combase.dll!0x1b7d50"
+},
+{
+"name": "DllGetActivationFactory",
+"ordinal": 356,
+"rva": 913184,
+"forwarder": null,
+"ref": "combase.dll!0xdef20"
+},
+{
+"name": "DllGetClassObject",
+"ordinal": 357,
+"rva": 743504,
+"forwarder": null,
+"ref": "combase.dll!0xb5850"
+},
+{
+"name": "EnableHookObject",
+"ordinal": 358,
+"rva": 1675504,
+"forwarder": null,
+"ref": "combase.dll!0x1990f0"
+},
+{
+"name": "FreePropVariantArray",
+"ordinal": 359,
+"rva": 704048,
+"forwarder": null,
+"ref": "combase.dll!0xabe30"
+},
+{
+"name": "FreePropVariantArrayWorker",
+"ordinal": 360,
+"rva": 704064,
+"forwarder": null,
+"ref": "combase.dll!0xabe40"
+},
+{
+"name": "GetCatalogHelper",
+"ordinal": 361,
+"rva": 918672,
+"forwarder": null,
+"ref": "combase.dll!0xe0490"
+},
+{
+"name": "GetErrorInfo",
+"ordinal": 362,
+"rva": 856736,
+"forwarder": null,
+"ref": "combase.dll!0xd12a0"
+},
+{
+"name": "GetFuncDescs",
+"ordinal": 363,
+"rva": 883024,
+"forwarder": null,
+"ref": "combase.dll!0xd7950"
+},
+{
+"name": "GetHGlobalFromStream",
+"ordinal": 364,
+"rva": 866272,
+"forwarder": null,
+"ref": "combase.dll!0xd37e0"
+},
+{
+"name": "GetHookInterface",
+"ordinal": 365,
+"rva": 1675600,
+"forwarder": null,
+"ref": "combase.dll!0x199150"
+},
+{
+"name": "GetRestrictedErrorInfo",
+"ordinal": 366,
+"rva": 756384,
+"forwarder": null,
+"ref": "combase.dll!0xb8aa0"
+},
+{
+"name": "HACCEL_UserFree",
+"ordinal": 367,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HACCEL_UserFree64",
+"ordinal": 368,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HACCEL_UserMarshal",
+"ordinal": 369,
+"rva": 1941008,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e10"
+},
+{
+"name": "HACCEL_UserMarshal64",
+"ordinal": 370,
+"rva": 1941008,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e10"
+},
+{
+"name": "HACCEL_UserSize",
+"ordinal": 371,
+"rva": 1941024,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e20"
+},
+{
+"name": "HACCEL_UserSize64",
+"ordinal": 372,
+"rva": 1941024,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e20"
+},
+{
+"name": "HACCEL_UserUnmarshal",
+"ordinal": 373,
+"rva": 1941040,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e30"
+},
+{
+"name": "HACCEL_UserUnmarshal64",
+"ordinal": 374,
+"rva": 1941040,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e30"
+},
+{
+"name": "HBITMAP_UserFree",
+"ordinal": 375,
+"rva": 77424,
+"forwarder": null,
+"ref": "combase.dll!0x12e70"
+},
+{
+"name": "HBITMAP_UserFree64",
+"ordinal": 376,
+"rva": 74976,
+"forwarder": null,
+"ref": "combase.dll!0x124e0"
+},
+{
+"name": "HBITMAP_UserMarshal",
+"ordinal": 377,
+"rva": 75056,
+"forwarder": null,
+"ref": "combase.dll!0x12530"
+},
+{
+"name": "HBITMAP_UserMarshal64",
+"ordinal": 378,
+"rva": 71616,
+"forwarder": null,
+"ref": "combase.dll!0x117c0"
+},
+{
+"name": "HBITMAP_UserSize",
+"ordinal": 379,
+"rva": 75888,
+"forwarder": null,
+"ref": "combase.dll!0x12870"
+},
+{
+"name": "HBITMAP_UserSize64",
+"ordinal": 380,
+"rva": 73536,
+"forwarder": null,
+"ref": "combase.dll!0x11f40"
+},
+{
+"name": "HBITMAP_UserUnmarshal",
+"ordinal": 381,
+"rva": 72048,
+"forwarder": null,
+"ref": "combase.dll!0x11970"
+},
+{
+"name": "HBITMAP_UserUnmarshal64",
+"ordinal": 382,
+"rva": 67168,
+"forwarder": null,
+"ref": "combase.dll!0x10660"
+},
+{
+"name": "HBRUSH_UserFree",
+"ordinal": 383,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HBRUSH_UserFree64",
+"ordinal": 384,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HBRUSH_UserMarshal",
+"ordinal": 385,
+"rva": 1941008,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e10"
+},
+{
+"name": "HBRUSH_UserMarshal64",
+"ordinal": 386,
+"rva": 1941008,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e10"
+},
+{
+"name": "HBRUSH_UserSize",
+"ordinal": 387,
+"rva": 1941024,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e20"
+},
+{
+"name": "HBRUSH_UserSize64",
+"ordinal": 388,
+"rva": 1941024,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e20"
+},
+{
+"name": "HBRUSH_UserUnmarshal",
+"ordinal": 389,
+"rva": 1941040,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e30"
+},
+{
+"name": "HBRUSH_UserUnmarshal64",
+"ordinal": 390,
+"rva": 1941040,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e30"
+},
+{
+"name": "HDC_UserFree",
+"ordinal": 391,
+"rva": 1940960,
+"forwarder": null,
+"ref": "combase.dll!0x1d9de0"
+},
+{
+"name": "HDC_UserFree64",
+"ordinal": 392,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HDC_UserMarshal",
+"ordinal": 393,
+"rva": 1941008,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e10"
+},
+{
+"name": "HDC_UserMarshal64",
+"ordinal": 394,
+"rva": 1941008,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e10"
+},
+{
+"name": "HDC_UserSize",
+"ordinal": 395,
+"rva": 1941024,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e20"
+},
+{
+"name": "HDC_UserSize64",
+"ordinal": 396,
+"rva": 1941024,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e20"
+},
+{
+"name": "HDC_UserUnmarshal",
+"ordinal": 397,
+"rva": 1941040,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e30"
+},
+{
+"name": "HDC_UserUnmarshal64",
+"ordinal": 398,
+"rva": 1941040,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e30"
+},
+{
+"name": "HGLOBAL_UserFree",
+"ordinal": 399,
+"rva": 62944,
+"forwarder": null,
+"ref": "combase.dll!0xf5e0"
+},
+{
+"name": "HGLOBAL_UserFree64",
+"ordinal": 400,
+"rva": 62944,
+"forwarder": null,
+"ref": "combase.dll!0xf5e0"
+},
+{
+"name": "HGLOBAL_UserMarshal",
+"ordinal": 401,
+"rva": 66960,
+"forwarder": null,
+"ref": "combase.dll!0x10590"
+},
+{
+"name": "HGLOBAL_UserMarshal64",
+"ordinal": 402,
+"rva": 57120,
+"forwarder": null,
+"ref": "combase.dll!0xdf20"
+},
+{
+"name": "HGLOBAL_UserSize",
+"ordinal": 403,
+"rva": 68000,
+"forwarder": null,
+"ref": "combase.dll!0x109a0"
+},
+{
+"name": "HGLOBAL_UserSize64",
+"ordinal": 404,
+"rva": 56624,
+"forwarder": null,
+"ref": "combase.dll!0xdd30"
+},
+{
+"name": "HGLOBAL_UserUnmarshal",
+"ordinal": 405,
+"rva": 64576,
+"forwarder": null,
+"ref": "combase.dll!0xfc40"
+},
+{
+"name": "HGLOBAL_UserUnmarshal64",
+"ordinal": 406,
+"rva": 57776,
+"forwarder": null,
+"ref": "combase.dll!0xe1b0"
+},
+{
+"name": "HICON_UserFree",
+"ordinal": 407,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HICON_UserFree64",
+"ordinal": 408,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HICON_UserMarshal",
+"ordinal": 409,
+"rva": 75552,
+"forwarder": null,
+"ref": "combase.dll!0x12720"
+},
+{
+"name": "HICON_UserMarshal64",
+"ordinal": 410,
+"rva": 75552,
+"forwarder": null,
+"ref": "combase.dll!0x12720"
+},
+{
+"name": "HICON_UserSize",
+"ordinal": 411,
+"rva": 75568,
+"forwarder": null,
+"ref": "combase.dll!0x12730"
+},
+{
+"name": "HICON_UserSize64",
+"ordinal": 412,
+"rva": 75568,
+"forwarder": null,
+"ref": "combase.dll!0x12730"
+},
+{
+"name": "HICON_UserUnmarshal",
+"ordinal": 413,
+"rva": 75536,
+"forwarder": null,
+"ref": "combase.dll!0x12710"
+},
+{
+"name": "HICON_UserUnmarshal64",
+"ordinal": 414,
+"rva": 75536,
+"forwarder": null,
+"ref": "combase.dll!0x12710"
+},
+{
+"name": "HMENU_UserFree",
+"ordinal": 415,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HMENU_UserFree64",
+"ordinal": 416,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HMENU_UserMarshal",
+"ordinal": 417,
+"rva": 1941008,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e10"
+},
+{
+"name": "HMENU_UserMarshal64",
+"ordinal": 418,
+"rva": 1941008,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e10"
+},
+{
+"name": "HMENU_UserSize",
+"ordinal": 419,
+"rva": 1941024,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e20"
+},
+{
+"name": "HMENU_UserSize64",
+"ordinal": 420,
+"rva": 1941024,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e20"
+},
+{
+"name": "HMENU_UserUnmarshal",
+"ordinal": 421,
+"rva": 1941040,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e30"
+},
+{
+"name": "HMENU_UserUnmarshal64",
+"ordinal": 422,
+"rva": 1941040,
+"forwarder": null,
+"ref": "combase.dll!0x1d9e30"
+},
+{
+"name": "HMONITOR_UserFree",
+"ordinal": 423,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HMONITOR_UserFree64",
+"ordinal": 424,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HMONITOR_UserMarshal",
+"ordinal": 425,
+"rva": 75552,
+"forwarder": null,
+"ref": "combase.dll!0x12720"
+},
+{
+"name": "HMONITOR_UserMarshal64",
+"ordinal": 426,
+"rva": 75552,
+"forwarder": null,
+"ref": "combase.dll!0x12720"
+},
+{
+"name": "HMONITOR_UserSize",
+"ordinal": 427,
+"rva": 75568,
+"forwarder": null,
+"ref": "combase.dll!0x12730"
+},
+{
+"name": "HMONITOR_UserSize64",
+"ordinal": 428,
+"rva": 75568,
+"forwarder": null,
+"ref": "combase.dll!0x12730"
+},
+{
+"name": "HMONITOR_UserUnmarshal",
+"ordinal": 429,
+"rva": 75536,
+"forwarder": null,
+"ref": "combase.dll!0x12710"
+},
+{
+"name": "HMONITOR_UserUnmarshal64",
+"ordinal": 430,
+"rva": 75536,
+"forwarder": null,
+"ref": "combase.dll!0x12710"
+},
+{
+"name": "HPALETTE_UserFree",
+"ordinal": 431,
+"rva": 1951920,
+"forwarder": null,
+"ref": "combase.dll!0x1dc8b0"
+},
+{
+"name": "HPALETTE_UserFree64",
+"ordinal": 432,
+"rva": 1951920,
+"forwarder": null,
+"ref": "combase.dll!0x1dc8b0"
+},
+{
+"name": "HPALETTE_UserMarshal",
+"ordinal": 433,
+"rva": 1952016,
+"forwarder": null,
+"ref": "combase.dll!0x1dc910"
+},
+{
+"name": "HPALETTE_UserMarshal64",
+"ordinal": 434,
+"rva": 1952288,
+"forwarder": null,
+"ref": "combase.dll!0x1dca20"
+},
+{
+"name": "HPALETTE_UserSize",
+"ordinal": 435,
+"rva": 1952576,
+"forwarder": null,
+"ref": "combase.dll!0x1dcb40"
+},
+{
+"name": "HPALETTE_UserSize64",
+"ordinal": 436,
+"rva": 1952800,
+"forwarder": null,
+"ref": "combase.dll!0x1dcc20"
+},
+{
+"name": "HPALETTE_UserUnmarshal",
+"ordinal": 437,
+"rva": 1953040,
+"forwarder": null,
+"ref": "combase.dll!0x1dcd10"
+},
+{
+"name": "HPALETTE_UserUnmarshal64",
+"ordinal": 438,
+"rva": 1953168,
+"forwarder": null,
+"ref": "combase.dll!0x1dcd90"
+},
+{
+"name": "HSTRING_UserFree",
+"ordinal": 439,
+"rva": 926816,
+"forwarder": null,
+"ref": "combase.dll!0xe2460"
+},
+{
+"name": "HSTRING_UserFree64",
+"ordinal": 440,
+"rva": 792384,
+"forwarder": null,
+"ref": "combase.dll!0xc1740"
+},
+{
+"name": "HSTRING_UserMarshal",
+"ordinal": 441,
+"rva": 336176,
+"forwarder": null,
+"ref": "combase.dll!0x52130"
+},
+{
+"name": "HSTRING_UserMarshal64",
+"ordinal": 442,
+"rva": 336336,
+"forwarder": null,
+"ref": "combase.dll!0x521d0"
+},
+{
+"name": "HSTRING_UserSize",
+"ordinal": 443,
+"rva": 764304,
+"forwarder": null,
+"ref": "combase.dll!0xba990"
+},
+{
+"name": "HSTRING_UserSize64",
+"ordinal": 444,
+"rva": 764240,
+"forwarder": null,
+"ref": "combase.dll!0xba950"
+},
+{
+"name": "HSTRING_UserUnmarshal",
+"ordinal": 445,
+"rva": 306000,
+"forwarder": null,
+"ref": "combase.dll!0x4ab50"
+},
+{
+"name": "HSTRING_UserUnmarshal64",
+"ordinal": 446,
+"rva": 759056,
+"forwarder": null,
+"ref": "combase.dll!0xb9510"
+},
+{
+"name": "HWND_UserFree",
+"ordinal": 447,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HWND_UserFree64",
+"ordinal": 448,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "HWND_UserMarshal",
+"ordinal": 449,
+"rva": 75552,
+"forwarder": null,
+"ref": "combase.dll!0x12720"
+},
+{
+"name": "HWND_UserMarshal64",
+"ordinal": 450,
+"rva": 75552,
+"forwarder": null,
+"ref": "combase.dll!0x12720"
+},
+{
+"name": "HWND_UserSize",
+"ordinal": 451,
+"rva": 75568,
+"forwarder": null,
+"ref": "combase.dll!0x12730"
+},
+{
+"name": "HWND_UserSize64",
+"ordinal": 452,
+"rva": 75568,
+"forwarder": null,
+"ref": "combase.dll!0x12730"
+},
+{
+"name": "HWND_UserUnmarshal",
+"ordinal": 453,
+"rva": 75536,
+"forwarder": null,
+"ref": "combase.dll!0x12710"
+},
+{
+"name": "HWND_UserUnmarshal64",
+"ordinal": 454,
+"rva": 75536,
+"forwarder": null,
+"ref": "combase.dll!0x12710"
+},
+{
+"name": "HkOleRegisterObject",
+"ordinal": 455,
+"rva": 1675632,
+"forwarder": null,
+"ref": "combase.dll!0x199170"
+},
+{
+"name": "IIDFromString",
+"ordinal": 456,
+"rva": 719136,
+"forwarder": null,
+"ref": "combase.dll!0xaf920"
+},
+{
+"name": "InternalAppInvokeExceptionFilter",
+"ordinal": 457,
+"rva": 1637952,
+"forwarder": null,
+"ref": "combase.dll!0x18fe40"
+},
+{
+"name": "InternalCAggIdRelease",
+"ordinal": 458,
+"rva": 823664,
+"forwarder": null,
+"ref": "combase.dll!0xc9170"
+},
+{
+"name": "InternalCAggIdSetHandler",
+"ordinal": 459,
+"rva": 995424,
+"forwarder": null,
+"ref": "combase.dll!0xf3060"
+},
+{
+"name": "InternalCCFreeUnused",
+"ordinal": 460,
+"rva": 1638000,
+"forwarder": null,
+"ref": "combase.dll!0x18fe70"
+},
+{
+"name": "InternalCCGetClassInformationForDde",
+"ordinal": 461,
+"rva": 1930256,
+"forwarder": null,
+"ref": "combase.dll!0x1d7410"
+},
+{
+"name": "InternalCCGetClassInformationFromKey",
+"ordinal": 462,
+"rva": 1930288,
+"forwarder": null,
+"ref": "combase.dll!0x1d7430"
+},
+{
+"name": "InternalCCSetDdeServerWindow",
+"ordinal": 463,
+"rva": 1930320,
+"forwarder": null,
+"ref": "combase.dll!0x1d7450"
+},
+{
+"name": "InternalCMLSendReceive",
+"ordinal": 464,
+"rva": 1638016,
+"forwarder": null,
+"ref": "combase.dll!0x18fe80"
+},
+{
+"name": "InternalCMLSendReceive2",
+"ordinal": 465,
+"rva": 1768464,
+"forwarder": null,
+"ref": "combase.dll!0x1afc10"
+},
+{
+"name": "InternalCStdIdentityGetIProxyManager",
+"ordinal": 466,
+"rva": 995632,
+"forwarder": null,
+"ref": "combase.dll!0xf3130"
+},
+{
+"name": "InternalCStdIdentityGetInternalUnk",
+"ordinal": 467,
+"rva": 995648,
+"forwarder": null,
+"ref": "combase.dll!0xf3140"
+},
+{
+"name": "InternalCStdIdentityUpdateFlags",
+"ordinal": 468,
+"rva": 995600,
+"forwarder": null,
+"ref": "combase.dll!0xf3110"
+},
+{
+"name": "InternalCallAsProxyExceptionFilter",
+"ordinal": 469,
+"rva": 1638032,
+"forwarder": null,
+"ref": "combase.dll!0x18fe90"
+},
+{
+"name": "InternalCallFrameExceptionFilter",
+"ordinal": 470,
+"rva": 1638048,
+"forwarder": null,
+"ref": "combase.dll!0x18fea0"
+},
+{
+"name": "InternalCallerIsAppContainer",
+"ordinal": 471,
+"rva": 1638064,
+"forwarder": null,
+"ref": "combase.dll!0x18feb0"
+},
+{
+"name": "InternalCanMakeOutCall",
+"ordinal": 472,
+"rva": 1638016,
+"forwarder": null,
+"ref": "combase.dll!0x18fe80"
+},
+{
+"name": "InternalCanMakeOutCall2",
+"ordinal": 473,
+"rva": 1768704,
+"forwarder": null,
+"ref": "combase.dll!0x1afd00"
+},
+{
+"name": "InternalCoIsSurrogateProcess",
+"ordinal": 474,
+"rva": 1638080,
+"forwarder": null,
+"ref": "combase.dll!0x18fec0"
+},
+{
+"name": "InternalCoRegisterDisconnectCallback",
+"ordinal": 475,
+"rva": 945088,
+"forwarder": null,
+"ref": "combase.dll!0xe6bc0"
+},
+{
+"name": "InternalCoRegisterSurrogatedObject",
+"ordinal": 476,
+"rva": 1638112,
+"forwarder": null,
+"ref": "combase.dll!0x18fee0"
+},
+{
+"name": "InternalCoStdMarshalObject",
+"ordinal": 477,
+"rva": 1638128,
+"forwarder": null,
+"ref": "combase.dll!0x18fef0"
+},
+{
+"name": "InternalCoUnregisterDisconnectCallback",
+"ordinal": 478,
+"rva": 995456,
+"forwarder": null,
+"ref": "combase.dll!0xf3080"
+},
+{
+"name": "InternalCompleteObjRef",
+"ordinal": 479,
+"rva": 1638016,
+"forwarder": null,
+"ref": "combase.dll!0x18fe80"
+},
+{
+"name": "InternalCreateCAggId",
+"ordinal": 480,
+"rva": 994544,
+"forwarder": null,
+"ref": "combase.dll!0xf2cf0"
+},
+{
+"name": "InternalCreateIdentityHandler",
+"ordinal": 481,
+"rva": 1803808,
+"forwarder": null,
+"ref": "combase.dll!0x1b8620"
+},
+{
+"name": "InternalDoATClassCreate",
+"ordinal": 482,
+"rva": 995760,
+"forwarder": null,
+"ref": "combase.dll!0xf31b0"
+},
+{
+"name": "InternalFillLocalOXIDInfo",
+"ordinal": 483,
+"rva": 1638016,
+"forwarder": null,
+"ref": "combase.dll!0x18fe80"
+},
+{
+"name": "InternalFreeObjRef",
+"ordinal": 484,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "InternalGetWindowPropInterface",
+"ordinal": 485,
+"rva": 1638016,
+"forwarder": null,
+"ref": "combase.dll!0x18fe80"
+},
+{
+"name": "InternalGetWindowPropInterface2",
+"ordinal": 486,
+"rva": 992208,
+"forwarder": null,
+"ref": "combase.dll!0xf23d0"
+},
+{
+"name": "InternalIrotEnumRunning",
+"ordinal": 487,
+"rva": 974576,
+"forwarder": null,
+"ref": "combase.dll!0xedef0"
+},
+{
+"name": "InternalIrotEnumRunning2",
+"ordinal": 488,
+"rva": 1638144,
+"forwarder": null,
+"ref": "combase.dll!0x18ff00"
+},
+{
+"name": "InternalIrotGetObject",
+"ordinal": 489,
+"rva": 974576,
+"forwarder": null,
+"ref": "combase.dll!0xedef0"
+},
+{
+"name": "InternalIrotGetObject2",
+"ordinal": 490,
+"rva": 974576,
+"forwarder": null,
+"ref": "combase.dll!0xedef0"
+},
+{
+"name": "InternalIrotGetObject3",
+"ordinal": 491,
+"rva": 952800,
+"forwarder": null,
+"ref": "combase.dll!0xe89e0"
+},
+{
+"name": "InternalIrotGetTimeOfLastChange",
+"ordinal": 492,
+"rva": 974576,
+"forwarder": null,
+"ref": "combase.dll!0xedef0"
+},
+{
+"name": "InternalIrotGetTimeOfLastChange2",
+"ordinal": 493,
+"rva": 989296,
+"forwarder": null,
+"ref": "combase.dll!0xf1870"
+},
+{
+"name": "InternalIrotIsRunning",
+"ordinal": 494,
+"rva": 974576,
+"forwarder": null,
+"ref": "combase.dll!0xedef0"
+},
+{
+"name": "InternalIrotIsRunning2",
+"ordinal": 495,
+"rva": 79536,
+"forwarder": null,
+"ref": "combase.dll!0x136b0"
+},
+{
+"name": "InternalIrotNoteChangeTime",
+"ordinal": 496,
+"rva": 1638176,
+"forwarder": null,
+"ref": "combase.dll!0x18ff20"
+},
+{
+"name": "InternalIrotRegister",
+"ordinal": 497,
+"rva": 953136,
+"forwarder": null,
+"ref": "combase.dll!0xe8b30"
+},
+{
+"name": "InternalIrotRevoke",
+"ordinal": 498,
+"rva": 989504,
+"forwarder": null,
+"ref": "combase.dll!0xf1940"
+},
+{
+"name": "InternalIsApartmentInitialized",
+"ordinal": 499,
+"rva": 947536,
+"forwarder": null,
+"ref": "combase.dll!0xe7550"
+},
+{
+"name": "InternalIsProcessInitialized",
+"ordinal": 500,
+"rva": 950288,
+"forwarder": null,
+"ref": "combase.dll!0xe8010"
+},
+{
+"name": "InternalMarshalObjRef",
+"ordinal": 501,
+"rva": 1638016,
+"forwarder": null,
+"ref": "combase.dll!0x18fe80"
+},
+{
+"name": "InternalNotifyDDStartOrStop",
+"ordinal": 502,
+"rva": 1638208,
+"forwarder": null,
+"ref": "combase.dll!0x18ff40"
+},
+{
+"name": "InternalOleModalLoopBlockFn",
+"ordinal": 503,
+"rva": 1768736,
+"forwarder": null,
+"ref": "combase.dll!0x1afd20"
+},
+{
+"name": "InternalRegisterWindowPropInterface",
+"ordinal": 504,
+"rva": 1638016,
+"forwarder": null,
+"ref": "combase.dll!0x18fe80"
+},
+{
+"name": "InternalRegisterWindowPropInterface2",
+"ordinal": 505,
+"rva": 656544,
+"forwarder": null,
+"ref": "combase.dll!0xa04a0"
+},
+{
+"name": "InternalReleaseMarshalObjRef",
+"ordinal": 506,
+"rva": 1638016,
+"forwarder": null,
+"ref": "combase.dll!0x18fe80"
+},
+{
+"name": "InternalRevokeWindowPropInterface",
+"ordinal": 507,
+"rva": 654432,
+"forwarder": null,
+"ref": "combase.dll!0x9fc60"
+},
+{
+"name": "InternalSTAInvoke",
+"ordinal": 508,
+"rva": 1638224,
+"forwarder": null,
+"ref": "combase.dll!0x18ff50"
+},
+{
+"name": "InternalServerExceptionFilter",
+"ordinal": 509,
+"rva": 1638032,
+"forwarder": null,
+"ref": "combase.dll!0x18fe90"
+},
+{
+"name": "InternalSetAptCallCtrlOnTlsIfRequired",
+"ordinal": 510,
+"rva": 1768816,
+"forwarder": null,
+"ref": "combase.dll!0x1afd70"
+},
+{
+"name": "InternalSetOleThunkWowPtr",
+"ordinal": 511,
+"rva": 79744,
+"forwarder": null,
+"ref": "combase.dll!0x13780"
+},
+{
+"name": "InternalStubInvoke",
+"ordinal": 512,
+"rva": 1638016,
+"forwarder": null,
+"ref": "combase.dll!0x18fe80"
+},
+{
+"name": "InternalTlsAllocData",
+"ordinal": 513,
+"rva": 666736,
+"forwarder": null,
+"ref": "combase.dll!0xa2c70"
+},
+{
+"name": "InternalUnmarshalObjRef",
+"ordinal": 514,
+"rva": 1638016,
+"forwarder": null,
+"ref": "combase.dll!0x18fe80"
+},
+{
+"name": "IsErrorPropagationEnabled",
+"ordinal": 515,
+"rva": 593456,
+"forwarder": null,
+"ref": "combase.dll!0x90e30"
+},
+{
+"name": "NdrCStdStubBuffer2_Release",
+"ordinal": 516,
+"rva": 971328,
+"forwarder": null,
+"ref": "combase.dll!0xed240"
+},
+{
+"name": "NdrCStdStubBuffer_Release",
+"ordinal": 517,
+"rva": 782688,
+"forwarder": null,
+"ref": "combase.dll!0xbf160"
+},
+{
+"name": "NdrExtStubInitialize",
+"ordinal": 518,
+"rva": 754192,
+"forwarder": null,
+"ref": "combase.dll!0xb8210"
+},
+{
+"name": "NdrOleDllGetClassObject",
+"ordinal": 519,
+"rva": 972784,
+"forwarder": null,
+"ref": "combase.dll!0xed7f0"
+},
+{
+"name": "NdrpFindInterface",
+"ordinal": 520,
+"rva": 970832,
+"forwarder": null,
+"ref": "combase.dll!0xed050"
+},
+{
+"name": "ProgIDFromCLSID",
+"ordinal": 521,
+"rva": 690848,
+"forwarder": null,
+"ref": "combase.dll!0xa8aa0"
+},
+{
+"name": "PropVariantClear",
+"ordinal": 522,
+"rva": 704208,
+"forwarder": null,
+"ref": "combase.dll!0xabed0"
+},
+{
+"name": "PropVariantCopy",
+"ordinal": 523,
+"rva": 726128,
+"forwarder": null,
+"ref": "combase.dll!0xb1470"
+},
+{
+"name": "ReleaseFuncDescs",
+"ordinal": 524,
+"rva": 891712,
+"forwarder": null,
+"ref": "combase.dll!0xd9b40"
+},
+{
+"name": "RoActivateInstance",
+"ordinal": 525,
+"rva": 187360,
+"forwarder": null,
+"ref": "combase.dll!0x2dbe0"
+},
+{
+"name": "RoCaptureErrorContext",
+"ordinal": 526,
+"rva": 2083664,
+"forwarder": null,
+"ref": "combase.dll!0x1fcb50"
+},
+{
+"name": "RoClearError",
+"ordinal": 527,
+"rva": 757520,
+"forwarder": null,
+"ref": "combase.dll!0xb8f10"
+},
+{
+"name": "RoFailFastWithErrorContext",
+"ordinal": 528,
+"rva": 2084032,
+"forwarder": null,
+"ref": "combase.dll!0x1fccc0"
+},
+{
+"name": "RoFreeParameterizedTypeExtra",
+"ordinal": 529,
+"rva": 2099952,
+"forwarder": null,
+"ref": "combase.dll!0x200af0"
+},
+{
+"name": "RoGetActivatableClassRegistration",
+"ordinal": 530,
+"rva": 198352,
+"forwarder": null,
+"ref": "combase.dll!0x306d0"
+},
+{
+"name": "RoGetActivationFactory",
+"ordinal": 531,
+"rva": 180640,
+"forwarder": null,
+"ref": "combase.dll!0x2c1a0"
+},
+{
+"name": "RoGetAgileReference",
+"ordinal": 532,
+"rva": 437872,
+"forwarder": null,
+"ref": "combase.dll!0x6ae70"
+},
+{
+"name": "RoGetApartmentIdentifier",
+"ordinal": 533,
+"rva": 459968,
+"forwarder": null,
+"ref": "combase.dll!0x704c0"
+},
+{
+"name": "RoGetErrorReportingFlags",
+"ordinal": 534,
+"rva": 948976,
+"forwarder": null,
+"ref": "combase.dll!0xe7af0"
+},
+{
+"name": "RoGetMatchingRestrictedErrorInfo",
+"ordinal": 535,
+"rva": 754640,
+"forwarder": null,
+"ref": "combase.dll!0xb83d0"
+},
+{
+"name": "RoGetParameterizedTypeInstanceIID",
+"ordinal": 536,
+"rva": 801648,
+"forwarder": null,
+"ref": "combase.dll!0xc3b70"
+},
+{
+"name": "RoGetServerActivatableClasses",
+"ordinal": 537,
+"rva": 828240,
+"forwarder": null,
+"ref": "combase.dll!0xca350"
+},
+{
+"name": "RoInitialize",
+"ordinal": 538,
+"rva": 711984,
+"forwarder": null,
+"ref": "combase.dll!0xadd30"
+},
+{
+"name": "RoInspectCapturedStackBackTrace",
+"ordinal": 539,
+"rva": 2084048,
+"forwarder": null,
+"ref": "combase.dll!0x1fccd0"
+},
+{
+"name": "RoInspectThreadErrorInfo",
+"ordinal": 540,
+"rva": 2084064,
+"forwarder": null,
+"ref": "combase.dll!0x1fcce0"
+},
+{
+"name": "RoOriginateError",
+"ordinal": 541,
+"rva": 757072,
+"forwarder": null,
+"ref": "combase.dll!0xb8d50"
+},
+{
+"name": "RoOriginateErrorW",
+"ordinal": 542,
+"rva": 107296,
+"forwarder": null,
+"ref": "combase.dll!0x1a320"
+},
+{
+"name": "RoOriginateLanguageException",
+"ordinal": 543,
+"rva": 944912,
+"forwarder": null,
+"ref": "combase.dll!0xe6b10"
+},
+{
+"name": "RoParameterizedTypeExtraGetTypeSignature",
+"ordinal": 544,
+"rva": 974672,
+"forwarder": null,
+"ref": "combase.dll!0xedf50"
+},
+{
+"name": "RoRegisterActivationFactories",
+"ordinal": 545,
+"rva": 683616,
+"forwarder": null,
+"ref": "combase.dll!0xa6e60"
+},
+{
+"name": "RoRegisterForApartmentShutdown",
+"ordinal": 546,
+"rva": 854608,
+"forwarder": null,
+"ref": "combase.dll!0xd0a50"
+},
+{
+"name": "RoReportCapabilityCheckFailure",
+"ordinal": 547,
+"rva": 2084240,
+"forwarder": null,
+"ref": "combase.dll!0x1fcd90"
+},
+{
+"name": "RoReportFailedDelegate",
+"ordinal": 548,
+"rva": 2084304,
+"forwarder": null,
+"ref": "combase.dll!0x1fcdd0"
+},
+{
+"name": "RoReportUnhandledError",
+"ordinal": 549,
+"rva": 2084928,
+"forwarder": null,
+"ref": "combase.dll!0x1fd040"
+},
+{
+"name": "RoResolveRestrictedErrorInfoReference",
+"ordinal": 550,
+"rva": 2092144,
+"forwarder": null,
+"ref": "combase.dll!0x1fec70"
+},
+{
+"name": "RoRevokeActivationFactories",
+"ordinal": 551,
+"rva": 654288,
+"forwarder": null,
+"ref": "combase.dll!0x9fbd0"
+},
+{
+"name": "RoSetErrorReportingFlags",
+"ordinal": 552,
+"rva": 2084976,
+"forwarder": null,
+"ref": "combase.dll!0x1fd070"
+},
+{
+"name": "RoTransformError",
+"ordinal": 553,
+"rva": 755744,
+"forwarder": null,
+"ref": "combase.dll!0xb8820"
+},
+{
+"name": "RoTransformErrorW",
+"ordinal": 554,
+"rva": 2085008,
+"forwarder": null,
+"ref": "combase.dll!0x1fd090"
+},
+{
+"name": "RoUninitialize",
+"ordinal": 555,
+"rva": 919408,
+"forwarder": null,
+"ref": "combase.dll!0xe0770"
+},
+{
+"name": "RoUnregisterForApartmentShutdown",
+"ordinal": 556,
+"rva": 1668048,
+"forwarder": null,
+"ref": "combase.dll!0x1973d0"
+},
+{
+"name": "SetCleanupFlag",
+"ordinal": 557,
+"rva": 951216,
+"forwarder": null,
+"ref": "combase.dll!0xe83b0"
+},
+{
+"name": "SetErrorInfo",
+"ordinal": 558,
+"rva": 120160,
+"forwarder": null,
+"ref": "combase.dll!0x1d560"
+},
+{
+"name": "SetRestrictedErrorInfo",
+"ordinal": 559,
+"rva": 755344,
+"forwarder": null,
+"ref": "combase.dll!0xb8690"
+},
+{
+"name": "StringFromCLSID",
+"ordinal": 560,
+"rva": 116416,
+"forwarder": null,
+"ref": "combase.dll!0x1c6c0"
+},
+{
+"name": "StringFromGUID2",
+"ordinal": 561,
+"rva": 206704,
+"forwarder": null,
+"ref": "combase.dll!0x32770"
+},
+{
+"name": "StringFromIID",
+"ordinal": 562,
+"rva": 694064,
+"forwarder": null,
+"ref": "combase.dll!0xa9730"
+},
+{
+"name": "UpdateDCOMSettings",
+"ordinal": 563,
+"rva": 1686512,
+"forwarder": null,
+"ref": "combase.dll!0x19bbf0"
+},
+{
+"name": "WdtpInterfacePointer_UserFree",
+"ordinal": 564,
+"rva": 1941408,
+"forwarder": null,
+"ref": "combase.dll!0x1d9fa0"
+},
+{
+"name": "WdtpInterfacePointer_UserFree64",
+"ordinal": 565,
+"rva": 1941408,
+"forwarder": null,
+"ref": "combase.dll!0x1d9fa0"
+},
+{
+"name": "WdtpInterfacePointer_UserMarshal",
+"ordinal": 566,
+"rva": 984496,
+"forwarder": null,
+"ref": "combase.dll!0xf05b0"
+},
+{
+"name": "WdtpInterfacePointer_UserMarshal64",
+"ordinal": 567,
+"rva": 758256,
+"forwarder": null,
+"ref": "combase.dll!0xb91f0"
+},
+{
+"name": "WdtpInterfacePointer_UserSize",
+"ordinal": 568,
+"rva": 984864,
+"forwarder": null,
+"ref": "combase.dll!0xf0720"
+},
+{
+"name": "WdtpInterfacePointer_UserSize64",
+"ordinal": 569,
+"rva": 930256,
+"forwarder": null,
+"ref": "combase.dll!0xe31d0"
+},
+{
+"name": "WdtpInterfacePointer_UserUnmarshal",
+"ordinal": 570,
+"rva": 985152,
+"forwarder": null,
+"ref": "combase.dll!0xf0840"
+},
+{
+"name": "WdtpInterfacePointer_UserUnmarshal64",
+"ordinal": 571,
+"rva": 758528,
+"forwarder": null,
+"ref": "combase.dll!0xb9300"
+},
+{
+"name": "WindowsCompareStringOrdinal",
+"ordinal": 572,
+"rva": 745616,
+"forwarder": null,
+"ref": "combase.dll!0xb6090"
+},
+{
+"name": "WindowsConcatString",
+"ordinal": 573,
+"rva": 299968,
+"forwarder": null,
+"ref": "combase.dll!0x493c0"
+},
+{
+"name": "WindowsCreateString",
+"ordinal": 574,
+"rva": 295328,
+"forwarder": null,
+"ref": "combase.dll!0x481a0"
+},
+{
+"name": "WindowsCreateStringReference",
+"ordinal": 575,
+"rva": 293568,
+"forwarder": null,
+"ref": "combase.dll!0x47ac0"
+},
+{
+"name": "WindowsDeleteString",
+"ordinal": 576,
+"rva": 292496,
+"forwarder": null,
+"ref": "combase.dll!0x47690"
+},
+{
+"name": "WindowsDeleteStringBuffer",
+"ordinal": 577,
+"rva": 897232,
+"forwarder": null,
+"ref": "combase.dll!0xdb0d0"
+},
+{
+"name": "WindowsDuplicateString",
+"ordinal": 578,
+"rva": 292976,
+"forwarder": null,
+"ref": "combase.dll!0x47870"
+},
+{
+"name": "WindowsGetStringLen",
+"ordinal": 579,
+"rva": 768992,
+"forwarder": null,
+"ref": "combase.dll!0xbbbe0"
+},
+{
+"name": "WindowsGetStringRawBuffer",
+"ordinal": 580,
+"rva": 336704,
+"forwarder": null,
+"ref": "combase.dll!0x52340"
+},
+{
+"name": "WindowsInspectString",
+"ordinal": 581,
+"rva": 2074608,
+"forwarder": null,
+"ref": "combase.dll!0x1fa7f0"
+},
+{
+"name": "WindowsInspectString2",
+"ordinal": 582,
+"rva": 2074704,
+"forwarder": null,
+"ref": "combase.dll!0x1fa850"
+},
+{
+"name": "WindowsIsStringEmpty",
+"ordinal": 583,
+"rva": 339984,
+"forwarder": null,
+"ref": "combase.dll!0x53010"
+},
+{
+"name": "WindowsPreallocateStringBuffer",
+"ordinal": 584,
+"rva": 342736,
+"forwarder": null,
+"ref": "combase.dll!0x53ad0"
+},
+{
+"name": "WindowsPromoteStringBuffer",
+"ordinal": 585,
+"rva": 294176,
+"forwarder": null,
+"ref": "combase.dll!0x47d20"
+},
+{
+"name": "WindowsReplaceString",
+"ordinal": 586,
+"rva": 2074800,
+"forwarder": null,
+"ref": "combase.dll!0x1fa8b0"
+},
+{
+"name": "WindowsStringHasEmbeddedNull",
+"ordinal": 587,
+"rva": 114272,
+"forwarder": null,
+"ref": "combase.dll!0x1be60"
+},
+{
+"name": "WindowsSubstring",
+"ordinal": 588,
+"rva": 934720,
+"forwarder": null,
+"ref": "combase.dll!0xe4340"
+},
+{
+"name": "WindowsSubstringWithSpecifiedLength",
+"ordinal": 589,
+"rva": 305600,
+"forwarder": null,
+"ref": "combase.dll!0x4a9c0"
+},
+{
+"name": "WindowsTrimStringEnd",
+"ordinal": 590,
+"rva": 340384,
+"forwarder": null,
+"ref": "combase.dll!0x531a0"
+},
+{
+"name": "WindowsTrimStringStart",
+"ordinal": 591,
+"rva": 2075024,
+"forwarder": null,
+"ref": "combase.dll!0x1fa990"
+}
+]

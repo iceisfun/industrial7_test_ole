@@ -1,0 +1,3901 @@
+[
+{
+"name": null,
+"ordinal": 1000,
+"rva": 411728,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x64850"
+},
+{
+"name": "I_RpcBindingInqCurrentModifiedId",
+"ordinal": 1001,
+"rva": 363408,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x58b90"
+},
+{
+"name": "I_RpcFixTransferSyntax",
+"ordinal": 1002,
+"rva": 677232,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5570"
+},
+{
+"name": "I_RpcFwThisIsTheManager",
+"ordinal": 1003,
+"rva": 677744,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5770"
+},
+{
+"name": "I_RpcInitFwImports",
+"ordinal": 1004,
+"rva": 428176,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68890"
+},
+{
+"name": "I_RpcInitHttpImports",
+"ordinal": 1005,
+"rva": 867840,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd3e00"
+},
+{
+"name": "I_RpcInitImports",
+"ordinal": 1006,
+"rva": 428880,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68b50"
+},
+{
+"name": "I_RpcInitNdrImports",
+"ordinal": 1007,
+"rva": 415424,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x656c0"
+},
+{
+"name": "I_RpcMgmtQueryDedicatedThreadPool",
+"ordinal": 1008,
+"rva": 417888,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x66060"
+},
+{
+"name": "I_RpcOpenClientThread",
+"ordinal": 1009,
+"rva": 16400,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4010"
+},
+{
+"name": "I_RpcServerTurnOnOffKeepalives",
+"ordinal": 1010,
+"rva": 678288,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5990"
+},
+{
+"name": "I_RpcVerifierCorruptionExpected",
+"ordinal": 1011,
+"rva": 682464,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa69e0"
+},
+{
+"name": "NdrFullPointerFree",
+"ordinal": 1012,
+"rva": 347744,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x54e60"
+},
+{
+"name": "NdrFullPointerInsertRefId",
+"ordinal": 1013,
+"rva": 72016,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x11950"
+},
+{
+"name": "NdrFullPointerQueryPointer",
+"ordinal": 1014,
+"rva": 71520,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x11760"
+},
+{
+"name": "NdrFullPointerQueryRefId",
+"ordinal": 1015,
+"rva": 72992,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x11d20"
+},
+{
+"name": "NdrpClientCall2",
+"ordinal": 1016,
+"rva": 4592,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x11f0"
+},
+{
+"name": "RpcCertMatchPrincipalName",
+"ordinal": 1017,
+"rva": 683264,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6d00"
+},
+{
+"name": "pfnFreeRoutines",
+"ordinal": 1018,
+"rva": 975912,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xee428"
+},
+{
+"name": "pfnMarshallRoutines",
+"ordinal": 1019,
+"rva": 975920,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xee430"
+},
+{
+"name": "pfnSizeRoutines",
+"ordinal": 1020,
+"rva": 975928,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xee438"
+},
+{
+"name": "pfnUnmarshallRoutines",
+"ordinal": 1021,
+"rva": 975936,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xee440"
+},
+{
+"name": "CStdStubBuffer_AddRef",
+"ordinal": 1022,
+"rva": 372688,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5afd0"
+},
+{
+"name": "CStdStubBuffer_Connect",
+"ordinal": 1023,
+"rva": 823712,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc91a0"
+},
+{
+"name": "CStdStubBuffer_CountRefs",
+"ordinal": 1024,
+"rva": 823808,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9200"
+},
+{
+"name": "CStdStubBuffer_DebugServerQueryInterface",
+"ordinal": 1025,
+"rva": 823888,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9250"
+},
+{
+"name": "CStdStubBuffer_DebugServerRelease",
+"ordinal": 1026,
+"rva": 823984,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc92b0"
+},
+{
+"name": "CStdStubBuffer_Disconnect",
+"ordinal": 1027,
+"rva": 384048,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5dc30"
+},
+{
+"name": "CStdStubBuffer_Invoke",
+"ordinal": 1028,
+"rva": 369936,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5a510"
+},
+{
+"name": "CStdStubBuffer_IsIIDSupported",
+"ordinal": 1029,
+"rva": 824064,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9300"
+},
+{
+"name": "CStdStubBuffer_QueryInterface",
+"ordinal": 1030,
+"rva": 398320,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x613f0"
+},
+{
+"name": "CreateProxyFromTypeInfo",
+"ordinal": 1031,
+"rva": 402688,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x62500"
+},
+{
+"name": "CreateStubFromTypeInfo",
+"ordinal": 1032,
+"rva": 411424,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x64720"
+},
+{
+"name": "DceErrorInqTextA",
+"ordinal": 1033,
+"rva": 683904,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6f80"
+},
+{
+"name": "DceErrorInqTextW",
+"ordinal": 1034,
+"rva": 684048,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa7010"
+},
+{
+"name": "DllGetClassObject",
+"ordinal": 1035,
+"rva": 824160,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9360"
+},
+{
+"name": "DllRegisterServer",
+"ordinal": 1036,
+"rva": 824272,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc93d0"
+},
+{
+"name": "IUnknown_AddRef_Proxy",
+"ordinal": 1037,
+"rva": 368512,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x59f80"
+},
+{
+"name": "IUnknown_QueryInterface_Proxy",
+"ordinal": 1038,
+"rva": 372864,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5b080"
+},
+{
+"name": "IUnknown_Release_Proxy",
+"ordinal": 1039,
+"rva": 368448,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x59f40"
+},
+{
+"name": "I_RpcAllocate",
+"ordinal": 1040,
+"rva": 72848,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x11c90"
+},
+{
+"name": "I_RpcAsyncAbortCall",
+"ordinal": 1041,
+"rva": 423824,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x67790"
+},
+{
+"name": "I_RpcAsyncSetHandle",
+"ordinal": 1042,
+"rva": 72176,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x119f0"
+},
+{
+"name": "I_RpcBCacheAllocate",
+"ordinal": 1043,
+"rva": 301200,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x49890"
+},
+{
+"name": "I_RpcBCacheFree",
+"ordinal": 1044,
+"rva": 296848,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x48790"
+},
+{
+"name": "I_RpcBindingCopy",
+"ordinal": 1045,
+"rva": 684752,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa72d0"
+},
+{
+"name": "I_RpcBindingCreateNP",
+"ordinal": 1046,
+"rva": 684864,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa7340"
+},
+{
+"name": "I_RpcBindingHandleToAsyncHandle",
+"ordinal": 1047,
+"rva": 715424,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xaeaa0"
+},
+{
+"name": "I_RpcBindingInqClientTokenAttributes",
+"ordinal": 1048,
+"rva": 301600,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x49a20"
+},
+{
+"name": "I_RpcBindingInqDynamicEndpoint",
+"ordinal": 1049,
+"rva": 1082089,
+"forwarder": "RPCRT4.I_RpcBindingInqDynamicEndpointW",
+"ref": null
+},
+{
+"name": "I_RpcBindingInqDynamicEndpointA",
+"ordinal": 1050,
+"rva": 440384,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6b840"
+},
+{
+"name": "I_RpcBindingInqDynamicEndpointW",
+"ordinal": 1051,
+"rva": 46208,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb480"
+},
+{
+"name": "I_RpcBindingInqLocalClientPID",
+"ordinal": 1052,
+"rva": 356848,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x571f0"
+},
+{
+"name": "I_RpcBindingInqMarshalledTargetInfo",
+"ordinal": 1053,
+"rva": 715536,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xaeb10"
+},
+{
+"name": "I_RpcBindingInqSecurityContext",
+"ordinal": 1054,
+"rva": 685488,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa75b0"
+},
+{
+"name": "I_RpcBindingInqSecurityContextKeyInfo",
+"ordinal": 1055,
+"rva": 685584,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa7610"
+},
+{
+"name": "I_RpcBindingInqTransportType",
+"ordinal": 1056,
+"rva": 362016,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x58620"
+},
+{
+"name": "I_RpcBindingInqWireIdForSnego",
+"ordinal": 1057,
+"rva": 715664,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xaeb90"
+},
+{
+"name": "I_RpcBindingIsClientLocal",
+"ordinal": 1058,
+"rva": 309456,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4b8d0"
+},
+{
+"name": "I_RpcBindingIsServerLocal",
+"ordinal": 1059,
+"rva": 678480,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5a50"
+},
+{
+"name": "I_RpcBindingSetPrivateOption",
+"ordinal": 1060,
+"rva": 418816,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x66400"
+},
+{
+"name": "I_RpcBindingToStaticStringBindingW",
+"ordinal": 1061,
+"rva": 716032,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xaed00"
+},
+{
+"name": "I_RpcCertProcessAndProvision",
+"ordinal": 1062,
+"rva": 683488,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6de0"
+},
+{
+"name": "I_RpcClearMutex",
+"ordinal": 1063,
+"rva": 205408,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x32260"
+},
+{
+"name": "I_RpcCompleteAndFree",
+"ordinal": 1064,
+"rva": 677392,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5610"
+},
+{
+"name": "I_RpcDeleteMutex",
+"ordinal": 1065,
+"rva": 716432,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xaee90"
+},
+{
+"name": "I_RpcEnableWmiTrace",
+"ordinal": 1066,
+"rva": 683232,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6ce0"
+},
+{
+"name": "I_RpcExceptionFilter",
+"ordinal": 1067,
+"rva": 364368,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x58f50"
+},
+{
+"name": "I_RpcFilterDCOMActivation",
+"ordinal": 1068,
+"rva": 728736,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb1ea0"
+},
+{
+"name": "I_RpcFree",
+"ordinal": 1069,
+"rva": 354032,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x566f0"
+},
+{
+"name": "I_RpcFreeBuffer",
+"ordinal": 1070,
+"rva": 369552,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5a390"
+},
+{
+"name": "I_RpcFreePipeBuffer",
+"ordinal": 1071,
+"rva": 729152,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb2040"
+},
+{
+"name": "I_RpcFreeSystemHandle",
+"ordinal": 1072,
+"rva": 394240,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x60400"
+},
+{
+"name": "I_RpcFreeSystemHandleCollection",
+"ordinal": 1073,
+"rva": 368352,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x59ee0"
+},
+{
+"name": "I_RpcGetBuffer",
+"ordinal": 1074,
+"rva": 323696,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4f070"
+},
+{
+"name": "I_RpcGetBufferWithObject",
+"ordinal": 1075,
+"rva": 323712,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4f080"
+},
+{
+"name": "I_RpcGetCurrentCallHandle",
+"ordinal": 1076,
+"rva": 729568,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb21e0"
+},
+{
+"name": "I_RpcGetDefaultSD",
+"ordinal": 1077,
+"rva": 678592,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5ac0"
+},
+{
+"name": "I_RpcGetExtendedError",
+"ordinal": 1078,
+"rva": 730464,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb2560"
+},
+{
+"name": "I_RpcGetPortAllocationData",
+"ordinal": 1079,
+"rva": 467840,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x72380"
+},
+{
+"name": "I_RpcGetSystemHandle",
+"ordinal": 1080,
+"rva": 388432,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5ed50"
+},
+{
+"name": "I_RpcIfInqTransferSyntaxes",
+"ordinal": 1081,
+"rva": 46144,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb440"
+},
+{
+"name": "I_RpcLogEvent",
+"ordinal": 1082,
+"rva": 229280,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x37fa0"
+},
+{
+"name": "I_RpcMapWin32Status",
+"ordinal": 1083,
+"rva": 197440,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x30340"
+},
+{
+"name": "I_RpcMarshalBindingHandleAndInterfaceForNDF",
+"ordinal": 1084,
+"rva": 685760,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa76c0"
+},
+{
+"name": "I_RpcMgmtEnableDedicatedThreadPool",
+"ordinal": 1085,
+"rva": 678656,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5b00"
+},
+{
+"name": "I_RpcNDRCGetWireRepresentation",
+"ordinal": 1086,
+"rva": 806192,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc4d30"
+},
+{
+"name": "I_RpcNDRSContextEmergencyCleanup",
+"ordinal": 1087,
+"rva": 807440,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc5210"
+},
+{
+"name": "I_RpcNegotiateTransferSyntax",
+"ordinal": 1088,
+"rva": 185072,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2d2f0"
+},
+{
+"name": "I_RpcNsBindingSetEntryName",
+"ordinal": 1089,
+"rva": 1083166,
+"forwarder": "RPCRT4.I_RpcNsBindingSetEntryNameW",
+"ref": null
+},
+{
+"name": "I_RpcNsBindingSetEntryNameA",
+"ordinal": 1090,
+"rva": 440384,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6b840"
+},
+{
+"name": "I_RpcNsBindingSetEntryNameW",
+"ordinal": 1091,
+"rva": 685856,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa7720"
+},
+{
+"name": "I_RpcNsInterfaceExported",
+"ordinal": 1092,
+"rva": 685856,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa7720"
+},
+{
+"name": "I_RpcNsInterfaceUnexported",
+"ordinal": 1093,
+"rva": 685856,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa7720"
+},
+{
+"name": "I_RpcOpenClientProcess",
+"ordinal": 1094,
+"rva": 322992,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4edb0"
+},
+{
+"name": "I_RpcParseSecurity",
+"ordinal": 1095,
+"rva": 257104,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x3ec50"
+},
+{
+"name": "I_RpcPauseExecution",
+"ordinal": 1096,
+"rva": 677664,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5720"
+},
+{
+"name": "I_RpcReallocPipeBuffer",
+"ordinal": 1097,
+"rva": 729200,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb2070"
+},
+{
+"name": "I_RpcReceive",
+"ordinal": 1098,
+"rva": 304784,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4a690"
+},
+{
+"name": "I_RpcRecordCalloutFailure",
+"ordinal": 1099,
+"rva": 743232,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb5740"
+},
+{
+"name": "I_RpcRequestMutex",
+"ordinal": 1100,
+"rva": 377168,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5c150"
+},
+{
+"name": "I_RpcSNCHOption",
+"ordinal": 1101,
+"rva": 426544,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68230"
+},
+{
+"name": "I_RpcSend",
+"ordinal": 1102,
+"rva": 301264,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x498d0"
+},
+{
+"name": "I_RpcSendReceive",
+"ordinal": 1103,
+"rva": 197792,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x304a0"
+},
+{
+"name": "I_RpcServerAllocateIpPort",
+"ordinal": 1104,
+"rva": 463344,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x711f0"
+},
+{
+"name": "I_RpcServerCheckClientRestriction",
+"ordinal": 1105,
+"rva": 468288,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x72540"
+},
+{
+"name": "I_RpcServerDisableExceptionFilter",
+"ordinal": 1106,
+"rva": 428816,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68b10"
+},
+{
+"name": "I_RpcServerGetAssociationID",
+"ordinal": 1107,
+"rva": 324496,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4f390"
+},
+{
+"name": "I_RpcServerInqAddressChangeFn",
+"ordinal": 1108,
+"rva": 678704,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5b30"
+},
+{
+"name": "I_RpcServerInqLocalConnAddress",
+"ordinal": 1109,
+"rva": 313184,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4c760"
+},
+{
+"name": "I_RpcServerInqRemoteConnAddress",
+"ordinal": 1110,
+"rva": 313024,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4c6c0"
+},
+{
+"name": "I_RpcServerInqTransportType",
+"ordinal": 1111,
+"rva": 729616,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb2210"
+},
+{
+"name": "I_RpcServerIsClientDisconnected",
+"ordinal": 1112,
+"rva": 678720,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5b40"
+},
+{
+"name": "I_RpcServerRegisterForwardFunction",
+"ordinal": 1113,
+"rva": 468336,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x72570"
+},
+{
+"name": "I_RpcServerSetAddressChangeFn",
+"ordinal": 1114,
+"rva": 468432,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x725d0"
+},
+{
+"name": "I_RpcServerStartService",
+"ordinal": 1115,
+"rva": 678864,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5bd0"
+},
+{
+"name": "I_RpcServerSubscribeForDisconnectNotification",
+"ordinal": 1116,
+"rva": 440384,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6b840"
+},
+{
+"name": "I_RpcServerSubscribeForDisconnectNotification2",
+"ordinal": 1117,
+"rva": 410512,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x64390"
+},
+{
+"name": "I_RpcServerUnsubscribeForDisconnectNotification",
+"ordinal": 1118,
+"rva": 412752,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x64c50"
+},
+{
+"name": "I_RpcServerUseProtseq2A",
+"ordinal": 1119,
+"rva": 445600,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6cca0"
+},
+{
+"name": "I_RpcServerUseProtseq2W",
+"ordinal": 1120,
+"rva": 196096,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2fe00"
+},
+{
+"name": "I_RpcServerUseProtseqEp2A",
+"ordinal": 1121,
+"rva": 465312,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x719a0"
+},
+{
+"name": "I_RpcServerUseProtseqEp2W",
+"ordinal": 1122,
+"rva": 193232,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2f2d0"
+},
+{
+"name": "I_RpcSessionStrictContextHandle",
+"ordinal": 1123,
+"rva": 679040,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5c80"
+},
+{
+"name": "I_RpcSetDCOMAppId",
+"ordinal": 1124,
+"rva": 426400,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x681a0"
+},
+{
+"name": "I_RpcSetSystemHandle",
+"ordinal": 1125,
+"rva": 391888,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5fad0"
+},
+{
+"name": "I_RpcSsDontSerializeContext",
+"ordinal": 1126,
+"rva": 807472,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc5230"
+},
+{
+"name": "I_RpcSystemFunction001",
+"ordinal": 1127,
+"rva": 467648,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x722c0"
+},
+{
+"name": "I_RpcSystemHandleTypeSpecificWork",
+"ordinal": 1128,
+"rva": 379200,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5c940"
+},
+{
+"name": "I_RpcTransConnectionAllocatePacket",
+"ordinal": 1129,
+"rva": 715792,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xaec10"
+},
+{
+"name": "I_RpcTransConnectionFreePacket",
+"ordinal": 1130,
+"rva": 715808,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xaec20"
+},
+{
+"name": "I_RpcTransConnectionReallocPacket",
+"ordinal": 1131,
+"rva": 424688,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x67af0"
+},
+{
+"name": "I_RpcTransDatagramAllocate",
+"ordinal": 1132,
+"rva": 440384,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6b840"
+},
+{
+"name": "I_RpcTransDatagramAllocate2",
+"ordinal": 1133,
+"rva": 440384,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6b840"
+},
+{
+"name": "I_RpcTransDatagramFree",
+"ordinal": 1134,
+"rva": 440384,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6b840"
+},
+{
+"name": "I_RpcTransGetThreadEvent",
+"ordinal": 1135,
+"rva": 730528,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb25a0"
+},
+{
+"name": "I_RpcTransGetThreadEventThreadOptional",
+"ordinal": 1136,
+"rva": 730560,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb25c0"
+},
+{
+"name": "I_RpcTransIoCancelled",
+"ordinal": 1137,
+"rva": 715936,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xaeca0"
+},
+{
+"name": "I_RpcTransServerNewConnection",
+"ordinal": 1138,
+"rva": 728944,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb1f70"
+},
+{
+"name": "I_RpcTurnOnEEInfoPropagation",
+"ordinal": 1139,
+"rva": 685952,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa7780"
+},
+{
+"name": "I_UuidCreate",
+"ordinal": 1140,
+"rva": 747760,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb68f0"
+},
+{
+"name": "MesBufferHandleReset",
+"ordinal": 1141,
+"rva": 352032,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x55f20"
+},
+{
+"name": "MesDecodeBufferHandleCreate",
+"ordinal": 1142,
+"rva": 352512,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x56100"
+},
+{
+"name": "MesDecodeIncrementalHandleCreate",
+"ordinal": 1143,
+"rva": 351440,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x55cd0"
+},
+{
+"name": "MesEncodeDynBufferHandleCreate",
+"ordinal": 1144,
+"rva": 351888,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x55e90"
+},
+{
+"name": "MesEncodeFixedBufferHandleCreate",
+"ordinal": 1145,
+"rva": 352976,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x562d0"
+},
+{
+"name": "MesEncodeIncrementalHandleCreate",
+"ordinal": 1146,
+"rva": 351280,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x55c30"
+},
+{
+"name": "MesHandleFree",
+"ordinal": 1147,
+"rva": 361920,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x585c0"
+},
+{
+"name": "MesIncrementalHandleReset",
+"ordinal": 1148,
+"rva": 351600,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x55d70"
+},
+{
+"name": "MesInqProcEncodingId",
+"ordinal": 1149,
+"rva": 827632,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xca0f0"
+},
+{
+"name": "NDRCContextBinding",
+"ordinal": 1150,
+"rva": 185648,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2d530"
+},
+{
+"name": "NDRCContextMarshall",
+"ordinal": 1151,
+"rva": 326128,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4f9f0"
+},
+{
+"name": "NDRCContextUnmarshall",
+"ordinal": 1152,
+"rva": 806224,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc4d50"
+},
+{
+"name": "NDRSContextMarshall",
+"ordinal": 1153,
+"rva": 807504,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc5250"
+},
+{
+"name": "NDRSContextMarshall2",
+"ordinal": 1154,
+"rva": 326288,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4fa90"
+},
+{
+"name": "NDRSContextMarshallEx",
+"ordinal": 1155,
+"rva": 807616,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc52c0"
+},
+{
+"name": "NDRSContextUnmarshall",
+"ordinal": 1156,
+"rva": 807648,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc52e0"
+},
+{
+"name": "NDRSContextUnmarshall2",
+"ordinal": 1157,
+"rva": 86608,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x15250"
+},
+{
+"name": "NDRSContextUnmarshallEx",
+"ordinal": 1158,
+"rva": 807728,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc5330"
+},
+{
+"name": "Ndr64AsyncClientCall",
+"ordinal": 1159,
+"rva": 919008,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xe05e0"
+},
+{
+"name": "Ndr64AsyncServerCall64",
+"ordinal": 1160,
+"rva": 928624,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xe2b70"
+},
+{
+"name": "Ndr64AsyncServerCallAll",
+"ordinal": 1161,
+"rva": 901696,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xdc240"
+},
+{
+"name": "Ndr64DcomAsyncClientCall",
+"ordinal": 1162,
+"rva": 824352,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9420"
+},
+{
+"name": "Ndr64DcomAsyncStubCall",
+"ordinal": 1163,
+"rva": 824480,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc94a0"
+},
+{
+"name": "NdrAllocate",
+"ordinal": 1164,
+"rva": 832672,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcb4a0"
+},
+{
+"name": "NdrAsyncClientCall",
+"ordinal": 1165,
+"rva": 6768,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x1a70"
+},
+{
+"name": "NdrAsyncServerCall",
+"ordinal": 1166,
+"rva": 9424,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x24d0"
+},
+{
+"name": "NdrByteCountPointerBufferSize",
+"ordinal": 1167,
+"rva": 181824,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2c640"
+},
+{
+"name": "NdrByteCountPointerFree",
+"ordinal": 1168,
+"rva": 399648,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x61920"
+},
+{
+"name": "NdrByteCountPointerMarshall",
+"ordinal": 1169,
+"rva": 395360,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x60860"
+},
+{
+"name": "NdrByteCountPointerUnmarshall",
+"ordinal": 1170,
+"rva": 387760,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5eab0"
+},
+{
+"name": "NdrCStdStubBuffer2_Release",
+"ordinal": 1171,
+"rva": 375952,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5bc90"
+},
+{
+"name": "NdrCStdStubBuffer_Release",
+"ordinal": 1172,
+"rva": 370032,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5a570"
+},
+{
+"name": "NdrClearOutParameters",
+"ordinal": 1173,
+"rva": 10800,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2a30"
+},
+{
+"name": "NdrClientCall2",
+"ordinal": 1174,
+"rva": 9376,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x24a0"
+},
+{
+"name": "NdrClientCall3",
+"ordinal": 1175,
+"rva": 918720,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xe04c0"
+},
+{
+"name": "NdrClientContextMarshall",
+"ordinal": 1176,
+"rva": 811952,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc63b0"
+},
+{
+"name": "NdrClientContextUnmarshall",
+"ordinal": 1177,
+"rva": 820832,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc8660"
+},
+{
+"name": "NdrClientInitialize",
+"ordinal": 1178,
+"rva": 186016,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2d6a0"
+},
+{
+"name": "NdrClientInitializeNew",
+"ordinal": 1179,
+"rva": 185952,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2d660"
+},
+{
+"name": "NdrComplexArrayBufferSize",
+"ordinal": 1180,
+"rva": 146288,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x23b70"
+},
+{
+"name": "NdrComplexArrayFree",
+"ordinal": 1181,
+"rva": 136352,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x214a0"
+},
+{
+"name": "NdrComplexArrayMarshall",
+"ordinal": 1182,
+"rva": 141664,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x22960"
+},
+{
+"name": "NdrComplexArrayMemorySize",
+"ordinal": 1183,
+"rva": 191184,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2ead0"
+},
+{
+"name": "NdrComplexArrayUnmarshall",
+"ordinal": 1184,
+"rva": 165344,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x285e0"
+},
+{
+"name": "NdrComplexStructBufferSize",
+"ordinal": 1185,
+"rva": 156816,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x26490"
+},
+{
+"name": "NdrComplexStructFree",
+"ordinal": 1186,
+"rva": 175152,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2ac30"
+},
+{
+"name": "NdrComplexStructMarshall",
+"ordinal": 1187,
+"rva": 152656,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x25450"
+},
+{
+"name": "NdrComplexStructMemorySize",
+"ordinal": 1188,
+"rva": 160272,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x27210"
+},
+{
+"name": "NdrComplexStructUnmarshall",
+"ordinal": 1189,
+"rva": 148784,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x24530"
+},
+{
+"name": "NdrConformantArrayBufferSize",
+"ordinal": 1190,
+"rva": 139776,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x22200"
+},
+{
+"name": "NdrConformantArrayFree",
+"ordinal": 1191,
+"rva": 183520,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2cce0"
+},
+{
+"name": "NdrConformantArrayMarshall",
+"ordinal": 1192,
+"rva": 139520,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x22100"
+},
+{
+"name": "NdrConformantArrayMemorySize",
+"ordinal": 1193,
+"rva": 189152,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2e2e0"
+},
+{
+"name": "NdrConformantArrayUnmarshall",
+"ordinal": 1194,
+"rva": 164080,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x280f0"
+},
+{
+"name": "NdrConformantStringBufferSize",
+"ordinal": 1195,
+"rva": 180816,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2c250"
+},
+{
+"name": "NdrConformantStringMarshall",
+"ordinal": 1196,
+"rva": 355872,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x56e20"
+},
+{
+"name": "NdrConformantStringMemorySize",
+"ordinal": 1197,
+"rva": 190720,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2e900"
+},
+{
+"name": "NdrConformantStringUnmarshall",
+"ordinal": 1198,
+"rva": 83296,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x14560"
+},
+{
+"name": "NdrConformantStructBufferSize",
+"ordinal": 1199,
+"rva": 180448,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2c0e0"
+},
+{
+"name": "NdrConformantStructFree",
+"ordinal": 1200,
+"rva": 810560,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc5e40"
+},
+{
+"name": "NdrConformantStructMarshall",
+"ordinal": 1201,
+"rva": 355504,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x56cb0"
+},
+{
+"name": "NdrConformantStructMemorySize",
+"ordinal": 1202,
+"rva": 192144,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2ee90"
+},
+{
+"name": "NdrConformantStructUnmarshall",
+"ordinal": 1203,
+"rva": 173760,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2a6c0"
+},
+{
+"name": "NdrConformantVaryingArrayBufferSize",
+"ordinal": 1204,
+"rva": 186832,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2d9d0"
+},
+{
+"name": "NdrConformantVaryingArrayFree",
+"ordinal": 1205,
+"rva": 411056,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x645b0"
+},
+{
+"name": "NdrConformantVaryingArrayMarshall",
+"ordinal": 1206,
+"rva": 186496,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2d880"
+},
+{
+"name": "NdrConformantVaryingArrayMemorySize",
+"ordinal": 1207,
+"rva": 836928,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcc540"
+},
+{
+"name": "NdrConformantVaryingArrayUnmarshall",
+"ordinal": 1208,
+"rva": 188688,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2e110"
+},
+{
+"name": "NdrConformantVaryingStructBufferSize",
+"ordinal": 1209,
+"rva": 816128,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc7400"
+},
+{
+"name": "NdrConformantVaryingStructFree",
+"ordinal": 1210,
+"rva": 810672,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc5eb0"
+},
+{
+"name": "NdrConformantVaryingStructMarshall",
+"ordinal": 1211,
+"rva": 812032,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc6400"
+},
+{
+"name": "NdrConformantVaryingStructMemorySize",
+"ordinal": 1212,
+"rva": 837008,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcc590"
+},
+{
+"name": "NdrConformantVaryingStructUnmarshall",
+"ordinal": 1213,
+"rva": 820928,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc86c0"
+},
+{
+"name": "NdrContextHandleInitialize",
+"ordinal": 1214,
+"rva": 79984,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x13870"
+},
+{
+"name": "NdrContextHandleSize",
+"ordinal": 1215,
+"rva": 816416,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc7520"
+},
+{
+"name": "NdrConvert",
+"ordinal": 1216,
+"rva": 847520,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xceea0"
+},
+{
+"name": "NdrConvert2",
+"ordinal": 1217,
+"rva": 847808,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcefc0"
+},
+{
+"name": "NdrCorrelationFree",
+"ordinal": 1218,
+"rva": 128240,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x1f4f0"
+},
+{
+"name": "NdrCorrelationInitialize",
+"ordinal": 1219,
+"rva": 374096,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5b550"
+},
+{
+"name": "NdrCorrelationPass",
+"ordinal": 1220,
+"rva": 848448,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcf240"
+},
+{
+"name": "NdrCreateServerInterfaceFromStub",
+"ordinal": 1221,
+"rva": 824608,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9520"
+},
+{
+"name": "NdrDcomAsyncClientCall",
+"ordinal": 1222,
+"rva": 824704,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9580"
+},
+{
+"name": "NdrDcomAsyncStubCall",
+"ordinal": 1223,
+"rva": 824832,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9600"
+},
+{
+"name": "NdrDllCanUnloadNow",
+"ordinal": 1224,
+"rva": 370928,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5a8f0"
+},
+{
+"name": "NdrDllGetClassObject",
+"ordinal": 1225,
+"rva": 371008,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5a940"
+},
+{
+"name": "NdrDllRegisterProxy",
+"ordinal": 1226,
+"rva": 824960,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9680"
+},
+{
+"name": "NdrDllUnregisterProxy",
+"ordinal": 1227,
+"rva": 825072,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc96f0"
+},
+{
+"name": "NdrEncapsulatedUnionBufferSize",
+"ordinal": 1228,
+"rva": 422912,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x67400"
+},
+{
+"name": "NdrEncapsulatedUnionFree",
+"ordinal": 1229,
+"rva": 391280,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5f870"
+},
+{
+"name": "NdrEncapsulatedUnionMarshall",
+"ordinal": 1230,
+"rva": 354224,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x567b0"
+},
+{
+"name": "NdrEncapsulatedUnionMemorySize",
+"ordinal": 1231,
+"rva": 428720,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68ab0"
+},
+{
+"name": "NdrEncapsulatedUnionUnmarshall",
+"ordinal": 1232,
+"rva": 427376,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68570"
+},
+{
+"name": "NdrFixedArrayBufferSize",
+"ordinal": 1233,
+"rva": 380000,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5cc60"
+},
+{
+"name": "NdrFixedArrayFree",
+"ordinal": 1234,
+"rva": 415536,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x65730"
+},
+{
+"name": "NdrFixedArrayMarshall",
+"ordinal": 1235,
+"rva": 376032,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5bce0"
+},
+{
+"name": "NdrFixedArrayMemorySize",
+"ordinal": 1236,
+"rva": 382416,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5d5d0"
+},
+{
+"name": "NdrFixedArrayUnmarshall",
+"ordinal": 1237,
+"rva": 379760,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5cb70"
+},
+{
+"name": "NdrFreeBuffer",
+"ordinal": 1238,
+"rva": 369472,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5a340"
+},
+{
+"name": "NdrFullPointerXlatFree",
+"ordinal": 1239,
+"rva": 128288,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x1f520"
+},
+{
+"name": "NdrFullPointerXlatInit",
+"ordinal": 1240,
+"rva": 72336,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x11a90"
+},
+{
+"name": "NdrGetBaseInterfaceFromStub",
+"ordinal": 1241,
+"rva": 825184,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9760"
+},
+{
+"name": "NdrGetBuffer",
+"ordinal": 1242,
+"rva": 323216,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4ee90"
+},
+{
+"name": "NdrGetDcomProtocolVersion",
+"ordinal": 1243,
+"rva": 825296,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc97d0"
+},
+{
+"name": "NdrGetSimpleTypeBufferAlignment",
+"ordinal": 1244,
+"rva": 848560,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcf2b0"
+},
+{
+"name": "NdrGetSimpleTypeBufferSize",
+"ordinal": 1245,
+"rva": 848592,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcf2d0"
+},
+{
+"name": "NdrGetSimpleTypeMemorySize",
+"ordinal": 1246,
+"rva": 420448,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x66a60"
+},
+{
+"name": "NdrGetTypeFlags",
+"ordinal": 1247,
+"rva": 410848,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x644e0"
+},
+{
+"name": "NdrGetUserMarshalInfo",
+"ordinal": 1248,
+"rva": 363104,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x58a60"
+},
+{
+"name": "NdrInterfacePointerBufferSize",
+"ordinal": 1249,
+"rva": 816512,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc7580"
+},
+{
+"name": "NdrInterfacePointerFree",
+"ordinal": 1250,
+"rva": 810832,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc5f50"
+},
+{
+"name": "NdrInterfacePointerMarshall",
+"ordinal": 1251,
+"rva": 812384,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc6560"
+},
+{
+"name": "NdrInterfacePointerMemorySize",
+"ordinal": 1252,
+"rva": 837504,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcc780"
+},
+{
+"name": "NdrInterfacePointerUnmarshall",
+"ordinal": 1253,
+"rva": 495968,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x79160"
+},
+{
+"name": "NdrMapCommAndFaultStatus",
+"ordinal": 1254,
+"rva": 406800,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x63510"
+},
+{
+"name": "NdrMesProcEncodeDecode",
+"ordinal": 1255,
+"rva": 827984,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xca250"
+},
+{
+"name": "NdrMesProcEncodeDecode2",
+"ordinal": 1256,
+"rva": 828976,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xca630"
+},
+{
+"name": "NdrMesProcEncodeDecode3",
+"ordinal": 1257,
+"rva": 14176,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x3760"
+},
+{
+"name": "NdrMesSimpleTypeAlignSize",
+"ordinal": 1258,
+"rva": 829728,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xca920"
+},
+{
+"name": "NdrMesSimpleTypeAlignSizeAll",
+"ordinal": 1259,
+"rva": 887232,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd89c0"
+},
+{
+"name": "NdrMesSimpleTypeDecode",
+"ordinal": 1260,
+"rva": 829840,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xca990"
+},
+{
+"name": "NdrMesSimpleTypeDecodeAll",
+"ordinal": 1261,
+"rva": 887424,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd8a80"
+},
+{
+"name": "NdrMesSimpleTypeEncode",
+"ordinal": 1262,
+"rva": 830080,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcaa80"
+},
+{
+"name": "NdrMesSimpleTypeEncodeAll",
+"ordinal": 1263,
+"rva": 887808,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd8c00"
+},
+{
+"name": "NdrMesTypeAlignSize",
+"ordinal": 1264,
+"rva": 183104,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2cb40"
+},
+{
+"name": "NdrMesTypeAlignSize2",
+"ordinal": 1265,
+"rva": 144544,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x234a0"
+},
+{
+"name": "NdrMesTypeAlignSize3",
+"ordinal": 1266,
+"rva": 380480,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5ce40"
+},
+{
+"name": "NdrMesTypeDecode",
+"ordinal": 1267,
+"rva": 830304,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcab60"
+},
+{
+"name": "NdrMesTypeDecode2",
+"ordinal": 1268,
+"rva": 140000,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x222e0"
+},
+{
+"name": "NdrMesTypeDecode3",
+"ordinal": 1269,
+"rva": 381248,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5d140"
+},
+{
+"name": "NdrMesTypeEncode",
+"ordinal": 1270,
+"rva": 830640,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcacb0"
+},
+{
+"name": "NdrMesTypeEncode2",
+"ordinal": 1271,
+"rva": 145248,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x23760"
+},
+{
+"name": "NdrMesTypeEncode3",
+"ordinal": 1272,
+"rva": 380128,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5cce0"
+},
+{
+"name": "NdrMesTypeFree2",
+"ordinal": 1273,
+"rva": 373584,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5b350"
+},
+{
+"name": "NdrMesTypeFree3",
+"ordinal": 1274,
+"rva": 412496,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x64b50"
+},
+{
+"name": "NdrNonConformantStringBufferSize",
+"ordinal": 1275,
+"rva": 816672,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc7620"
+},
+{
+"name": "NdrNonConformantStringMarshall",
+"ordinal": 1276,
+"rva": 812480,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc65c0"
+},
+{
+"name": "NdrNonConformantStringMemorySize",
+"ordinal": 1277,
+"rva": 428320,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68920"
+},
+{
+"name": "NdrNonConformantStringUnmarshall",
+"ordinal": 1278,
+"rva": 427664,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68690"
+},
+{
+"name": "NdrNonEncapsulatedUnionBufferSize",
+"ordinal": 1279,
+"rva": 183600,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2cd30"
+},
+{
+"name": "NdrNonEncapsulatedUnionFree",
+"ordinal": 1280,
+"rva": 391344,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5f8b0"
+},
+{
+"name": "NdrNonEncapsulatedUnionMarshall",
+"ordinal": 1281,
+"rva": 354304,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x56800"
+},
+{
+"name": "NdrNonEncapsulatedUnionMemorySize",
+"ordinal": 1282,
+"rva": 189232,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2e330"
+},
+{
+"name": "NdrNonEncapsulatedUnionUnmarshall",
+"ordinal": 1283,
+"rva": 176800,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2b2a0"
+},
+{
+"name": "NdrNsGetBuffer",
+"ordinal": 1284,
+"rva": 496416,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x79320"
+},
+{
+"name": "NdrNsSendReceive",
+"ordinal": 1285,
+"rva": 496416,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x79320"
+},
+{
+"name": "NdrOleAllocate",
+"ordinal": 1286,
+"rva": 368240,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x59e70"
+},
+{
+"name": "NdrOleFree",
+"ordinal": 1287,
+"rva": 368176,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x59e30"
+},
+{
+"name": "NdrOutInit",
+"ordinal": 1288,
+"rva": 848624,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcf2f0"
+},
+{
+"name": "NdrPartialIgnoreClientBufferSize",
+"ordinal": 1289,
+"rva": 816944,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc7730"
+},
+{
+"name": "NdrPartialIgnoreClientMarshall",
+"ordinal": 1290,
+"rva": 812736,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc66c0"
+},
+{
+"name": "NdrPartialIgnoreServerInitialize",
+"ordinal": 1291,
+"rva": 849008,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcf470"
+},
+{
+"name": "NdrPartialIgnoreServerUnmarshall",
+"ordinal": 1292,
+"rva": 822448,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc8cb0"
+},
+{
+"name": "NdrPointerBufferSize",
+"ordinal": 1293,
+"rva": 179952,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2bef0"
+},
+{
+"name": "NdrPointerFree",
+"ordinal": 1294,
+"rva": 136048,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x21370"
+},
+{
+"name": "NdrPointerMarshall",
+"ordinal": 1295,
+"rva": 354912,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x56a60"
+},
+{
+"name": "NdrPointerMemorySize",
+"ordinal": 1296,
+"rva": 837664,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcc820"
+},
+{
+"name": "NdrPointerUnmarshall",
+"ordinal": 1297,
+"rva": 137776,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x21a30"
+},
+{
+"name": "NdrProxyErrorHandler",
+"ordinal": 1298,
+"rva": 849456,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcf630"
+},
+{
+"name": "NdrProxyFreeBuffer",
+"ordinal": 1299,
+"rva": 825392,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9830"
+},
+{
+"name": "NdrProxyGetBuffer",
+"ordinal": 1300,
+"rva": 825472,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9880"
+},
+{
+"name": "NdrProxyInitialize",
+"ordinal": 1301,
+"rva": 825552,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc98d0"
+},
+{
+"name": "NdrProxySendReceive",
+"ordinal": 1302,
+"rva": 825680,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9950"
+},
+{
+"name": "NdrRangeUnmarshall",
+"ordinal": 1303,
+"rva": 126560,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x1ee60"
+},
+{
+"name": "NdrRpcSmClientAllocate",
+"ordinal": 1304,
+"rva": 851232,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcfd20"
+},
+{
+"name": "NdrRpcSmClientFree",
+"ordinal": 1305,
+"rva": 851360,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcfda0"
+},
+{
+"name": "NdrRpcSmSetClientToOsf",
+"ordinal": 1306,
+"rva": 851488,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcfe20"
+},
+{
+"name": "NdrRpcSsDefaultAllocate",
+"ordinal": 1307,
+"rva": 851536,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcfe50"
+},
+{
+"name": "NdrRpcSsDefaultFree",
+"ordinal": 1308,
+"rva": 468224,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x72500"
+},
+{
+"name": "NdrRpcSsDisableAllocate",
+"ordinal": 1309,
+"rva": 851552,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcfe60"
+},
+{
+"name": "NdrRpcSsEnableAllocate",
+"ordinal": 1310,
+"rva": 851616,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcfea0"
+},
+{
+"name": "NdrSendReceive",
+"ordinal": 1311,
+"rva": 496448,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x79340"
+},
+{
+"name": "NdrServerCall2",
+"ordinal": 1312,
+"rva": 384352,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5dd60"
+},
+{
+"name": "NdrServerCallAll",
+"ordinal": 1313,
+"rva": 375872,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5bc40"
+},
+{
+"name": "NdrServerCallNdr64",
+"ordinal": 1314,
+"rva": 13312,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x3400"
+},
+{
+"name": "NdrServerContextMarshall",
+"ordinal": 1315,
+"rva": 812784,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc66f0"
+},
+{
+"name": "NdrServerContextNewMarshall",
+"ordinal": 1316,
+"rva": 812864,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc6740"
+},
+{
+"name": "NdrServerContextNewUnmarshall",
+"ordinal": 1317,
+"rva": 822528,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc8d00"
+},
+{
+"name": "NdrServerContextUnmarshall",
+"ordinal": 1318,
+"rva": 822864,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc8e50"
+},
+{
+"name": "NdrServerInitialize",
+"ordinal": 1319,
+"rva": 197504,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x30380"
+},
+{
+"name": "NdrServerInitializeMarshall",
+"ordinal": 1320,
+"rva": 440320,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6b800"
+},
+{
+"name": "NdrServerInitializeNew",
+"ordinal": 1321,
+"rva": 832688,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcb4b0"
+},
+{
+"name": "NdrServerInitializePartial",
+"ordinal": 1322,
+"rva": 832864,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcb560"
+},
+{
+"name": "NdrServerInitializeUnmarshall",
+"ordinal": 1323,
+"rva": 832976,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcb5d0"
+},
+{
+"name": "NdrSimpleStructBufferSize",
+"ordinal": 1324,
+"rva": 159968,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x270e0"
+},
+{
+"name": "NdrSimpleStructFree",
+"ordinal": 1325,
+"rva": 810880,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc5f80"
+},
+{
+"name": "NdrSimpleStructMarshall",
+"ordinal": 1326,
+"rva": 160080,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x27150"
+},
+{
+"name": "NdrSimpleStructMemorySize",
+"ordinal": 1327,
+"rva": 163024,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x27cd0"
+},
+{
+"name": "NdrSimpleStructUnmarshall",
+"ordinal": 1328,
+"rva": 163200,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x27d80"
+},
+{
+"name": "NdrSimpleTypeMarshall",
+"ordinal": 1329,
+"rva": 131184,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x20070"
+},
+{
+"name": "NdrSimpleTypeUnmarshall",
+"ordinal": 1330,
+"rva": 181216,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2c3e0"
+},
+{
+"name": "NdrStubCall2",
+"ordinal": 1331,
+"rva": 122976,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x1e060"
+},
+{
+"name": "NdrStubCall3",
+"ordinal": 1332,
+"rva": 119424,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x1d280"
+},
+{
+"name": "NdrStubForwardingFunction",
+"ordinal": 1333,
+"rva": 413024,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x64d60"
+},
+{
+"name": "NdrStubGetBuffer",
+"ordinal": 1334,
+"rva": 825760,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc99a0"
+},
+{
+"name": "NdrStubInitialize",
+"ordinal": 1335,
+"rva": 825856,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9a00"
+},
+{
+"name": "NdrStubInitializeMarshall",
+"ordinal": 1336,
+"rva": 825984,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9a80"
+},
+{
+"name": "NdrTypeFlags",
+"ordinal": 1337,
+"rva": 995184,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xf2f70"
+},
+{
+"name": "NdrTypeFree",
+"ordinal": 1338,
+"rva": 192896,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2f180"
+},
+{
+"name": "NdrTypeMarshall",
+"ordinal": 1339,
+"rva": 131056,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x1fff0"
+},
+{
+"name": "NdrTypeSize",
+"ordinal": 1340,
+"rva": 179824,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2be70"
+},
+{
+"name": "NdrTypeUnmarshall",
+"ordinal": 1341,
+"rva": 415456,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x656e0"
+},
+{
+"name": "NdrUnmarshallBasetypeInline",
+"ordinal": 1342,
+"rva": 376496,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5beb0"
+},
+{
+"name": "NdrUserMarshalBufferSize",
+"ordinal": 1343,
+"rva": 163488,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x27ea0"
+},
+{
+"name": "NdrUserMarshalFree",
+"ordinal": 1344,
+"rva": 181936,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2c6b0"
+},
+{
+"name": "NdrUserMarshalMarshall",
+"ordinal": 1345,
+"rva": 356240,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x56f90"
+},
+{
+"name": "NdrUserMarshalMemorySize",
+"ordinal": 1346,
+"rva": 174976,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2ab80"
+},
+{
+"name": "NdrUserMarshalSimpleTypeConvert",
+"ordinal": 1347,
+"rva": 848016,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcf090"
+},
+{
+"name": "NdrUserMarshalUnmarshall",
+"ordinal": 1348,
+"rva": 299856,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x49350"
+},
+{
+"name": "NdrVaryingArrayBufferSize",
+"ordinal": 1349,
+"rva": 196944,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x30150"
+},
+{
+"name": "NdrVaryingArrayFree",
+"ordinal": 1350,
+"rva": 422224,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x67150"
+},
+{
+"name": "NdrVaryingArrayMarshall",
+"ordinal": 1351,
+"rva": 198864,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x308d0"
+},
+{
+"name": "NdrVaryingArrayMemorySize",
+"ordinal": 1352,
+"rva": 198496,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x30760"
+},
+{
+"name": "NdrVaryingArrayUnmarshall",
+"ordinal": 1353,
+"rva": 196288,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2fec0"
+},
+{
+"name": "NdrXmitOrRepAsBufferSize",
+"ordinal": 1354,
+"rva": 816992,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc7760"
+},
+{
+"name": "NdrXmitOrRepAsFree",
+"ordinal": 1355,
+"rva": 810912,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc5fa0"
+},
+{
+"name": "NdrXmitOrRepAsMarshall",
+"ordinal": 1356,
+"rva": 813056,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc6800"
+},
+{
+"name": "NdrXmitOrRepAsMemorySize",
+"ordinal": 1357,
+"rva": 838256,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcca70"
+},
+{
+"name": "NdrXmitOrRepAsUnmarshall",
+"ordinal": 1358,
+"rva": 822976,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc8ec0"
+},
+{
+"name": "NdrpCreateProxy",
+"ordinal": 1359,
+"rva": 826096,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9af0"
+},
+{
+"name": "NdrpCreateStub",
+"ordinal": 1360,
+"rva": 826224,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9b70"
+},
+{
+"name": "NdrpGetProcFormatString",
+"ordinal": 1361,
+"rva": 456096,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6f5a0"
+},
+{
+"name": "NdrpGetTypeFormatString",
+"ordinal": 1362,
+"rva": 456256,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6f640"
+},
+{
+"name": "NdrpGetTypeGenCookie",
+"ordinal": 1363,
+"rva": 456416,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6f6e0"
+},
+{
+"name": "NdrpMemoryIncrement",
+"ordinal": 1364,
+"rva": 159040,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x26d40"
+},
+{
+"name": "NdrpReleaseTypeFormatString",
+"ordinal": 1365,
+"rva": 826336,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc9be0"
+},
+{
+"name": "NdrpReleaseTypeGenCookie",
+"ordinal": 1366,
+"rva": 456352,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6f6a0"
+},
+{
+"name": "NdrpVarVtOfTypeDesc",
+"ordinal": 1367,
+"rva": 456000,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6f540"
+},
+{
+"name": "RpcAsyncAbortCall",
+"ordinal": 1368,
+"rva": 10480,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x28f0"
+},
+{
+"name": "RpcAsyncCancelCall",
+"ordinal": 1369,
+"rva": 424480,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x67a20"
+},
+{
+"name": "RpcAsyncCompleteCall",
+"ordinal": 1370,
+"rva": 8960,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2300"
+},
+{
+"name": "RpcAsyncGetCallStatus",
+"ordinal": 1371,
+"rva": 199760,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x30c50"
+},
+{
+"name": "RpcAsyncInitializeHandle",
+"ordinal": 1372,
+"rva": 4464,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x1170"
+},
+{
+"name": "RpcAsyncRegisterInfo",
+"ordinal": 1373,
+"rva": 440368,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6b830"
+},
+{
+"name": "RpcBindingBind",
+"ordinal": 1374,
+"rva": 322800,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4ecf0"
+},
+{
+"name": "RpcBindingCopy",
+"ordinal": 1375,
+"rva": 389264,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5f090"
+},
+{
+"name": "RpcBindingCreateA",
+"ordinal": 1376,
+"rva": 744944,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb5df0"
+},
+{
+"name": "RpcBindingCreateW",
+"ordinal": 1377,
+"rva": 311536,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4c0f0"
+},
+{
+"name": "RpcBindingFree",
+"ordinal": 1378,
+"rva": 302896,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x49f30"
+},
+{
+"name": "RpcBindingFromStringBindingA",
+"ordinal": 1379,
+"rva": 419536,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x666d0"
+},
+{
+"name": "RpcBindingFromStringBindingW",
+"ordinal": 1380,
+"rva": 260288,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x3f8c0"
+},
+{
+"name": "RpcBindingInqAuthClientA",
+"ordinal": 1381,
+"rva": 445312,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6cb80"
+},
+{
+"name": "RpcBindingInqAuthClientExA",
+"ordinal": 1382,
+"rva": 445360,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6cbb0"
+},
+{
+"name": "RpcBindingInqAuthClientExW",
+"ordinal": 1383,
+"rva": 324256,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4f2a0"
+},
+{
+"name": "RpcBindingInqAuthClientW",
+"ordinal": 1384,
+"rva": 324448,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4f360"
+},
+{
+"name": "RpcBindingInqAuthInfoA",
+"ordinal": 1385,
+"rva": 745792,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6140"
+},
+{
+"name": "RpcBindingInqAuthInfoExA",
+"ordinal": 1386,
+"rva": 745856,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6180"
+},
+{
+"name": "RpcBindingInqAuthInfoExW",
+"ordinal": 1387,
+"rva": 324688,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4f450"
+},
+{
+"name": "RpcBindingInqAuthInfoW",
+"ordinal": 1388,
+"rva": 686144,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa7840"
+},
+{
+"name": "RpcBindingInqMaxCalls",
+"ordinal": 1389,
+"rva": 495280,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x78eb0"
+},
+{
+"name": "RpcBindingInqObject",
+"ordinal": 1390,
+"rva": 362432,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x587c0"
+},
+{
+"name": "RpcBindingInqOption",
+"ordinal": 1391,
+"rva": 716160,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xaed80"
+},
+{
+"name": "RpcBindingReset",
+"ordinal": 1392,
+"rva": 686272,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa78c0"
+},
+{
+"name": "RpcBindingServerFromClient",
+"ordinal": 1393,
+"rva": 399472,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x61870"
+},
+{
+"name": "RpcBindingSetAuthInfoA",
+"ordinal": 1394,
+"rva": 746032,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6230"
+},
+{
+"name": "RpcBindingSetAuthInfoExA",
+"ordinal": 1395,
+"rva": 746080,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6260"
+},
+{
+"name": "RpcBindingSetAuthInfoExW",
+"ordinal": 1396,
+"rva": 311920,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4c270"
+},
+{
+"name": "RpcBindingSetAuthInfoW",
+"ordinal": 1397,
+"rva": 408736,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x63ca0"
+},
+{
+"name": "RpcBindingSetObject",
+"ordinal": 1398,
+"rva": 400336,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x61bd0"
+},
+{
+"name": "RpcBindingSetOption",
+"ordinal": 1399,
+"rva": 59344,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xe7d0"
+},
+{
+"name": "RpcBindingToStringBindingA",
+"ordinal": 1400,
+"rva": 46304,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb4e0"
+},
+{
+"name": "RpcBindingToStringBindingW",
+"ordinal": 1401,
+"rva": 324576,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4f3e0"
+},
+{
+"name": "RpcBindingUnbind",
+"ordinal": 1402,
+"rva": 404192,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x62ae0"
+},
+{
+"name": "RpcBindingVectorFree",
+"ordinal": 1403,
+"rva": 20848,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5170"
+},
+{
+"name": "RpcCancelThread",
+"ordinal": 1404,
+"rva": 730592,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb25e0"
+},
+{
+"name": "RpcCancelThreadEx",
+"ordinal": 1405,
+"rva": 730672,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb2630"
+},
+{
+"name": "RpcCertGeneratePrincipalNameA",
+"ordinal": 1406,
+"rva": 746320,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6350"
+},
+{
+"name": "RpcCertGeneratePrincipalNameW",
+"ordinal": 1407,
+"rva": 683792,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6f10"
+},
+{
+"name": "RpcEpRegisterA",
+"ordinal": 1408,
+"rva": 446336,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6cf80"
+},
+{
+"name": "RpcEpRegisterNoReplaceA",
+"ordinal": 1409,
+"rva": 747792,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6910"
+},
+{
+"name": "RpcEpRegisterNoReplaceW",
+"ordinal": 1410,
+"rva": 748032,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6a00"
+},
+{
+"name": "RpcEpRegisterW",
+"ordinal": 1411,
+"rva": 201984,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x31500"
+},
+{
+"name": "RpcEpResolveBinding",
+"ordinal": 1412,
+"rva": 415952,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x658d0"
+},
+{
+"name": "RpcEpUnregister",
+"ordinal": 1413,
+"rva": 199952,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x30d10"
+},
+{
+"name": "RpcErrorAddRecord",
+"ordinal": 1414,
+"rva": 743472,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb5830"
+},
+{
+"name": "RpcErrorClearInformation",
+"ordinal": 1415,
+"rva": 743792,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb5970"
+},
+{
+"name": "RpcErrorEndEnumeration",
+"ordinal": 1416,
+"rva": 422608,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x672d0"
+},
+{
+"name": "RpcErrorGetNextRecord",
+"ordinal": 1417,
+"rva": 411808,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x648a0"
+},
+{
+"name": "RpcErrorGetNumberOfRecords",
+"ordinal": 1418,
+"rva": 743808,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb5980"
+},
+{
+"name": "RpcErrorLoadErrorInfo",
+"ordinal": 1419,
+"rva": 743856,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb59b0"
+},
+{
+"name": "RpcErrorResetEnumeration",
+"ordinal": 1420,
+"rva": 743920,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb59f0"
+},
+{
+"name": "RpcErrorSaveErrorInfo",
+"ordinal": 1421,
+"rva": 743968,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb5a20"
+},
+{
+"name": "RpcErrorStartEnumeration",
+"ordinal": 1422,
+"rva": 383440,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5d9d0"
+},
+{
+"name": "RpcExceptionFilter",
+"ordinal": 1423,
+"rva": 364368,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x58f50"
+},
+{
+"name": "RpcFreeAuthorizationContext",
+"ordinal": 1424,
+"rva": 422848,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x673c0"
+},
+{
+"name": "RpcGetAuthorizationContextForClient",
+"ordinal": 1425,
+"rva": 416080,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x65950"
+},
+{
+"name": "RpcIfIdVectorFree",
+"ordinal": 1426,
+"rva": 679120,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5cd0"
+},
+{
+"name": "RpcIfInqId",
+"ordinal": 1427,
+"rva": 46064,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb3f0"
+},
+{
+"name": "RpcImpersonateClient",
+"ordinal": 1428,
+"rva": 362656,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x588a0"
+},
+{
+"name": "RpcImpersonateClient2",
+"ordinal": 1429,
+"rva": 301456,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x49990"
+},
+{
+"name": "RpcImpersonateClientContainer",
+"ordinal": 1430,
+"rva": 679232,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5d40"
+},
+{
+"name": "RpcMgmtEnableIdleCleanup",
+"ordinal": 1431,
+"rva": 468240,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x72510"
+},
+{
+"name": "RpcMgmtEpEltInqBegin",
+"ordinal": 1432,
+"rva": 748192,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6aa0"
+},
+{
+"name": "RpcMgmtEpEltInqDone",
+"ordinal": 1433,
+"rva": 748880,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6d50"
+},
+{
+"name": "RpcMgmtEpEltInqNextA",
+"ordinal": 1434,
+"rva": 749104,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6e30"
+},
+{
+"name": "RpcMgmtEpEltInqNextW",
+"ordinal": 1435,
+"rva": 750336,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb7300"
+},
+{
+"name": "RpcMgmtEpUnregister",
+"ordinal": 1436,
+"rva": 750448,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb7370"
+},
+{
+"name": "RpcMgmtInqComTimeout",
+"ordinal": 1437,
+"rva": 684192,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa70a0"
+},
+{
+"name": "RpcMgmtInqDefaultProtectLevel",
+"ordinal": 1438,
+"rva": 716288,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xaee00"
+},
+{
+"name": "RpcMgmtInqIfIds",
+"ordinal": 1439,
+"rva": 679424,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5e00"
+},
+{
+"name": "RpcMgmtInqServerPrincNameA",
+"ordinal": 1440,
+"rva": 464400,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x71610"
+},
+{
+"name": "RpcMgmtInqServerPrincNameW",
+"ordinal": 1441,
+"rva": 464496,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x71670"
+},
+{
+"name": "RpcMgmtInqStats",
+"ordinal": 1442,
+"rva": 679616,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa5ec0"
+},
+{
+"name": "RpcMgmtIsServerListening",
+"ordinal": 1443,
+"rva": 440192,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6b780"
+},
+{
+"name": "RpcMgmtSetAuthorizationFn",
+"ordinal": 1444,
+"rva": 750480,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb7390"
+},
+{
+"name": "RpcMgmtSetCancelTimeout",
+"ordinal": 1445,
+"rva": 408608,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x63c20"
+},
+{
+"name": "RpcMgmtSetComTimeout",
+"ordinal": 1446,
+"rva": 59232,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xe760"
+},
+{
+"name": "RpcMgmtSetServerStackSize",
+"ordinal": 1447,
+"rva": 418496,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x662c0"
+},
+{
+"name": "RpcMgmtStatsVectorFree",
+"ordinal": 1448,
+"rva": 679936,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6000"
+},
+{
+"name": "RpcMgmtStopServerListening",
+"ordinal": 1449,
+"rva": 428544,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68a00"
+},
+{
+"name": "RpcMgmtWaitServerListen",
+"ordinal": 1450,
+"rva": 680000,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6040"
+},
+{
+"name": "RpcNetworkInqProtseqsA",
+"ordinal": 1451,
+"rva": 746416,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb63b0"
+},
+{
+"name": "RpcNetworkInqProtseqsW",
+"ordinal": 1452,
+"rva": 429344,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68d20"
+},
+{
+"name": "RpcNetworkIsProtseqValidA",
+"ordinal": 1453,
+"rva": 746576,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6450"
+},
+{
+"name": "RpcNetworkIsProtseqValidW",
+"ordinal": 1454,
+"rva": 428928,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68b80"
+},
+{
+"name": "RpcNsBindingInqEntryNameA",
+"ordinal": 1455,
+"rva": 746944,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb65c0"
+},
+{
+"name": "RpcNsBindingInqEntryNameW",
+"ordinal": 1456,
+"rva": 685856,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa7720"
+},
+{
+"name": "RpcObjectInqType",
+"ordinal": 1457,
+"rva": 680048,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6070"
+},
+{
+"name": "RpcObjectSetInqFn",
+"ordinal": 1458,
+"rva": 680160,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa60e0"
+},
+{
+"name": "RpcObjectSetType",
+"ordinal": 1459,
+"rva": 399808,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x619c0"
+},
+{
+"name": "RpcProtseqVectorFreeA",
+"ordinal": 1460,
+"rva": 747072,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6640"
+},
+{
+"name": "RpcProtseqVectorFreeW",
+"ordinal": 1461,
+"rva": 429216,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68ca0"
+},
+{
+"name": "RpcRaiseException",
+"ordinal": 1462,
+"rva": 197232,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x30270"
+},
+{
+"name": "RpcRevertContainerImpersonation",
+"ordinal": 1463,
+"rva": 680224,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6120"
+},
+{
+"name": "RpcRevertToSelf",
+"ordinal": 1464,
+"rva": 364928,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x59180"
+},
+{
+"name": "RpcRevertToSelfEx",
+"ordinal": 1465,
+"rva": 369808,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5a490"
+},
+{
+"name": "RpcServerCompleteSecurityCallback",
+"ordinal": 1466,
+"rva": 680320,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6180"
+},
+{
+"name": "RpcServerInqBindingHandle",
+"ordinal": 1467,
+"rva": 310672,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4bd90"
+},
+{
+"name": "RpcServerInqBindings",
+"ordinal": 1468,
+"rva": 407216,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x636b0"
+},
+{
+"name": "RpcServerInqBindingsEx",
+"ordinal": 1469,
+"rva": 466672,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x71ef0"
+},
+{
+"name": "RpcServerInqCallAttributesA",
+"ordinal": 1470,
+"rva": 299472,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x491d0"
+},
+{
+"name": "RpcServerInqCallAttributesW",
+"ordinal": 1471,
+"rva": 300768,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x496e0"
+},
+{
+"name": "RpcServerInqDefaultPrincNameA",
+"ordinal": 1472,
+"rva": 680416,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa61e0"
+},
+{
+"name": "RpcServerInqDefaultPrincNameW",
+"ordinal": 1473,
+"rva": 33296,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x8210"
+},
+{
+"name": "RpcServerInqIf",
+"ordinal": 1474,
+"rva": 680512,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6240"
+},
+{
+"name": "RpcServerInterfaceGroupActivate",
+"ordinal": 1475,
+"rva": 425824,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x67f60"
+},
+{
+"name": "RpcServerInterfaceGroupClose",
+"ordinal": 1476,
+"rva": 19920,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4dd0"
+},
+{
+"name": "RpcServerInterfaceGroupCreateA",
+"ordinal": 1477,
+"rva": 680592,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6290"
+},
+{
+"name": "RpcServerInterfaceGroupCreateW",
+"ordinal": 1478,
+"rva": 435376,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6a4b0"
+},
+{
+"name": "RpcServerInterfaceGroupDeactivate",
+"ordinal": 1479,
+"rva": 19840,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4d80"
+},
+{
+"name": "RpcServerInterfaceGroupInqBindings",
+"ordinal": 1480,
+"rva": 681600,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6680"
+},
+{
+"name": "RpcServerListen",
+"ordinal": 1481,
+"rva": 413248,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x64e40"
+},
+{
+"name": "RpcServerRegisterAuthInfoA",
+"ordinal": 1482,
+"rva": 446000,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6ce30"
+},
+{
+"name": "RpcServerRegisterAuthInfoW",
+"ordinal": 1483,
+"rva": 34992,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x88b0"
+},
+{
+"name": "RpcServerRegisterIf",
+"ordinal": 1484,
+"rva": 468016,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x72430"
+},
+{
+"name": "RpcServerRegisterIf2",
+"ordinal": 1485,
+"rva": 446176,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6cee0"
+},
+{
+"name": "RpcServerRegisterIf3",
+"ordinal": 1486,
+"rva": 59680,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xe920"
+},
+{
+"name": "RpcServerRegisterIfEx",
+"ordinal": 1487,
+"rva": 419376,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x66630"
+},
+{
+"name": "RpcServerSubscribeForNotification",
+"ordinal": 1488,
+"rva": 374432,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5b6a0"
+},
+{
+"name": "RpcServerTestCancel",
+"ordinal": 1489,
+"rva": 322912,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x4ed60"
+},
+{
+"name": "RpcServerUnregisterIf",
+"ordinal": 1490,
+"rva": 55504,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd8d0"
+},
+{
+"name": "RpcServerUnregisterIfEx",
+"ordinal": 1491,
+"rva": 39840,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x9ba0"
+},
+{
+"name": "RpcServerUnsubscribeForNotification",
+"ordinal": 1492,
+"rva": 374176,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5b5a0"
+},
+{
+"name": "RpcServerUseAllProtseqs",
+"ordinal": 1493,
+"rva": 681680,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa66d0"
+},
+{
+"name": "RpcServerUseAllProtseqsEx",
+"ordinal": 1494,
+"rva": 681728,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6700"
+},
+{
+"name": "RpcServerUseAllProtseqsIf",
+"ordinal": 1495,
+"rva": 682176,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa68c0"
+},
+{
+"name": "RpcServerUseAllProtseqsIfEx",
+"ordinal": 1496,
+"rva": 682256,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa6910"
+},
+{
+"name": "RpcServerUseProtseqA",
+"ordinal": 1497,
+"rva": 445504,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6cc40"
+},
+{
+"name": "RpcServerUseProtseqEpA",
+"ordinal": 1498,
+"rva": 747088,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6650"
+},
+{
+"name": "RpcServerUseProtseqEpExA",
+"ordinal": 1499,
+"rva": 747184,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb66b0"
+},
+{
+"name": "RpcServerUseProtseqEpExW",
+"ordinal": 1500,
+"rva": 467152,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x720d0"
+},
+{
+"name": "RpcServerUseProtseqEpW",
+"ordinal": 1501,
+"rva": 193136,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x2f270"
+},
+{
+"name": "RpcServerUseProtseqExA",
+"ordinal": 1502,
+"rva": 747232,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb66e0"
+},
+{
+"name": "RpcServerUseProtseqExW",
+"ordinal": 1503,
+"rva": 467600,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x72290"
+},
+{
+"name": "RpcServerUseProtseqIfA",
+"ordinal": 1504,
+"rva": 747280,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6710"
+},
+{
+"name": "RpcServerUseProtseqIfExA",
+"ordinal": 1505,
+"rva": 747360,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb6760"
+},
+{
+"name": "RpcServerUseProtseqIfExW",
+"ordinal": 1506,
+"rva": 464992,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x71860"
+},
+{
+"name": "RpcServerUseProtseqIfW",
+"ordinal": 1507,
+"rva": 464912,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x71810"
+},
+{
+"name": "RpcServerUseProtseqW",
+"ordinal": 1508,
+"rva": 196784,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x300b0"
+},
+{
+"name": "RpcServerYield",
+"ordinal": 1509,
+"rva": 730768,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb2690"
+},
+{
+"name": "RpcSmAllocate",
+"ordinal": 1510,
+"rva": 851712,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcff00"
+},
+{
+"name": "RpcSmClientFree",
+"ordinal": 1511,
+"rva": 851792,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcff50"
+},
+{
+"name": "RpcSmDestroyClientContext",
+"ordinal": 1512,
+"rva": 421312,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x66dc0"
+},
+{
+"name": "RpcSmDisableAllocate",
+"ordinal": 1513,
+"rva": 851824,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcff70"
+},
+{
+"name": "RpcSmEnableAllocate",
+"ordinal": 1514,
+"rva": 851872,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcffa0"
+},
+{
+"name": "RpcSmFree",
+"ordinal": 1515,
+"rva": 851920,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcffd0"
+},
+{
+"name": "RpcSmGetThreadHandle",
+"ordinal": 1516,
+"rva": 851952,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcfff0"
+},
+{
+"name": "RpcSmSetClientAllocFree",
+"ordinal": 1517,
+"rva": 852016,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd0030"
+},
+{
+"name": "RpcSmSetThreadHandle",
+"ordinal": 1518,
+"rva": 852048,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd0050"
+},
+{
+"name": "RpcSmSwapClientAllocFree",
+"ordinal": 1519,
+"rva": 852080,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd0070"
+},
+{
+"name": "RpcSsAllocate",
+"ordinal": 1520,
+"rva": 852112,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd0090"
+},
+{
+"name": "RpcSsContextLockExclusive",
+"ordinal": 1521,
+"rva": 405280,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x62f20"
+},
+{
+"name": "RpcSsContextLockShared",
+"ordinal": 1522,
+"rva": 807760,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xc5350"
+},
+{
+"name": "RpcSsDestroyClientContext",
+"ordinal": 1523,
+"rva": 421344,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x66de0"
+},
+{
+"name": "RpcSsDisableAllocate",
+"ordinal": 1524,
+"rva": 852256,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd0120"
+},
+{
+"name": "RpcSsDontSerializeContext",
+"ordinal": 1525,
+"rva": 1093657,
+"forwarder": "RPCRT4.I_RpcSsDontSerializeContext",
+"ref": null
+},
+{
+"name": "RpcSsEnableAllocate",
+"ordinal": 1526,
+"rva": 852272,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd0130"
+},
+{
+"name": "RpcSsFree",
+"ordinal": 1527,
+"rva": 852288,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd0140"
+},
+{
+"name": "RpcSsGetContextBinding",
+"ordinal": 1528,
+"rva": 417184,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x65da0"
+},
+{
+"name": "RpcSsGetThreadHandle",
+"ordinal": 1529,
+"rva": 852304,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd0150"
+},
+{
+"name": "RpcSsSetClientAllocFree",
+"ordinal": 1530,
+"rva": 852400,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd01b0"
+},
+{
+"name": "RpcSsSetThreadHandle",
+"ordinal": 1531,
+"rva": 852512,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd0220"
+},
+{
+"name": "RpcSsSwapClientAllocFree",
+"ordinal": 1532,
+"rva": 852720,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xd02f0"
+},
+{
+"name": "RpcStringBindingComposeA",
+"ordinal": 1533,
+"rva": 40032,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x9c60"
+},
+{
+"name": "RpcStringBindingComposeW",
+"ordinal": 1534,
+"rva": 56672,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xdd60"
+},
+{
+"name": "RpcStringBindingParseA",
+"ordinal": 1535,
+"rva": 46400,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb540"
+},
+{
+"name": "RpcStringBindingParseW",
+"ordinal": 1536,
+"rva": 250384,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x3d210"
+},
+{
+"name": "RpcStringFreeA",
+"ordinal": 1537,
+"rva": 426384,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x68190"
+},
+{
+"name": "RpcStringFreeW",
+"ordinal": 1538,
+"rva": 59104,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xe6e0"
+},
+{
+"name": "RpcTestCancel",
+"ordinal": 1539,
+"rva": 730848,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xb26e0"
+},
+{
+"name": "RpcUserFree",
+"ordinal": 1540,
+"rva": 833120,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xcb660"
+},
+{
+"name": "SimpleTypeAlignment",
+"ordinal": 1541,
+"rva": 1000528,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xf4450"
+},
+{
+"name": "SimpleTypeBufferSize",
+"ordinal": 1542,
+"rva": 1000336,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xf4390"
+},
+{
+"name": "SimpleTypeMemorySize",
+"ordinal": 1543,
+"rva": 996064,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xf32e0"
+},
+{
+"name": "TowerConstruct",
+"ordinal": 1544,
+"rva": 68192,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x10a60"
+},
+{
+"name": "TowerExplode",
+"ordinal": 1545,
+"rva": 66784,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x104e0"
+},
+{
+"name": "UuidCompare",
+"ordinal": 1546,
+"rva": 400096,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x61ae0"
+},
+{
+"name": "UuidCreate",
+"ordinal": 1547,
+"rva": 363312,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x58b30"
+},
+{
+"name": "UuidCreateNil",
+"ordinal": 1548,
+"rva": 446160,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6ced0"
+},
+{
+"name": "UuidCreateSequential",
+"ordinal": 1549,
+"rva": 401840,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x621b0"
+},
+{
+"name": "UuidEqual",
+"ordinal": 1550,
+"rva": 373216,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x5b1e0"
+},
+{
+"name": "UuidFromStringA",
+"ordinal": 1551,
+"rva": 444944,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x6ca10"
+},
+{
+"name": "UuidFromStringW",
+"ordinal": 1552,
+"rva": 43408,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xa990"
+},
+{
+"name": "UuidHash",
+"ordinal": 1553,
+"rva": 15408,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x3c30"
+},
+{
+"name": "UuidIsNil",
+"ordinal": 1554,
+"rva": 400496,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x61c70"
+},
+{
+"name": "UuidToStringA",
+"ordinal": 1555,
+"rva": 427248,
+"forwarder": null,
+"ref": "rpcrt4.dll!0x684f0"
+},
+{
+"name": "UuidToStringW",
+"ordinal": 1556,
+"rva": 44912,
+"forwarder": null,
+"ref": "rpcrt4.dll!0xaf70"
+}
+]
