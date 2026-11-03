@@ -57,7 +57,7 @@ TEST(ndr_mes_handle_free_null_is_ok) {
 }
 TEST(ndr_mes_decode_handle_create) {
     REQUIRE(U(MesDecodeBufferHandleCreate)); REQUIRE(U(MesHandleFree));
-    __declspec(align(8)) static char buf[64];
+    __attribute__((aligned(8))) static char buf[64];
     handle_t h = NULL;
     RPC_STATUS st = U(MesDecodeBufferHandleCreate)(buf, 64, &h);
     EXPECT_EQ(st, RPC_S_OK);
@@ -83,7 +83,7 @@ TEST(ndr_mes_simpletype_encode_fixed_buffer_layout) {
     REQUIRE(U(MesEncodeFixedBufferHandleCreate)); REQUIRE(U(NdrMesSimpleTypeEncode)); REQUIRE(U(NdrMesSimpleTypeAlignSize)); REQUIRE(U(MesHandleFree));
     static const struct { short size; unsigned long long v; } t[] = { { 1, 0xAB }, { 2, 0xBEEF }, { 4, 0xCAFEBABE }, { 8, 0x0123456789ABCDEFull } };
     for (unsigned k = 0; k < 4; k++) {
-        __declspec(align(8)) unsigned char buf[64]; memset(buf, 0x77, sizeof buf);
+        __attribute__((aligned(8))) unsigned char buf[64]; memset(buf, 0x77, sizeof buf);
         ULONG enc = 0; handle_t h = NULL;
         RPC_STATUS st = U(MesEncodeFixedBufferHandleCreate)((char *)buf, sizeof buf, &enc, &h);
         if (st != RPC_S_OK) { CHECKF(0, "create %ld", (long)st); return; }
@@ -105,7 +105,7 @@ TEST(ndr_mes_simpletype_encode_fixed_buffer_layout) {
 TEST(ndr_mes_simpletype_decode_roundtrip_and_header_validation) {
     WSTUB("NdrMesSimpleTypeDecode");
     REQUIRE(U(MesDecodeBufferHandleCreate)); REQUIRE(U(NdrMesSimpleTypeDecode)); REQUIRE(U(MesHandleFree));
-    __declspec(align(8)) unsigned char buf[16];
+    __attribute__((aligned(8))) unsigned char buf[16];
     memcpy(buf, pk_hdr, 8); memset(buf + 8, 0, 8); *(unsigned *)(buf + 8) = 0xFEEDF00D;
     handle_t h = NULL;
     RPC_STATUS st = U(MesDecodeBufferHandleCreate)((char *)buf, 16, &h);
@@ -136,7 +136,7 @@ TEST(ndr_mes_simpletype_decode_roundtrip_and_header_validation) {
 TEST(ndr_mes_simpletype_wrong_direction_raises_invalid_es_action) {
     WSTUB("NdrMesSimpleType*");
     REQUIRE(U(MesDecodeBufferHandleCreate)); REQUIRE(U(MesEncodeFixedBufferHandleCreate)); REQUIRE(U(NdrMesSimpleTypeEncode)); REQUIRE(U(NdrMesSimpleTypeDecode)); REQUIRE(U(NdrMesSimpleTypeAlignSize)); REQUIRE(U(MesHandleFree));
-    __declspec(align(8)) unsigned char buf[32]; memcpy(buf, pk_hdr, 8); memset(buf + 8, 0, 24);
+    __attribute__((aligned(8))) unsigned char buf[32]; memcpy(buf, pk_hdr, 8); memset(buf + 8, 0, 24);
     handle_t hd = NULL, he = NULL; ULONG enc;
     U(MesDecodeBufferHandleCreate)((char *)buf, 32, &hd);
     U(MesEncodeFixedBufferHandleCreate)((char *)buf, 32, &enc, &he);
@@ -169,7 +169,7 @@ TEST(ndr_mes_simpletype_invalid_handle_raises_invalid_arg) {
 TEST(ndr_mes_encode_into_too_small_fixed_buffer_raises) {
     WSTUB("NdrMesSimpleTypeEncode");
     REQUIRE(U(MesEncodeFixedBufferHandleCreate)); REQUIRE(U(NdrMesSimpleTypeEncode)); REQUIRE(U(MesHandleFree));
-    __declspec(align(8)) unsigned char buf[32]; memset(buf, 0x77, sizeof buf);
+    __attribute__((aligned(8))) unsigned char buf[32]; memset(buf, 0x77, sizeof buf);
     ULONG enc; handle_t h = NULL;
     RPC_STATUS st = U(MesEncodeFixedBufferHandleCreate)((char *)buf, 8, &enc, &h);
     EXPECT_EQ(st, RPC_S_OK);
@@ -208,7 +208,7 @@ TEST(ndr_mes_dyn_buffer_encode_allocates_through_stub_desc) {
 TEST(ndr_mes_two_pickles_in_one_fixed_buffer_are_16_byte_chunks) {
     WSTUB("NdrMesSimpleTypeEncode");
     REQUIRE(U(MesEncodeFixedBufferHandleCreate)); REQUIRE(U(NdrMesSimpleTypeEncode)); REQUIRE(U(MesHandleFree)); REQUIRE(U(MesBufferHandleReset));
-    __declspec(align(8)) unsigned char buf[64]; memset(buf, 0x77, sizeof buf);
+    __attribute__((aligned(8))) unsigned char buf[64]; memset(buf, 0x77, sizeof buf);
     ULONG enc = 0; handle_t h = NULL;
     RPC_STATUS st = U(MesEncodeFixedBufferHandleCreate)((char *)buf, sizeof buf, &enc, &h);
     EXPECT_EQ(st, RPC_S_OK);
@@ -229,7 +229,7 @@ TEST(ndr_mes_type_encode2_struct_layout_and_roundtrip) {
     WSTUB("NdrMesType*2");
     REQUIRE(U(MesEncodeFixedBufferHandleCreate)); REQUIRE(U(MesDecodeBufferHandleCreate)); REQUIRE(U(NdrMesTypeAlignSize2)); REQUIRE(U(NdrMesTypeEncode2));
     REQUIRE(U(NdrMesTypeDecode2)); REQUIRE(U(MesHandleFree));
-    __declspec(align(8)) unsigned char buf[128]; memset(buf, 0x77, sizeof buf);
+    __attribute__((aligned(8))) unsigned char buf[128]; memset(buf, 0x77, sizeof buf);
     MIDL_STUB_DESC d; n_fill_desc(&d, f_pk_s3);
     MIDL_TYPE_PICKLING_INFO pi; memset(&pi, 0, sizeof pi); pi.Version = 0x33205054; pi.Flags = 0;
     struct { short a, b; } v = { 0x1234, -2 };
@@ -259,7 +259,7 @@ TEST(ndr_mes_type_encode2_struct_layout_and_roundtrip) {
 
 /* ---------------- incremental handles ---------------- */
 static struct { int allocs, writes, reads; ULONG want_alloc; ULONG wrote; unsigned char store[256]; ULONG rpos; } inc;
-static void __RPC_API inc_alloc(void *state, char **pbuf, unsigned int *psize) { inc.allocs++; inc.want_alloc = *psize; static __declspec(align(8)) char blk[256]; *pbuf = blk; *psize = sizeof blk; }
+static void __RPC_API inc_alloc(void *state, char **pbuf, unsigned int *psize) { inc.allocs++; inc.want_alloc = *psize; static __attribute__((aligned(8))) char blk[256]; *pbuf = blk; *psize = sizeof blk; }
 static void __RPC_API inc_write(void *state, char *buf, unsigned int size) { inc.writes++; if (inc.wrote + size <= sizeof inc.store) memcpy(inc.store + inc.wrote, buf, size); inc.wrote += size; }
 static void __RPC_API inc_read(void *state, char **pbuf, unsigned int *psize) {
     inc.reads++;
