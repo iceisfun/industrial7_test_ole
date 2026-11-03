@@ -42,6 +42,15 @@ MR_GUID(mr_CLS_CatMgr, 0x0002e005, 0, 0, 0xC0, 0, 0, 0, 0, 0, 0, 0x46);
 /* CLSID_StdFont = {0BE35203-8F91-11CE-9DE3-00AA004BB851} */
 MR_GUID(mr_CLS_StdFont, 0x0be35203, 0x8f91, 0x11ce, 0x9d, 0xe3, 0x00, 0xaa, 0x00, 0x4b, 0xb8, 0x51);
 
+/* The harness EXPECT_EQ/EXPECT_NE evaluate their arguments twice (once for the test, once for the message),
+ * which repeats calls that have side effects (Register, AddRef...). This area redefines them to evaluate once. */
+#undef EXPECT_EQ
+#undef EXPECT_NE
+#define EXPECT_EQ(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
+    t_check(a_ == b_, __FILE__, __LINE__, #a " == " #b, "got 0x%llx want 0x%llx", (unsigned long long)a_, (unsigned long long)b_); } while (0)
+#define EXPECT_NE(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
+    t_check(a_ != b_, __FILE__, __LINE__, #a " != " #b, "got 0x%llx", (unsigned long long)a_); } while (0)
+
 static int mr_guid_eq(const GUID *a, const GUID *b) { return !memcmp(a, b, sizeof(GUID)); }
 
 /* ---- required entry points ------------------------------------------------ */
