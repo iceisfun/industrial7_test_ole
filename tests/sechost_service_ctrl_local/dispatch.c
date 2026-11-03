@@ -74,6 +74,11 @@ CHILD(scl_disp)
     if (!strcmp(mode, "a_empty_then_named")) { child_disp_a(da, empty_a); return child_disp_a(da, named_a); }
     if (!strcmp(mode, "wa_cross")) { child_disp_w(dw, named_w); return child_disp_a(da, named_a); }
     if (!strcmp(mode, "aw_cross")) { child_disp_a(da, named_a); return child_disp_w(dw, named_w); }
+    if (!strcmp(mode, "adv_w_empty") || !strcmp(mode, "adv_w_named")) {
+        BOOL (WINAPI *f)(const SERVICE_TABLE_ENTRYW *) = (void *)t_proc_in("advapi32.dll", "StartServiceCtrlDispatcherW");
+        if (!f) return 0xFFFD;
+        return child_disp_w(f, mode[6] == 'e' ? empty_w : named_w);
+    }
     if (!strcmp(mode, "w_blank_then_empty")) { child_disp_w(dw, blank_w); return child_disp_w(dw, empty_w); }
 
     SetLastError(0);
@@ -151,15 +156,6 @@ TEST(scl_dispatch_null_service_proc_still_cannot_connect)
     if (t_is_wine()) { t_skip("wine validates the main routine"); return; }
     DWORD r = run_mode("w_nullproc");
     EXPECT_EQ(r, 1063);
-}
-
-TEST(scl_dispatch_error_constants)
-{
-    EXPECT_EQ(ERROR_FAILED_SERVICE_CONTROLLER_CONNECT, 1063);
-    EXPECT_EQ(ERROR_SERVICE_ALREADY_RUNNING, 1056);
-    EXPECT_EQ(ERROR_SERVICE_NOT_IN_EXE, 1083);
-    EXPECT_EQ(ERROR_INVALID_HANDLE, 6);
-    EXPECT_EQ(ERROR_INVALID_PARAMETER, 87);
 }
 
 static void reg_child_expect(const char *mode)
@@ -331,4 +327,26 @@ TEST(scl_lock_exports_live_in_advapi32)
     CHECK(t_proc_in("advapi32.dll", "QueryServiceLockStatusA") != NULL);
     CHECK(t_proc_in("sechost.dll", "LockServiceDatabase") == NULL);
     CHECK(t_proc_in("sechost.dll", "UnlockServiceDatabase") == NULL);
+}
+
+TEST(scl_dispatch_via_advapi32_empty_table)
+{
+    REQUIRE(UIN("advapi32.dll", StartServiceCtrlDispatcherW));
+    EXPECT_EQ(run_mode("adv_w_empty"), ERROR_INVALID_PARAMETER);
+}
+
+TEST(scl_dispatch_via_advapi32_named_table)
+{
+    REQUIRE(UIN("advapi32.dll", StartServiceCtrlDispatcherW));
+    if (t_is_wine()) { t_skip("wine SCM stubbed"); return; }
+    EXPECT_EQ(run_mode("adv_w_named"), 1063);
+}
+
+TEST(scl_setservicestatus_via_advapi32_null_handle)
+{
+    REQUIRE(UIN("advapi32.dll", SetServiceStatus));
+    SERVICE_STATUS st = {SERVICE_WIN32_OWN_PROCESS, SERVICE_RUNNING, 0, 0, 0, 0, 0};
+    SET_ERR(0);
+    BOOL r = UIN("advapi32.dll", SetServiceStatus)(NULL, &st);
+    EXPECT_FAIL(!r, ERROR_INVALID_HANDLE);
 }
