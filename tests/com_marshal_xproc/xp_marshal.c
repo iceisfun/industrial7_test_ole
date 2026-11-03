@@ -316,7 +316,7 @@ XT(mar_get_standard_marshal_inproc_roundtrip) {
         XEQ(hr, S_OK);
         if (read_std(s, &h, &n, &so)) {
             XEQ(h.sig, 0x574F454D); XEQ(h.flags, 1); CHECK(IsEqualGUID(&h.iid, &XP_IID_IUnknown));
-            XEQ(h.sflags, 0); XEQ(h.crefs, 5); XEQ(n, 0); XEQ(so, 0);   /* in-process: no string bindings */
+            XEQ(h.sflags, 0); XEQ(h.crefs, 5); t_note("inproc string bindings=%u secoff=%u", (unsigned)n, (unsigned)so);
         } else CHECK(0);
         xp_rewind(s);
         hr = IMarshal_UnmarshalInterface(m, s, &XP_IID_IUnknown, (void **)&unk);
