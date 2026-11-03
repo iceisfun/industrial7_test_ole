@@ -96,14 +96,14 @@ TEST(epm_binding_inq_auth_client_without_call) {
 
 TEST(epm_binding_inq_auth_client_rejects_client_side_binding) {
     /* a client string binding is not a server-side call handle */
-    RPC_BINDING_HANDLE h; RPC_AUTHZ_HANDLE pr; ULONG a, b, c; RPC_STATUS st;
-    REQUIRE(U(RpcBindingInqAuthClientW));
+    RPC_BINDING_HANDLE h; RPC_AUTHZ_HANDLE pr; ULONG a, b, c;
+    REQUIRE(U(RpcBindingInqAuthClientW) && U(RpcBindingInqAuthClientExA));
+    WINE_STUB();
     h = epx_mkbind();
     CHECK(h != NULL);
     if (!h) return;
-    st = U(RpcBindingInqAuthClientW)(h, &pr, NULL, &a, &b, &c);
-    t_note("RpcBindingInqAuthClientW(client binding) = %lu", (unsigned long)st);
-    CHECK(st != RPC_S_OK);
+    EQ(U(RpcBindingInqAuthClientW)(h, &pr, NULL, &a, &b, &c), EPX_INVALID_BINDING);
+    EQ(U(RpcBindingInqAuthClientExA)(h, &pr, NULL, &a, &b, &c, 0), EPX_INVALID_BINDING);
     U(RpcBindingFree)(&h);
 }
 
@@ -116,6 +116,16 @@ TEST(epm_binding_server_from_client_invalid) {
     out = (RPC_BINDING_HANDLE)(ULONG_PTR)0x99;
     EQ(U(RpcBindingServerFromClient)(FAKE, &out), EPX_INVALID_BINDING);
     CHECK(out == NULL);
+    {   /* a client-side binding is a binding of the wrong kind: not a call handle */
+        RPC_BINDING_HANDLE h = epx_mkbind();
+        CHECK(h != NULL);
+        if (h) {
+            out = (RPC_BINDING_HANDLE)(ULONG_PTR)0x99;
+            EQ(U(RpcBindingServerFromClient)(h, &out), EPX_WRONG_KIND_OF_BINDING);
+            CHECK(out == NULL);
+            U(RpcBindingFree)(&h);
+        }
+    }
 }
 
 TEST(epm_binding_inq_com_timeout_invalid_and_default) {

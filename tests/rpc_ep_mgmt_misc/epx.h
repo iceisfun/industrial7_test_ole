@@ -23,7 +23,11 @@
 #define EPX_BINDING_HAS_NO_AUTH   1746
 
 /* Wine stubs (aborts the process on call) most of the APIs of this area; on Windows this is a no-op. */
+#ifndef EPM_NOSTUB
 #define WINE_STUB() do { if (t_is_wine()) { t_skip("stubbed in wine"); return; } } while (0)
+#else
+#define WINE_STUB() ((void)0)
+#endif
 
 /* Like EXPECT_EQ but evaluates the call exactly once (EXPECT_EQ evaluates its arguments twice). */
 #define EQ(call, want) do { ULONG_PTR v_ = (ULONG_PTR)(call); t_check(v_ == (ULONG_PTR)(want), __FILE__, __LINE__, #call " == " #want, "got 0x%llx want 0x%llx", (unsigned long long)v_, (unsigned long long)(ULONG_PTR)(want)); } while (0)
