@@ -257,7 +257,8 @@ TEST(o2cache_enumcache) {
         for (k = 0; k < (int)got; k++) {
             if (sd[k].dwConnection == a) {
                 fa = 1;
-                EQ(sd[k].formatetc.cfFormat, CF_BITMAP); EQ(sd[k].formatetc.dwAspect, DVASPECT_CONTENT); EQ(sd[k].formatetc.tymed, TYMED_GDI);
+                CHECK((sd[k].formatetc.cfFormat == CF_BITMAP && sd[k].formatetc.tymed == TYMED_GDI) || (sd[k].formatetc.cfFormat == CF_DIB && sd[k].formatetc.tymed == TYMED_HGLOBAL));
+                EQ(sd[k].formatetc.dwAspect, DVASPECT_CONTENT);
                 EQ(sd[k].advf & ADVF_PRIMEFIRST, ADVF_PRIMEFIRST);
             } else if (sd[k].dwConnection == b) {
                 fb = 1;
