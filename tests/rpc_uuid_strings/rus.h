@@ -27,6 +27,13 @@
 #define RUS_UUID_LOCAL_ONLY        1824UL /* 0x720 */
 #define RUS_ALREADY_LISTENING      1713UL /* 0x6b1 */
 
+/* t.h's EXPECT_EQ evaluates its arguments twice (once for the test, once for the message); every call in this area has side
+ * effects (allocation, handle free), so evaluate once. */
+#undef EXPECT_EQ
+#define EXPECT_EQ(a, b) do { ULONG_PTR rus_a_ = (ULONG_PTR)(a), rus_b_ = (ULONG_PTR)(b); \
+    t_check(rus_a_ == rus_b_, __FILE__, __LINE__, #a " == " #b, "got 0x%llx want 0x%llx", \
+            (unsigned long long)rus_a_, (unsigned long long)rus_b_); } while (0)
+
 /* resolve a typed function pointer or skip the test */
 #define NEED(name) __typeof__(&name) p_##name = U(name); REQUIRE(p_##name)
 
