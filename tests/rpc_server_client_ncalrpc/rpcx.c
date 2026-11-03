@@ -136,10 +136,17 @@ DWORD rx_ndr(unsigned proc, ULONG_PTR a0, ULONG_PTR a1, ULONG_PTR a2, ULONG_PTR 
 /* ------------------------------------------------------------------ raw interfaces */
 volatile LONG rx_raw_calls, rx_cb_calls, rx_cb_result;
 volatile void *rx_cb_last_if, *rx_cb_last_ctx;
+volatile LONG rx_cb_attr_st, rx_cb_attr_pid, rx_cb_attr_level, rx_cb_attr_local;
 
 RPC_STATUS RPC_ENTRY rx_sec_cb(RPC_IF_HANDLE ifh, void *ctx) {
     InterlockedIncrement(&rx_cb_calls);
     rx_cb_last_if = ifh; rx_cb_last_ctx = ctx;
+    rx_cb_attr_st = 0xFFFF;
+    if (!t_is_wine() && ctx) {
+        RPC_CALL_ATTRIBUTES_V2_W a; memset(&a, 0, sizeof a); a.Version = 2;
+        rx_cb_attr_st = U(RpcServerInqCallAttributesW)(ctx, &a);
+        rx_cb_attr_pid = (LONG)(ULONG_PTR)a.ClientPID; rx_cb_attr_level = (LONG)a.AuthenticationLevel; rx_cb_attr_local = (LONG)a.IsClientLocal;
+    }
     return (RPC_STATUS)rx_cb_result;
 }
 
@@ -152,12 +159,12 @@ static void RPC_ENTRY raw_echo(RPC_MESSAGE *m) { ULONG n = m->BufferLength; void
 static void RPC_ENTRY raw_raise(RPC_MESSAGE *m) { int code = *(int *)m->Buffer; InterlockedIncrement(&rx_raw_calls); U(RpcRaiseException)((RPC_STATUS)code); }
 static void RPC_ENTRY raw_sleep(RPC_MESSAGE *m) { int ms = *(int *)m->Buffer; InterlockedIncrement(&rx_raw_calls); Sleep(ms); raw_reply(m, NULL, 0); }
 static void RPC_ENTRY raw_whoami(RPC_MESSAGE *m) {
-    RPC_CALL_ATTRIBUTES_V2_W a; DWORD r[6]; RPC_STATUS st;
+    RPC_CALL_ATTRIBUTES_V2_W a; DWORD r[11]; RPC_STATUS st;
     InterlockedIncrement(&rx_raw_calls);
     memset(&a, 0, sizeof a); a.Version = 2;
     st = t_is_wine() ? (RPC_STATUS)0xFFFF : U(RpcServerInqCallAttributesW)(NULL, &a);
     r[0] = (DWORD)(ULONG_PTR)a.ClientPID; r[1] = a.AuthenticationLevel; r[2] = a.IsClientLocal; r[3] = a.AuthenticationService;
-    r[4] = a.OpNum; r[5] = st;
+    r[4] = a.OpNum; r[5] = st; r[6] = a.ProtocolSequence; r[7] = a.CallStatus; r[8] = a.CallType; r[9] = a.NullSession; r[10] = a.KernelMode;
     raw_reply(m, r, sizeof r);
 }
 static void RPC_ENTRY raw_nop(RPC_MESSAGE *m) { InterlockedIncrement(&rx_raw_calls); raw_reply(m, NULL, 0); }
@@ -170,6 +177,7 @@ static void RPC_ENTRY raw_inqobject(RPC_MESSAGE *m) {
 static void RPC_ENTRY raw_stop(RPC_MESSAGE *m) { DWORD st; InterlockedIncrement(&rx_raw_calls); st = U(RpcMgmtStopServerListening)(NULL); raw_reply(m, &st, 4); }
 static void RPC_ENTRY raw_waitcancel(RPC_MESSAGE *m) {
     DWORD st = 0, t0 = GetTickCount(); InterlockedIncrement(&rx_raw_calls);
+    if (t_is_wine()) { st = 0xFFFF; raw_reply(m, &st, 4); return; }
     while (GetTickCount() - t0 < 5000) { st = U(RpcServerTestCancel)(NULL); if (st != RPC_S_OK) break; Sleep(10); }
     raw_reply(m, &st, 4);
 }
@@ -195,6 +203,32 @@ static void RPC_ENTRY raw_authclient(RPC_MESSAGE *m) {
     raw_reply(m, r, sizeof r);
 }
 
+/* request: DWORD version, DWORD flags.  reply: DWORD status, level, namelen(bytes, incl NUL), then client principal name chars */
+static void RPC_ENTRY raw_attrs(RPC_MESSAGE *m) {
+    struct { DWORD st, level, svc, namelen; WCHAR name[256]; } r; DWORD *q = (DWORD *)m->Buffer;
+    RPC_CALL_ATTRIBUTES_V2_W a; WCHAR sbuf[256], cbuf[256];
+    InterlockedIncrement(&rx_raw_calls);
+    memset(&r, 0, sizeof r); memset(&a, 0, sizeof a); memset(sbuf, 0, sizeof sbuf); memset(cbuf, 0, sizeof cbuf);
+    a.Version = q[0]; a.Flags = q[1];
+    a.ServerPrincipalName = sbuf; a.ServerPrincipalNameBufferLength = sizeof sbuf;
+    a.ClientPrincipalName = cbuf; a.ClientPrincipalNameBufferLength = sizeof cbuf;
+    r.st = t_is_wine() ? 0xFFFF : U(RpcServerInqCallAttributesW)(NULL, &a);
+    r.level = a.AuthenticationLevel; r.svc = a.AuthenticationService;
+    r.namelen = a.ClientPrincipalNameBufferLength;
+    memcpy(r.name, cbuf, sizeof cbuf);
+    raw_reply(m, &r, sizeof r);
+}
+/* reply: DWORD status, then the string binding of RpcBindingServerFromClient(NULL) as WCHARs */
+static void RPC_ENTRY raw_serverfromclient(RPC_MESSAGE *m) {
+    struct { DWORD st; WCHAR s[200]; } r; RPC_BINDING_HANDLE b = NULL; RPC_WSTR str = NULL;
+    InterlockedIncrement(&rx_raw_calls);
+    memset(&r, 0, sizeof r);
+    r.st = U(RpcBindingServerFromClient)(NULL, &b);
+    if (r.st == RPC_S_OK && U(RpcBindingToStringBindingW)(b, &str) == RPC_S_OK) { lstrcpynW(r.s, (WCHAR *)str, 199); U(RpcStringFreeW)(&str); }
+    if (b) U(RpcBindingFree)(&b);
+    raw_reply(m, &r, sizeof r);
+}
+
 void rx_raw_uuid(UUID *u, unsigned n) {
     memset(u, 0, sizeof *u);
     u->Data1 = 0x7a3c0000u + n; u->Data2 = 0x4c1d; u->Data3 = 0x4e7b;
@@ -205,8 +239,8 @@ void rx_raw_init(rx_raw *r, const UUID *id, unsigned short major, unsigned short
     r->uuid = *id;
     r->fn[0] = raw_echo; r->fn[1] = raw_raise; r->fn[2] = raw_sleep; r->fn[3] = raw_whoami; r->fn[4] = raw_nop;
     r->fn[5] = raw_inqobject; r->fn[6] = raw_stop; r->fn[7] = raw_waitcancel; r->fn[8] = raw_inqmsg;
-    r->fn[9] = raw_impersonate; r->fn[10] = raw_authclient;
-    r->dt.DispatchTableCount = 11; r->dt.DispatchTable = r->fn;
+    r->fn[9] = raw_impersonate; r->fn[10] = raw_authclient; r->fn[11] = raw_attrs; r->fn[12] = raw_serverfromclient;
+    r->dt.DispatchTableCount = 13; r->dt.DispatchTable = r->fn;
     r->si.Length = sizeof r->si;
     r->si.InterfaceId.SyntaxGUID = *id; r->si.InterfaceId.SyntaxVersion.MajorVersion = major; r->si.InterfaceId.SyntaxVersion.MinorVersion = minor;
     r->si.TransferSyntax = rx_ndr_syntax;

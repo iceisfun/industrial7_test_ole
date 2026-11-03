@@ -29,6 +29,9 @@
  *   8 inqmsg       reply DWORD: msg->DataRepresentation, BufferLength, ProcNum, RpcFlags
  *   9 impersonate  RpcImpersonateClient(NULL) / OpenThreadToken / RpcRevertToSelf; reply 3 x DWORD
  *  10 authclient   RpcBindingInqAuthClientW(NULL...) reply: status, level, authn, authz
+ *  11 attrs        request {version, flags}; RpcServerInqCallAttributesW; reply {status, level, svc, namelen, WCHAR name[256]}
+ *  12 srvfromcli   RpcBindingServerFromClient(NULL); reply {status, WCHAR stringbinding[200]}
+ * (3 whoami reply: pid, level, islocal, authnsvc, opnum, status, protseq, callstatus, calltype, nullsession, kernelmode)
  */
 #ifndef RPCX_H
 #define RPCX_H
@@ -90,6 +93,7 @@ extern volatile LONG rx_raw_calls;
 extern volatile LONG rx_cb_calls;                      /* security callback invocations */
 extern volatile LONG rx_cb_result;                     /* status the callback returns */
 extern volatile void *rx_cb_last_if, *rx_cb_last_ctx;
+extern volatile LONG rx_cb_attr_st, rx_cb_attr_pid, rx_cb_attr_level, rx_cb_attr_local;   /* InqCallAttributes(ctx) taken inside the callback */
 RPC_STATUS RPC_ENTRY rx_sec_cb(RPC_IF_HANDLE ifh, void *ctx);
 
 /* ---- server control ---- */
