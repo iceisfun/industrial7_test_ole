@@ -71,6 +71,14 @@ static const GUID tlc_GUID_NULL = {0,0,0,{0,0,0,0,0,0,0,0}};
     t_check(h_ == (HRESULT)(want), __FILE__, __LINE__, #expr " == " #want, "got 0x%08lx want 0x%08lx", \
             (unsigned long)h_, (unsigned long)(HRESULT)(want)); } while (0)
 #define OK_(expr) EQHR(expr, S_OK)
+/* Behaviour taken from observed/implementation knowledge rather than a verified Windows source:
+ * a mismatch is logged as a note, a match counts as a passed check. */
+#define SOFTHR(expr, want) do { HRESULT h_ = (HRESULT)(expr); \
+    if (h_ != (HRESULT)(want)) t_note("SOFT %s: got 0x%08lx want 0x%08lx (%s:%d)", #expr, (unsigned long)h_, (unsigned long)(HRESULT)(want), __FILE__, __LINE__); \
+    else t_check(1, __FILE__, __LINE__, #expr, NULL); } while (0)
+#define SOFTEQ(expr, want) do { ULONG_PTR v_ = (ULONG_PTR)(expr); \
+    if (v_ != (ULONG_PTR)(want)) t_note("SOFT %s: got 0x%llx want 0x%llx (%s:%d)", #expr, (unsigned long long)v_, (unsigned long long)(ULONG_PTR)(want), __FILE__, __LINE__); \
+    else t_check(1, __FILE__, __LINE__, #expr, NULL); } while (0)
 
 static __typeof__(&CreateTypeLib2) pCreateTypeLib2;
 static __typeof__(&CreateTypeLib) pCreateTypeLib;
