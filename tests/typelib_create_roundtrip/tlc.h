@@ -86,6 +86,7 @@ static __typeof__(&LoadTypeLibEx) pLoadTypeLibEx;
 static __typeof__(&LoadTypeLib) pLoadTypeLib;
 static __typeof__(&SysAllocString) pSysAllocString;
 static __typeof__(&SysFreeString) pSysFreeString;
+static __typeof__(&SysAllocStringLen) pSysAllocStringLen;
 static __typeof__(&SysStringLen) pSysStringLen;
 static __typeof__(&VariantInit) pVariantInit;
 static __typeof__(&VariantClear) pVariantClear;
@@ -120,6 +121,7 @@ static int tl_init(void)
     pLoadTypeLib = UIN("oleaut32.dll", LoadTypeLib);
     pSysAllocString = UIN("oleaut32.dll", SysAllocString);
     pSysFreeString = UIN("oleaut32.dll", SysFreeString);
+    pSysAllocStringLen = UIN("oleaut32.dll", SysAllocStringLen);
     pSysStringLen = UIN("oleaut32.dll", SysStringLen);
     pVariantInit = UIN("oleaut32.dll", VariantInit);
     pVariantClear = UIN("oleaut32.dll", VariantClear);
