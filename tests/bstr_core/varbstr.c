@@ -373,7 +373,7 @@ TEST(bstr_cmp_never_returns_varcmp_null)
 }
 
 /* ------------------------ VarBstrFromXxx ------------------------ */
-static void expect_bstr(HRESULT hr, BSTR b, const WCHAR *want, const char *what)
+static void expect_bstr_(HRESULT hr, BSTR b, const WCHAR *want, const char *what)
 {
     CHECKF(hr == S_OK, "%s hr=0x%08lx", what, (unsigned long)hr);
     if (hr == S_OK) {
@@ -384,6 +384,8 @@ static void expect_bstr(HRESULT hr, BSTR b, const WCHAR *want, const char *what)
         }
     }
 }
+
+#define expect_bstr(call, b, want, what) do { HRESULT hr_ = (call); expect_bstr_(hr_, b, want, what); } while (0)
 
 TEST(bstr_from_i4_table)
 {

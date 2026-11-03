@@ -188,6 +188,7 @@ TEST(bstr_alloc_len_overflow_returns_null)
     UINT bad[] = { 0x7FFFFFF4u, 0x7FFFFFF8u, 0x7FFFFFFFu, 0x80000000u, 0x80000001u, 0xFFFFFFF0u, 0xFFFFFFFFu };
     unsigned i;
     REQUIRE(U(SysAllocStringLen));
+    if (t_is_wine()) { t_skip("wine crashes on huge lengths"); return; }
     for (i = 0; i < sizeof(bad) / sizeof(bad[0]); i++) {
         BSTR b = U(SysAllocStringLen)(NULL, bad[i]);
         CHECKF(b == NULL, "len=0x%x -> %p", bad[i], b);
@@ -297,6 +298,7 @@ TEST(bstr_alloc_bytelen_overflow_returns_null)
     UINT bad[] = { 0xFFFFFFE7u, 0xFFFFFFF0u, 0xFFFFFFFEu, 0xFFFFFFFFu };
     unsigned i;
     REQUIRE(U(SysAllocStringByteLen));
+    if (t_is_wine()) { t_skip("wine crashes on huge lengths"); return; }
     for (i = 0; i < sizeof(bad) / sizeof(bad[0]); i++) {
         BSTR b = U(SysAllocStringByteLen)("Test", bad[i]);
         CHECKF(b == NULL, "len=0x%x -> %p", bad[i], b);
