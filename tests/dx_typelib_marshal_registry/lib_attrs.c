@@ -213,7 +213,6 @@ TMTEST(dxtm_recinfo_from_registered_library)
         EQ(IRecordInfo_GetName(ri, &nm), S_OK); CHECK(nm && !lstrcmpW(nm, L"OletPoint")); SysFreeString(nm);
         {
             GUID g; EQ(IRecordInfo_GetGuid(ri, &g), S_OK); CHECK(IsEqualGUID(&g, &TM_GUID_OletPoint));
-            CHECK(IRecordInfo_IsMatchingType(ri, ri) || 1);
         }
         {
             OletPoint pt; VARIANT v; memset(&pt, 0xcc, sizeof pt);
