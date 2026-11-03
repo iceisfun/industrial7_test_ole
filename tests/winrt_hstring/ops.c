@@ -6,7 +6,7 @@
 static int sgn(int v) { return v < 0 ? -1 : v > 0; }
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hso_compare_table)
+TEST(winrt_hstring_ops_compare_table)
 {
     struct { const WCHAR *a; UINT32 an; const WCHAR *b; UINT32 bn; int exp; } t[] = {
         { L"abc", 3, L"abc", 3, 0 },
@@ -48,7 +48,7 @@ TEST(hso_compare_table)
     }
 }
 
-TEST(hso_compare_result_is_exactly_minus1_0_1)
+TEST(winrt_hstring_ops_compare_result_is_exactly_minus1_0_1)
 {
     HSTRING a = hs_makez(L"a"), z = hs_makez(L"zzzzzz"); INT32 r; REQUIRE_HS_OPS();
     r = 0; EXPECT_EQ(WCMP(a, z, &r), S_OK); EXPECT_EQ(r, -1);   /* not the char difference */
@@ -56,7 +56,7 @@ TEST(hso_compare_result_is_exactly_minus1_0_1)
     WDEL(a); WDEL(z);
 }
 
-TEST(hso_compare_null_as_empty)
+TEST(winrt_hstring_ops_compare_null_as_empty)
 {
     HSTRING a = hs_makez(L"a"); INT32 r; REQUIRE_HS_OPS();
     r = 0x77; EXPECT_EQ(WCMP(NULL, NULL, &r), S_OK); EXPECT_EQ(r, 0);
@@ -65,14 +65,14 @@ TEST(hso_compare_null_as_empty)
     WDEL(a);
 }
 
-TEST(hso_compare_same_object_is_equal)
+TEST(winrt_hstring_ops_compare_same_object_is_equal)
 {
     HSTRING a = hs_makez(L"identical"); INT32 r = 5; REQUIRE_HS_OPS();
     EXPECT_EQ(WCMP(a, a, &r), S_OK); EXPECT_EQ(r, 0);
     WDEL(a);
 }
 
-TEST(hso_compare_null_result_is_invalidarg)
+TEST(winrt_hstring_ops_compare_null_result_is_invalidarg)
 {
     HSTRING a = hs_makez(L"a"); REQUIRE_HS_OPS();
     EXPECT_EQ(WCMP(a, a, NULL), HS_E_INVALIDARG);
@@ -81,7 +81,7 @@ TEST(hso_compare_null_result_is_invalidarg)
     WDEL(a);
 }
 
-TEST(hso_compare_reference_vs_heap)
+TEST(winrt_hstring_ops_compare_reference_vs_heap)
 {
     static const WCHAR s[] = L"fast pass";
     HSTRING_HEADER hdr; HSTRING r, h = hs_makez(s); INT32 res = 9; REQUIRE_HS_OPS();
@@ -92,7 +92,7 @@ TEST(hso_compare_reference_vs_heap)
     WDEL(h);
 }
 
-TEST(hso_compare_transitive_sort_order)
+TEST(winrt_hstring_ops_compare_transitive_sort_order)
 {
     static const WCHAR *w[] = { L"", L"A", L"AB", L"B", L"a", L"ab", L"b", L"\xD800", L"\xFFFF" };
     unsigned i, j; REQUIRE_HS_OPS();
@@ -109,7 +109,7 @@ TEST(hso_compare_transitive_sort_order)
 /* ------------------------------------------------------------------ Concat */
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hso_concat_basic)
+TEST(winrt_hstring_ops_concat_basic)
 {
     HSTRING a = hs_makez(L"abc"), b = hs_makez(L"def"), r = HS_SENTINEL; REQUIRE_HS_OPS();
     EXPECT_EQ(WCAT(a, b, &r), S_OK);
@@ -120,7 +120,7 @@ TEST(hso_concat_basic)
     WDEL(a); WDEL(b); WDEL(r);
 }
 
-TEST(hso_concat_same_operand_twice)
+TEST(winrt_hstring_ops_concat_same_operand_twice)
 {
     HSTRING a = hs_makez(L"ab"), r = HS_SENTINEL; REQUIRE_HS_OPS();
     EXPECT_EQ(WCAT(a, a, &r), S_OK);
@@ -128,7 +128,7 @@ TEST(hso_concat_same_operand_twice)
     WDEL(a); WDEL(r);
 }
 
-TEST(hso_concat_null_operands)
+TEST(winrt_hstring_ops_concat_null_operands)
 {
     HSTRING a = hs_makez(L"abc"), r = HS_SENTINEL; REQUIRE_HS_OPS();
     EXPECT_EQ(WCAT(NULL, NULL, &r), S_OK);
@@ -145,7 +145,7 @@ TEST(hso_concat_null_operands)
     WDEL(a);
 }
 
-TEST(hso_concat_null_output)
+TEST(winrt_hstring_ops_concat_null_output)
 {
     HSTRING a = hs_makez(L"abc"); REQUIRE_HS_OPS();
     EXPECT_EQ(WCAT(a, a, NULL), HS_E_INVALIDARG);
@@ -153,7 +153,7 @@ TEST(hso_concat_null_output)
     WDEL(a);
 }
 
-TEST(hso_concat_reference_with_null_deep_copies)
+TEST(winrt_hstring_ops_concat_reference_with_null_deep_copies)
 {
     static const WCHAR s[] = L"refstr";
     HSTRING_HEADER hdr; HSTRING r, o = HS_SENTINEL; REQUIRE_HS_OPS();
@@ -170,7 +170,7 @@ TEST(hso_concat_reference_with_null_deep_copies)
     WDEL(o);
 }
 
-TEST(hso_concat_two_references)
+TEST(winrt_hstring_ops_concat_two_references)
 {
     static const WCHAR s1[] = L"left-", s2[] = L"right";
     HSTRING_HEADER h1, h2; HSTRING r1, r2, o = HS_SENTINEL; REQUIRE_HS_OPS();
@@ -183,7 +183,7 @@ TEST(hso_concat_two_references)
     WDEL(o);
 }
 
-TEST(hso_concat_embedded_nuls)
+TEST(winrt_hstring_ops_concat_embedded_nuls)
 {
     HSTRING a = hs_make(L"a\0b", 3), b = hs_make(L"\0c", 2), r = HS_SENTINEL; REQUIRE_HS_OPS();
     EXPECT_EQ(WCAT(a, b, &r), S_OK);
@@ -196,7 +196,7 @@ TEST(hso_concat_embedded_nuls)
     WDEL(a); WDEL(b); WDEL(r);
 }
 
-TEST(hso_concat_lengths_table)
+TEST(winrt_hstring_ops_concat_lengths_table)
 {
     static const UINT32 ls[] = { 1, 2, 7, 8, 100, 4096 };
     WCHAR *buf; unsigned i, j; REQUIRE_HS_OPS();
@@ -216,7 +216,7 @@ TEST(hso_concat_lengths_table)
     HeapFree(GetProcessHeap(), 0, buf);
 }
 
-TEST(hso_concat_chain)
+TEST(winrt_hstring_ops_concat_chain)
 {
     HSTRING acc = NULL; int i; REQUIRE_HS_OPS();
     for (i = 0; i < 100; i++) {
@@ -233,7 +233,7 @@ TEST(hso_concat_chain)
 /* ------------------------------------------------------------------ Substring */
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hso_substring_table)
+TEST(winrt_hstring_ops_substring_table)
 {
     static const WCHAR src[] = L"abcdef";
     unsigned start; HSTRING h = hs_makez(src); REQUIRE_HS_OPS();
@@ -247,7 +247,7 @@ TEST(hso_substring_table)
     WDEL(h);
 }
 
-TEST(hso_substring_start_beyond_length_is_E_BOUNDS)
+TEST(winrt_hstring_ops_substring_start_beyond_length_is_E_BOUNDS)
 {
     HSTRING h = hs_makez(L"abcdef"), r; UINT32 st[] = { 7, 8, 100, 0x7fffffff, 0xffffffff }; unsigned i; REQUIRE_HS_OPS();
     for (i = 0; i < ARRAYSIZE(st); i++) {
@@ -258,7 +258,7 @@ TEST(hso_substring_start_beyond_length_is_E_BOUNDS)
     WDEL(h);
 }
 
-TEST(hso_substring_null_source)
+TEST(winrt_hstring_ops_substring_null_source)
 {
     HSTRING r = HS_SENTINEL; REQUIRE_HS_OPS();
     EXPECT_EQ(WSUB(NULL, 0, &r), S_OK);
@@ -268,7 +268,7 @@ TEST(hso_substring_null_source)
     CHECK(r == NULL);
 }
 
-TEST(hso_substring_null_output)
+TEST(winrt_hstring_ops_substring_null_output)
 {
     HSTRING h = hs_makez(L"abc"); REQUIRE_HS_OPS();
     EXPECT_EQ(WSUB(h, 0, NULL), HS_E_INVALIDARG);
@@ -277,7 +277,7 @@ TEST(hso_substring_null_output)
     WDEL(h);
 }
 
-TEST(hso_substring_whole_string_is_new_object)
+TEST(winrt_hstring_ops_substring_whole_string_is_new_object)
 {
     HSTRING h = hs_makez(L"whole"), r = HS_SENTINEL; REQUIRE_HS_OPS();
     EXPECT_EQ(WSUB(h, 0, &r), S_OK);
@@ -287,7 +287,7 @@ TEST(hso_substring_whole_string_is_new_object)
     WDEL(r); WDEL(h);
 }
 
-TEST(hso_substring_of_reference)
+TEST(winrt_hstring_ops_substring_of_reference)
 {
     static const WCHAR s[] = L"reference";
     HSTRING_HEADER hdr; HSTRING h, r = HS_SENTINEL; REQUIRE_HS_OPS();
@@ -298,7 +298,7 @@ TEST(hso_substring_of_reference)
     WDEL(r);
 }
 
-TEST(hso_substring_embedded_nuls)
+TEST(winrt_hstring_ops_substring_embedded_nuls)
 {
     static const WCHAR s[] = L"a\0b\0c";
     HSTRING h = hs_make(s, 5), r = HS_SENTINEL; REQUIRE_HS_OPS();
@@ -315,7 +315,7 @@ TEST(hso_substring_embedded_nuls)
 }
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hso_substring_len_table)
+TEST(winrt_hstring_ops_substring_len_table)
 {
     static const WCHAR src[] = L"abcdef";
     struct { UINT32 st, n; HRESULT hr; } t[] = {
@@ -334,18 +334,21 @@ TEST(hso_substring_len_table)
     HSTRING h = hs_makez(src); unsigned i; REQUIRE_HS_OPS();
     for (i = 0; i < ARRAYSIZE(t); i++) {
         HSTRING r = HS_SENTINEL;
-        HRESULT hr = WSUBL(h, t[i].st, t[i].n, &r);
+        HRESULT hr;
+        if (t_is_wine() && t[i].n >= 0xfffffff0u) continue;   /* wine faults on huge lengths */
+        hr = WSUBL(h, t[i].st, t[i].n, &r);
         t_check(hr == t[i].hr, __FILE__, __LINE__, "substring hr", "row %u (%u,%u) got 0x%08lx want 0x%08lx", i, t[i].st, t[i].n, (unsigned long)hr, (unsigned long)t[i].hr);
         if (t[i].hr == S_OK) {
             HS_EXPECT(r, src + t[i].st, t[i].n, 0);
             if (t[i].n == 0) CHECK(r == NULL);
         } else t_check(r == NULL, __FILE__, __LINE__, "r == NULL on failure", "row %u", i);
+        if (r == HS_SENTINEL) r = NULL;     /* (a failing implementation may leave the sentinel) */
         WDEL(r);
     }
     WDEL(h);
 }
 
-TEST(hso_substring_len_null_source_and_output)
+TEST(winrt_hstring_ops_substring_len_null_source_and_output)
 {
     HSTRING h = hs_makez(L"abc"), r; REQUIRE_HS_OPS();
     r = HS_SENTINEL; EXPECT_EQ(WSUBL(NULL, 0, 0, &r), S_OK); CHECK(r == NULL);
@@ -356,11 +359,11 @@ TEST(hso_substring_len_null_source_and_output)
     WDEL(h);
 }
 
-TEST(hso_substring_len_embedded_and_reference)
+TEST(winrt_hstring_ops_substring_len_embedded_and_reference)
 {
     static const WCHAR s[] = L"01\0" L"34\0" L"7";
     HSTRING_HEADER hdr; HSTRING r, o = HS_SENTINEL; REQUIRE_HS_OPS();
-    EXPECT_EQ(WCSR(s, 8, &hdr, &r), S_OK);
+    EXPECT_EQ(WCSR(s, 7, &hdr, &r), S_OK);
     EXPECT_EQ(WSUBL(r, 1, 3, &o), S_OK);
     HS_EXPECT(o, s + 1, 3, 1);
     WDEL(o);
@@ -369,10 +372,10 @@ TEST(hso_substring_len_embedded_and_reference)
     WDEL(o);
 }
 
-TEST(hso_substring_roundtrip_with_concat)
+TEST(winrt_hstring_ops_substring_roundtrip_with_concat)
 {
     static const WCHAR s[] = L"The quick brown fox";
-    HSTRING h = hs_makez(s); unsigned i; REQUIRE_HS_OPS();
+    HSTRING h = hs_makez(s); unsigned i; REQUIRE_REP();
     for (i = 0; i <= 19; i++) {
         HSTRING l = HS_SENTINEL, r = HS_SENTINEL, j = HS_SENTINEL; INT32 c = 7;
         EXPECT_EQ(WSUBL(h, 0, i, &l), S_OK);
@@ -409,7 +412,7 @@ static void run_rep_table(const struct rep *t, unsigned n)
 }
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hso_replace_table)
+TEST(winrt_hstring_ops_replace_table)
 {
     static const struct rep t[] = {
         { L"abcabc", L"b", L"X", L"aXcaXc" },
@@ -441,13 +444,13 @@ TEST(hso_replace_table)
         { L"mississippi", L"issi", L"[]", L"m[]ssippi" },
         { L"abcabc", L"cab", L"-", L"ab-c" },
     };
-    REQUIRE_HS_OPS();
+    REQUIRE_REP();
     run_rep_table(t, ARRAYSIZE(t));
 }
 
-TEST(hso_replace_null_string_is_empty_result)
+TEST(winrt_hstring_ops_replace_null_string_is_empty_result)
 {
-    HSTRING f = hs_makez(L"a"), w = hs_makez(L"b"), r = HS_SENTINEL; REQUIRE_HS_OPS();
+    HSTRING f = hs_makez(L"a"), w = hs_makez(L"b"), r = HS_SENTINEL; REQUIRE_REP();
     EXPECT_EQ(WREP(NULL, f, w, &r), S_OK);
     CHECK(r == NULL);
     r = HS_SENTINEL;
@@ -456,9 +459,9 @@ TEST(hso_replace_null_string_is_empty_result)
     WDEL(f); WDEL(w);
 }
 
-TEST(hso_replace_empty_search_is_invalidarg)
+TEST(winrt_hstring_ops_replace_empty_search_is_invalidarg)
 {
-    HSTRING s = hs_makez(L"abc"), w = hs_makez(L"x"), r = HS_SENTINEL; REQUIRE_HS_OPS();
+    HSTRING s = hs_makez(L"abc"), w = hs_makez(L"x"), r = HS_SENTINEL; REQUIRE_REP();
     EXPECT_EQ(WREP(s, NULL, w, &r), HS_E_INVALIDARG);
     CHECK(r == NULL);
     r = HS_SENTINEL;
@@ -470,17 +473,17 @@ TEST(hso_replace_empty_search_is_invalidarg)
     WDEL(s); WDEL(w);
 }
 
-TEST(hso_replace_null_output)
+TEST(winrt_hstring_ops_replace_null_output)
 {
-    HSTRING s = hs_makez(L"abc"), f = hs_makez(L"b"); REQUIRE_HS_OPS();
+    HSTRING s = hs_makez(L"abc"), f = hs_makez(L"b"); REQUIRE_REP();
     EXPECT_EQ(WREP(s, f, f, NULL), HS_E_INVALIDARG);
     EXPECT_EQ(WREP(NULL, NULL, NULL, NULL), HS_E_INVALIDARG);
     WDEL(s); WDEL(f);
 }
 
-TEST(hso_replace_not_found_returns_copy_not_same_object)
+TEST(winrt_hstring_ops_replace_not_found_returns_copy_not_same_object)
 {
-    HSTRING s = hs_makez(L"abcdef"), f = hs_makez(L"xyz"), w = hs_makez(L"1"), r = HS_SENTINEL; REQUIRE_HS_OPS();
+    HSTRING s = hs_makez(L"abcdef"), f = hs_makez(L"xyz"), w = hs_makez(L"1"), r = HS_SENTINEL; REQUIRE_REP();
     EXPECT_EQ(WREP(s, f, w, &r), S_OK);
     HS_EXPECTZ(r, L"abcdef");
     EXPECT_NE(r, s);                            /* a distinct string even when nothing changed */
@@ -488,10 +491,10 @@ TEST(hso_replace_not_found_returns_copy_not_same_object)
     WDEL(r); WDEL(s); WDEL(f); WDEL(w);
 }
 
-TEST(hso_replace_reference_operands)
+TEST(winrt_hstring_ops_replace_reference_operands)
 {
     static const WCHAR ss[] = L"one two one", sf[] = L"one", sw[] = L"1";
-    HSTRING_HEADER h1, h2, h3; HSTRING s, f, w, r = HS_SENTINEL; REQUIRE_HS_OPS();
+    HSTRING_HEADER h1, h2, h3; HSTRING s, f, w, r = HS_SENTINEL; REQUIRE_REP();
     EXPECT_EQ(WCSR(ss, 11, &h1, &s), S_OK);
     EXPECT_EQ(WCSR(sf, 3, &h2, &f), S_OK);
     EXPECT_EQ(WCSR(sw, 1, &h3, &w), S_OK);
@@ -500,9 +503,9 @@ TEST(hso_replace_reference_operands)
     WDEL(r);
 }
 
-TEST(hso_replace_embedded_nuls)
+TEST(winrt_hstring_ops_replace_embedded_nuls)
 {
-    HSTRING s = hs_make(L"a\0b\0c", 5), f = hs_make(L"\0", 1), w = hs_makez(L"-"), r = HS_SENTINEL; REQUIRE_HS_OPS();
+    HSTRING s = hs_make(L"a\0b\0c", 5), f = hs_make(L"\0", 1), w = hs_makez(L"-"), r = HS_SENTINEL; REQUIRE_REP();
     EXPECT_EQ(WREP(s, f, w, &r), S_OK);
     HS_EXPECT(r, L"a-b-c", 5, 0);                /* NULs matched like any other char */
     WDEL(r);
@@ -514,36 +517,36 @@ TEST(hso_replace_embedded_nuls)
     WDEL(s); WDEL(f); WDEL(w);
 }
 
-TEST(hso_replace_with_embedded_nul_replacement)
+TEST(winrt_hstring_ops_replace_with_embedded_nul_replacement)
 {
-    HSTRING s = hs_makez(L"a-b"), f = hs_makez(L"-"), w = hs_make(L"\0\0", 2), r = HS_SENTINEL; REQUIRE_HS_OPS();
+    HSTRING s = hs_makez(L"a-b"), f = hs_makez(L"-"), w = hs_make(L"\0\0", 2), r = HS_SENTINEL; REQUIRE_REP();
     EXPECT_EQ(WREP(s, f, w, &r), S_OK);
     HS_EXPECT(r, L"a\0\0b", 4, 1);
     WDEL(r); WDEL(s); WDEL(f); WDEL(w);
 }
 
-TEST(hso_replace_source_not_modified)
+TEST(winrt_hstring_ops_replace_source_not_modified)
 {
-    HSTRING s = hs_makez(L"banana"), f = hs_makez(L"an"), w = hs_makez(L"AN"), r = HS_SENTINEL; REQUIRE_HS_OPS();
+    HSTRING s = hs_makez(L"banana"), f = hs_makez(L"an"), w = hs_makez(L"AN"), r = HS_SENTINEL; REQUIRE_REP();
     EXPECT_EQ(WREP(s, f, w, &r), S_OK);
     HS_EXPECTZ(r, L"bANANa");
     HS_EXPECTZ(s, L"banana");
     WDEL(r); WDEL(s); WDEL(f); WDEL(w);
 }
 
-TEST(hso_replace_result_overlap_with_same_arg)
+TEST(winrt_hstring_ops_replace_result_overlap_with_same_arg)
 {
     /* the same HSTRING used for string, find and replacement */
-    HSTRING s = hs_makez(L"ab"), r = HS_SENTINEL; REQUIRE_HS_OPS();
+    HSTRING s = hs_makez(L"ab"), r = HS_SENTINEL; REQUIRE_REP();
     EXPECT_EQ(WREP(s, s, s, &r), S_OK);
     HS_EXPECTZ(r, L"ab");
     WDEL(r);
     WDEL(s);
 }
 
-TEST(hso_replace_growth_many_matches)
+TEST(winrt_hstring_ops_replace_growth_many_matches)
 {
-    WCHAR *buf; HSTRING s, f = hs_makez(L"a"), w = hs_makez(L"xyz"), r = HS_SENTINEL; REQUIRE_HS_OPS();
+    WCHAR *buf; HSTRING s, f = hs_makez(L"a"), w = hs_makez(L"xyz"), r = HS_SENTINEL; REQUIRE_REP();
     buf = HeapAlloc(GetProcessHeap(), 0, 10001 * sizeof(WCHAR));
     if (!buf) { t_skip("alloc"); return; }
     { int i; for (i = 0; i < 10000; i++) buf[i] = L'a'; buf[10000] = 0; }
@@ -560,7 +563,7 @@ TEST(hso_replace_growth_many_matches)
 struct trim { const WCHAR *src, *set, *start, *end; };
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hso_trim_table)
+TEST(winrt_hstring_ops_trim_table)
 {
     static const struct trim t[] = {
         { L"  abc  ", L" ", L"abc  ", L"  abc" },
@@ -603,7 +606,7 @@ TEST(hso_trim_table)
     }
 }
 
-TEST(hso_trim_nothing_trimmed_shares_heap_string)
+TEST(winrt_hstring_ops_trim_nothing_trimmed_shares_heap_string)
 {
     HSTRING s = hs_makez(L"abc"), set = hs_makez(L"x"), r = HS_SENTINEL; REQUIRE_HS_OPS();
     EXPECT_EQ(WTRS(s, set, &r), S_OK);
@@ -615,7 +618,7 @@ TEST(hso_trim_nothing_trimmed_shares_heap_string)
     WDEL(s); WDEL(set);
 }
 
-TEST(hso_trim_nothing_trimmed_reference_deep_copies)
+TEST(winrt_hstring_ops_trim_nothing_trimmed_reference_deep_copies)
 {
     static const WCHAR str[] = L"abc";
     HSTRING_HEADER hdr; HSTRING s, set = hs_makez(L"x"), r = HS_SENTINEL; REQUIRE_HS_OPS();
@@ -632,7 +635,7 @@ TEST(hso_trim_nothing_trimmed_reference_deep_copies)
     WDEL(set);
 }
 
-TEST(hso_trim_something_trimmed_is_new_object)
+TEST(winrt_hstring_ops_trim_something_trimmed_is_new_object)
 {
     HSTRING s = hs_makez(L" abc"), set = hs_makez(L" "), r = HS_SENTINEL; REQUIRE_HS_OPS();
     EXPECT_EQ(WTRS(s, set, &r), S_OK);
@@ -642,7 +645,7 @@ TEST(hso_trim_something_trimmed_is_new_object)
     WDEL(s); WDEL(set);
 }
 
-TEST(hso_trim_empty_trimstring_is_invalidarg)
+TEST(winrt_hstring_ops_trim_empty_trimstring_is_invalidarg)
 {
     HSTRING s = hs_makez(L"abc"), r; REQUIRE_HS_OPS();
     r = HS_SENTINEL; EXPECT_EQ(WTRS(s, NULL, &r), HS_E_INVALIDARG); CHECK(r == NULL);
@@ -652,7 +655,7 @@ TEST(hso_trim_empty_trimstring_is_invalidarg)
     WDEL(s);
 }
 
-TEST(hso_trim_null_source_is_empty)
+TEST(winrt_hstring_ops_trim_null_source_is_empty)
 {
     HSTRING set = hs_makez(L"x"), r; REQUIRE_HS_OPS();
     r = HS_SENTINEL; EXPECT_EQ(WTRS(NULL, set, &r), S_OK); CHECK(r == NULL);
@@ -660,7 +663,7 @@ TEST(hso_trim_null_source_is_empty)
     WDEL(set);
 }
 
-TEST(hso_trim_null_output)
+TEST(winrt_hstring_ops_trim_null_output)
 {
     HSTRING s = hs_makez(L"abc"), set = hs_makez(L"a"); REQUIRE_HS_OPS();
     EXPECT_EQ(WTRS(s, set, NULL), HS_E_INVALIDARG);
@@ -670,7 +673,7 @@ TEST(hso_trim_null_output)
     WDEL(s); WDEL(set);
 }
 
-TEST(hso_trim_embedded_nuls_in_source)
+TEST(winrt_hstring_ops_trim_embedded_nuls_in_source)
 {
     HSTRING s = hs_make(L"\0\0ab\0", 5), set = hs_make(L"\0", 1), r = HS_SENTINEL; REQUIRE_HS_OPS();
     EXPECT_EQ(WTRS(s, set, &r), S_OK);
@@ -683,7 +686,7 @@ TEST(hso_trim_embedded_nuls_in_source)
     WDEL(s); WDEL(set);
 }
 
-TEST(hso_trim_start_all_nul_set_observed)
+TEST(winrt_hstring_ops_trim_start_all_nul_set_observed)
 {
     /* TrimStart scans one element past the end (the terminator), so a trim set containing NUL
      * and a string made only of trimmed chars is an odd corner: observation only. */
@@ -699,7 +702,7 @@ TEST(hso_trim_start_all_nul_set_observed)
     WDEL(s); WDEL(set);
 }
 
-TEST(hso_trim_set_may_be_reference_and_same_object)
+TEST(winrt_hstring_ops_trim_set_may_be_reference_and_same_object)
 {
     static const WCHAR set[] = L"-+";
     HSTRING_HEADER hdr; HSTRING hset, s = hs_makez(L"+-text-+"), r = HS_SENTINEL; REQUIRE_HS_OPS();
@@ -716,7 +719,7 @@ TEST(hso_trim_set_may_be_reference_and_same_object)
     WDEL(s);
 }
 
-TEST(hso_trim_long_runs)
+TEST(winrt_hstring_ops_trim_long_runs)
 {
     WCHAR *buf; HSTRING s, set = hs_makez(L"z"), r = HS_SENTINEL; int i; REQUIRE_HS_OPS();
     buf = HeapAlloc(GetProcessHeap(), 0, 20001 * sizeof(WCHAR));

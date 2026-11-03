@@ -38,7 +38,9 @@
     REQUIRE(WCS); REQUIRE(WCSR); REQUIRE(WDEL); REQUIRE(WDUP); REQUIRE(WLEN); REQUIRE(WRAW); \
     REQUIRE(WEMPTY); REQUIRE(WEMB); } while (0)
 #define REQUIRE_HS_OPS() do { REQUIRE_HS(); REQUIRE(WCMP); REQUIRE(WCAT); REQUIRE(WSUB); REQUIRE(WSUBL); \
-    REQUIRE(WREP); REQUIRE(WTRS); REQUIRE(WTRE); } while (0)
+    REQUIRE(WTRS); REQUIRE(WTRE); } while (0)
+/* WindowsReplaceString is a stub in Wine and aborts the process there */
+#define REQUIRE_REP() do { REQUIRE_HS_OPS(); REQUIRE(WREP); if (t_is_wine()) { t_skip("wine stubs WindowsReplaceString"); return; } } while (0)
 #define REQUIRE_HS_BUF() do { REQUIRE_HS(); REQUIRE(WPRE); REQUIRE(WPRO); REQUIRE(WDELB); } while (0)
 
 /* HSTRING_User* (not in the SDK headers with C linkage we can rely on) */

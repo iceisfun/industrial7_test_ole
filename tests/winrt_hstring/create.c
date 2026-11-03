@@ -5,7 +5,7 @@
 /* ------------------------------------------------------------------ CreateString */
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hsc_create_basic)
+TEST(winrt_hstring_core_create_basic)
 {
     static const WCHAR str[] = L"abcdef";
     HSTRING h = HS_SENTINEL; REQUIRE_HS();
@@ -15,7 +15,7 @@ TEST(hsc_create_basic)
     EXPECT_EQ(WDEL(h), S_OK);
 }
 
-TEST(hsc_create_length_not_nul_terminated)
+TEST(winrt_hstring_core_create_length_not_nul_terminated)
 {
     /* length rules, not the terminator: only the first n chars are used */
     static const WCHAR str[] = L"abcdef";
@@ -28,7 +28,7 @@ TEST(hsc_create_length_not_nul_terminated)
     }
 }
 
-TEST(hsc_create_prefix_of_longer_buffer_terminated)
+TEST(winrt_hstring_core_create_prefix_of_longer_buffer_terminated)
 {
     static const WCHAR str[] = L"hello world";
     HSTRING h = HS_SENTINEL; REQUIRE_HS();
@@ -38,7 +38,7 @@ TEST(hsc_create_prefix_of_longer_buffer_terminated)
     WDEL(h);
 }
 
-TEST(hsc_create_zero_length_yields_null)
+TEST(winrt_hstring_core_create_zero_length_yields_null)
 {
     static const WCHAR str[] = L"abc";
     HSTRING h = HS_SENTINEL; REQUIRE_HS();
@@ -52,7 +52,7 @@ TEST(hsc_create_zero_length_yields_null)
     CHECK(h == NULL);
 }
 
-TEST(hsc_create_null_source_nonzero_length_is_E_POINTER)
+TEST(winrt_hstring_core_create_null_source_nonzero_length_is_E_POINTER)
 {
     UINT32 lens[] = { 1, 2, 100, 0x7fffffff, 0x80000000, 0xffffffff };
     unsigned i; REQUIRE_HS();
@@ -63,7 +63,7 @@ TEST(hsc_create_null_source_nonzero_length_is_E_POINTER)
     }
 }
 
-TEST(hsc_create_null_output_is_E_INVALIDARG)
+TEST(winrt_hstring_core_create_null_output_is_E_INVALIDARG)
 {
     REQUIRE_HS();
     EXPECT_EQ(WCS(L"abc", 3, NULL), HS_E_INVALIDARG);
@@ -72,7 +72,7 @@ TEST(hsc_create_null_output_is_E_INVALIDARG)
     EXPECT_EQ(WCS(NULL, 5, NULL), HS_E_INVALIDARG);   /* output check precedes the pointer check */
 }
 
-TEST(hsc_create_length_too_large)
+TEST(winrt_hstring_core_create_length_too_large)
 {
     /* Sizes whose byte count (2*len + header) does not fit 32 bits fail before the source is read. */
     static const WCHAR str[] = L"x";
@@ -87,7 +87,7 @@ TEST(hsc_create_length_too_large)
     }
 }
 
-TEST(hsc_create_embedded_nuls)
+TEST(winrt_hstring_core_create_embedded_nuls)
 {
     static const WCHAR str[] = L"a\0c\0ef";
     HSTRING h = HS_SENTINEL; REQUIRE_HS();
@@ -111,7 +111,7 @@ TEST(hsc_create_embedded_nuls)
     WDEL(h);
 }
 
-TEST(hsc_create_all_nul_string)
+TEST(winrt_hstring_core_create_all_nul_string)
 {
     static const WCHAR z[8] = {0};
     HSTRING h = HS_SENTINEL; REQUIRE_HS();
@@ -121,7 +121,7 @@ TEST(hsc_create_all_nul_string)
     WDEL(h);
 }
 
-TEST(hsc_create_copy_is_independent_of_source)
+TEST(winrt_hstring_core_create_copy_is_independent_of_source)
 {
     WCHAR buf[8] = L"abcdefg";
     HSTRING h = HS_SENTINEL; REQUIRE_HS();
@@ -131,7 +131,7 @@ TEST(hsc_create_copy_is_independent_of_source)
     WDEL(h);
 }
 
-TEST(hsc_create_two_calls_distinct_objects)
+TEST(winrt_hstring_core_create_two_calls_distinct_objects)
 {
     HSTRING a = NULL, b = NULL; REQUIRE_HS();
     EXPECT_EQ(WCS(L"same", 4, &a), S_OK);
@@ -141,7 +141,7 @@ TEST(hsc_create_two_calls_distinct_objects)
     WDEL(a); WDEL(b);
 }
 
-TEST(hsc_create_non_bmp_and_unpaired_surrogates)
+TEST(winrt_hstring_core_create_non_bmp_and_unpaired_surrogates)
 {
     static const WCHAR s[] = { 0xD83D, 0xDE00, 0xD800, 0xDC00, 0xDC00, 0xD800, 0xFFFF, 0xFFFE };
     HSTRING h = HS_SENTINEL; REQUIRE_HS();
@@ -150,7 +150,7 @@ TEST(hsc_create_non_bmp_and_unpaired_surrogates)
     WDEL(h);
 }
 
-TEST(hsc_create_lengths_table)
+TEST(winrt_hstring_core_create_lengths_table)
 {
     static const UINT32 lens[] = { 1, 2, 3, 7, 8, 9, 15, 16, 17, 31, 32, 33, 63, 64, 65, 127, 128, 255, 256, 257,
                                    1000, 4095, 4096, 4097, 65535, 65536, 100001 };
@@ -168,7 +168,7 @@ TEST(hsc_create_lengths_table)
     HeapFree(GetProcessHeap(), 0, src);
 }
 
-TEST(hsc_create_very_long_string)
+TEST(winrt_hstring_core_create_very_long_string)
 {
     const UINT32 n = 8u * 1024 * 1024;           /* 16 MB of UTF-16 */
     WCHAR *src; HSTRING h = HS_SENTINEL, d = HS_SENTINEL; UINT32 i; int ok = 1; REQUIRE_HS();
@@ -185,7 +185,7 @@ TEST(hsc_create_very_long_string)
     HeapFree(GetProcessHeap(), 0, src);
 }
 
-TEST(hsc_create_is_heap_backed_not_stack)
+TEST(winrt_hstring_core_create_is_heap_backed_not_stack)
 {
     /* the object may be freed with a single WindowsDeleteString, and survives the source going away */
     HSTRING h = HS_SENTINEL; REQUIRE_HS();
@@ -201,7 +201,7 @@ TEST(hsc_create_is_heap_backed_not_stack)
 /* ------------------------------------------------------------- CreateStringReference */
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hsc_ref_basic)
+TEST(winrt_hstring_core_ref_basic)
 {
     static const WCHAR str[] = L"abcdef";
     HSTRING_HEADER hdr; HSTRING h = HS_SENTINEL; REQUIRE_HS();
@@ -214,7 +214,7 @@ TEST(hsc_ref_basic)
     HS_EXPECT(h, str, 6, 0);                    /* still usable after Delete */
 }
 
-TEST(hsc_ref_header_size_and_layout)
+TEST(winrt_hstring_core_ref_header_size_and_layout)
 {
     static const WCHAR str[] = L"abcdef";
     HSTRING_HEADER hdr; HSTRING h; unsigned char *b = (unsigned char *)&hdr; REQUIRE_HS();
@@ -228,7 +228,7 @@ TEST(hsc_ref_header_size_and_layout)
     EXPECT_EQ(*(const WCHAR **)(b + 16), str);
 }
 
-TEST(hsc_ref_header_alignment_is_pointer_size)
+TEST(winrt_hstring_core_ref_header_alignment_is_pointer_size)
 {
     /* the header must be usable at 8-byte alignment (natural for the struct) */
     static const WCHAR str[] = L"align";
@@ -238,7 +238,7 @@ TEST(hsc_ref_header_alignment_is_pointer_size)
     HS_EXPECT(h, str, 5, 0);
 }
 
-TEST(hsc_ref_requires_nul_at_str_len)
+TEST(winrt_hstring_core_ref_requires_nul_at_str_len)
 {
     static const WCHAR str[] = L"abcdef";       /* str[6] == 0, but str[3] == 'd' */
     HSTRING_HEADER hdr; HSTRING h; REQUIRE_HS();
@@ -256,7 +256,7 @@ TEST(hsc_ref_requires_nul_at_str_len)
     CHECK(h == NULL);
 }
 
-TEST(hsc_ref_zero_length_checks_terminator_and_yields_null)
+TEST(winrt_hstring_core_ref_zero_length_checks_terminator_and_yields_null)
 {
     static const WCHAR str[] = L"abc";
     static const WCHAR empty[] = L"";
@@ -274,7 +274,7 @@ TEST(hsc_ref_zero_length_checks_terminator_and_yields_null)
     CHECK(h == NULL);
 }
 
-TEST(hsc_ref_null_source_nonzero_length)
+TEST(winrt_hstring_core_ref_null_source_nonzero_length)
 {
     HSTRING_HEADER hdr; HSTRING h; REQUIRE_HS();
     h = HS_SENTINEL;
@@ -285,7 +285,7 @@ TEST(hsc_ref_null_source_nonzero_length)
     CHECK(h == NULL);
 }
 
-TEST(hsc_ref_length_minus_one_is_invalidarg)
+TEST(winrt_hstring_core_ref_length_minus_one_is_invalidarg)
 {
     static const WCHAR str[] = L"abc";
     HSTRING_HEADER hdr; HSTRING h; REQUIRE_HS();
@@ -298,7 +298,7 @@ TEST(hsc_ref_length_minus_one_is_invalidarg)
     CHECK(h == NULL);
 }
 
-TEST(hsc_ref_null_output_and_header)
+TEST(winrt_hstring_core_ref_null_output_and_header)
 {
     static const WCHAR str[] = L"abc";
     HSTRING_HEADER hdr; HSTRING h; REQUIRE_HS();
@@ -312,7 +312,7 @@ TEST(hsc_ref_null_output_and_header)
     EXPECT_EQ(WCSR(str, 0xffffffff, NULL, &h), HS_E_INVALIDARG);
 }
 
-TEST(hsc_ref_embedded_nuls)
+TEST(winrt_hstring_core_ref_embedded_nuls)
 {
     static const WCHAR str[] = L"a\0c\0ef";     /* str[6] == 0 */
     HSTRING_HEADER hdr; HSTRING h = HS_SENTINEL; REQUIRE_HS();
@@ -328,7 +328,7 @@ TEST(hsc_ref_embedded_nuls)
     EXPECT_EQ(WCSR(str, 2, &hdr, &h), HS_E_NOTNULLTERM);   /* str[2] == 'c' */
 }
 
-TEST(hsc_ref_aliases_live_buffer)
+TEST(winrt_hstring_core_ref_aliases_live_buffer)
 {
     WCHAR buf[6] = L"hello";
     HSTRING_HEADER hdr; HSTRING h; REQUIRE_HS();
@@ -337,7 +337,7 @@ TEST(hsc_ref_aliases_live_buffer)
     HS_EXPECT(h, L"Jello", 5, 0);               /* no copy was made */
 }
 
-TEST(hsc_ref_delete_many_times_is_noop)
+TEST(winrt_hstring_core_ref_delete_many_times_is_noop)
 {
     static const WCHAR str[] = L"keep";
     HSTRING_HEADER hdr; HSTRING h; int i; REQUIRE_HS();
@@ -346,7 +346,7 @@ TEST(hsc_ref_delete_many_times_is_noop)
     HS_EXPECT(h, str, 4, 0);
 }
 
-TEST(hsc_ref_header_reuse)
+TEST(winrt_hstring_core_ref_header_reuse)
 {
     static const WCHAR a[] = L"first", b[] = L"second";
     HSTRING_HEADER hdr; HSTRING h; REQUIRE_HS();
@@ -357,7 +357,7 @@ TEST(hsc_ref_header_reuse)
     EXPECT_EQ(WRAW(h, NULL), b);
 }
 
-TEST(hsc_ref_failure_does_not_modify_header_on_bad_terminator)
+TEST(winrt_hstring_core_ref_failure_does_not_modify_header_on_bad_terminator)
 {
     static const WCHAR str[] = L"abc";
     HSTRING_HEADER hdr, copy; HSTRING h; REQUIRE_HS();
@@ -370,14 +370,14 @@ TEST(hsc_ref_failure_does_not_modify_header_on_bad_terminator)
 
 /* ------------------------------------------------------------------ DeleteString */
 
-TEST(hsc_delete_null_is_ok)
+TEST(winrt_hstring_core_delete_null_is_ok)
 {
     REQUIRE_HS();
     EXPECT_EQ(WDEL(NULL), S_OK);
     EXPECT_EQ(WDEL(NULL), S_OK);
 }
 
-TEST(hsc_delete_returns_ok_for_heap_string)
+TEST(winrt_hstring_core_delete_returns_ok_for_heap_string)
 {
     HSTRING h = hs_makez(L"delete me"); REQUIRE_HS();
     EXPECT_EQ(WDEL(h), S_OK);
@@ -386,7 +386,7 @@ TEST(hsc_delete_returns_ok_for_heap_string)
 /* ------------------------------------------------------------------ DuplicateString */
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hsc_dup_heap_string_shares_object)
+TEST(winrt_hstring_core_dup_heap_string_shares_object)
 {
     HSTRING h = hs_makez(L"shared"), d = HS_SENTINEL, d2 = HS_SENTINEL; REQUIRE_HS();
     EXPECT_EQ(WDUP(h, &d), S_OK);
@@ -402,14 +402,14 @@ TEST(hsc_dup_heap_string_shares_object)
     EXPECT_EQ(WDEL(d2), S_OK);
 }
 
-TEST(hsc_dup_null)
+TEST(winrt_hstring_core_dup_null)
 {
     HSTRING d = HS_SENTINEL; REQUIRE_HS();
     EXPECT_EQ(WDUP(NULL, &d), S_OK);
     CHECK(d == NULL);
 }
 
-TEST(hsc_dup_null_output)
+TEST(winrt_hstring_core_dup_null_output)
 {
     HSTRING h = hs_makez(L"x"); REQUIRE_HS();
     EXPECT_EQ(WDUP(h, NULL), HS_E_INVALIDARG);
@@ -418,7 +418,7 @@ TEST(hsc_dup_null_output)
 }
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hsc_dup_reference_is_deep_copy)
+TEST(winrt_hstring_core_dup_reference_is_deep_copy)
 {
     static const WCHAR str[] = L"reference";
     HSTRING_HEADER hdr; HSTRING r, d = HS_SENTINEL; REQUIRE_HS();
@@ -439,7 +439,7 @@ TEST(hsc_dup_reference_is_deep_copy)
     WDEL(d);
 }
 
-TEST(hsc_dup_reference_copy_outlives_source_buffer)
+TEST(winrt_hstring_core_dup_reference_copy_outlives_source_buffer)
 {
     WCHAR buf[8] = L"volatil";
     HSTRING_HEADER hdr; HSTRING r, d = HS_SENTINEL; REQUIRE_HS();
@@ -451,7 +451,7 @@ TEST(hsc_dup_reference_copy_outlives_source_buffer)
     WDEL(d);
 }
 
-TEST(hsc_dup_reference_with_embedded_nuls)
+TEST(winrt_hstring_core_dup_reference_with_embedded_nuls)
 {
     static const WCHAR str[] = L"a\0b\0c";
     HSTRING_HEADER hdr; HSTRING r, d = HS_SENTINEL; REQUIRE_HS();
@@ -461,14 +461,14 @@ TEST(hsc_dup_reference_with_embedded_nuls)
     WDEL(d);
 }
 
-TEST(hsc_dup_clears_output_first)
+TEST(winrt_hstring_core_dup_clears_output_first)
 {
     HSTRING d = HS_SENTINEL; REQUIRE_HS();
     EXPECT_EQ(WDUP(NULL, &d), S_OK);
     CHECK(d == NULL);
 }
 
-TEST(hsc_dup_many_refs)
+TEST(winrt_hstring_core_dup_many_refs)
 {
     HSTRING h = hs_makez(L"many"), d[200]; int i; REQUIRE_HS();
     for (i = 0; i < 200; i++) { d[i] = HS_SENTINEL; EXPECT_EQ(WDUP(h, &d[i]), S_OK); EXPECT_EQ(d[i], h); }
@@ -479,13 +479,13 @@ TEST(hsc_dup_many_refs)
 
 /* ------------------------------------------------------------------ accessors */
 
-TEST(hsc_len_null_is_zero)
+TEST(winrt_hstring_core_len_null_is_zero)
 {
     REQUIRE_HS();
     EXPECT_EQ(WLEN(NULL), 0);
 }
 
-TEST(hsc_len_values)
+TEST(winrt_hstring_core_len_values)
 {
     static const WCHAR s[] = L"0123456789";
     unsigned i; REQUIRE_HS();
@@ -497,7 +497,7 @@ TEST(hsc_len_values)
 }
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hsc_rawbuffer_null_hstring)
+TEST(winrt_hstring_core_rawbuffer_null_hstring)
 {
     UINT32 len = 0xdeadbeef; const WCHAR *p, *p2; REQUIRE_HS();
     p = WRAW(NULL, &len);
@@ -510,7 +510,7 @@ TEST(hsc_rawbuffer_null_hstring)
     EXPECT_EQ(p, p2);                           /* the same static empty string */
 }
 
-TEST(hsc_rawbuffer_length_out_optional)
+TEST(winrt_hstring_core_rawbuffer_length_out_optional)
 {
     HSTRING h = hs_makez(L"opt"); REQUIRE_HS();
     CHECK(WRAW(h, NULL) != NULL);
@@ -518,7 +518,7 @@ TEST(hsc_rawbuffer_length_out_optional)
     WDEL(h);
 }
 
-TEST(hsc_rawbuffer_stable_across_calls)
+TEST(winrt_hstring_core_rawbuffer_stable_across_calls)
 {
     HSTRING h = hs_makez(L"stable"); const WCHAR *a, *b; REQUIRE_HS();
     a = WRAW(h, NULL); b = WRAW(h, NULL);
@@ -526,7 +526,7 @@ TEST(hsc_rawbuffer_stable_across_calls)
     WDEL(h);
 }
 
-TEST(hsc_rawbuffer_length_counts_chars_not_bytes)
+TEST(winrt_hstring_core_rawbuffer_length_counts_chars_not_bytes)
 {
     HSTRING h = hs_make(L"abcd\0efg", 8); UINT32 len = 0; REQUIRE_HS();
     WRAW(h, &len);
@@ -534,7 +534,7 @@ TEST(hsc_rawbuffer_length_counts_chars_not_bytes)
     WDEL(h);
 }
 
-TEST(hsc_isempty_values)
+TEST(winrt_hstring_core_isempty_values)
 {
     HSTRING_HEADER hdr; HSTRING r; HSTRING h; REQUIRE_HS();
     EXPECT_EQ(WEMPTY(NULL), TRUE);
@@ -551,7 +551,7 @@ TEST(hsc_isempty_values)
 }
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hsc_embedded_null_table)
+TEST(winrt_hstring_core_embedded_null_table)
 {
     struct { const WCHAR *s; UINT32 n; int nul; } t[] = {
         { L"a", 1, 0 }, { L"abc", 3, 0 }, { L"\0", 1, 1 }, { L"a\0", 2, 1 }, { L"\0a", 2, 1 },
@@ -571,7 +571,7 @@ TEST(hsc_embedded_null_table)
     }
 }
 
-TEST(hsc_embedded_null_null_hstring_and_args)
+TEST(winrt_hstring_core_embedded_null_null_hstring_and_args)
 {
     BOOL b = 0xdead; HSTRING h = hs_makez(L"x"); REQUIRE_HS();
     EXPECT_EQ(WEMB(NULL, &b), S_OK);
@@ -581,7 +581,7 @@ TEST(hsc_embedded_null_null_hstring_and_args)
     WDEL(h);
 }
 
-TEST(hsc_embedded_null_reference_string)
+TEST(winrt_hstring_core_embedded_null_reference_string)
 {
     static const WCHAR s1[] = L"abc", s2[] = L"a\0c";
     HSTRING_HEADER h1, h2; HSTRING r1, r2; BOOL b; REQUIRE_HS();
@@ -612,7 +612,7 @@ static DWORD WINAPI dup_thread(void *p)
     return 0;
 }
 
-TEST(hsc_threads_duplicate_delete_balanced)
+TEST(winrt_hstring_core_threads_duplicate_delete_balanced)
 {
     struct dup_ctx c; HANDLE th[4]; int i; DWORD r; REQUIRE_HS();
     c.h = hs_makez(L"shared string"); c.iters = 20000; c.fail = 0;
@@ -625,7 +625,7 @@ TEST(hsc_threads_duplicate_delete_balanced)
     EXPECT_EQ(WDEL(c.h), S_OK);
 }
 
-TEST(hsc_threads_reference_dup_deep_copies)
+TEST(winrt_hstring_core_threads_reference_dup_deep_copies)
 {
     static const WCHAR str[] = L"stable reference";
     HSTRING_HEADER hdr; HSTRING r; int i; REQUIRE_HS();
@@ -640,7 +640,7 @@ TEST(hsc_threads_reference_dup_deep_copies)
 
 /* ---------------------------------------------------------- internals (observations only) */
 
-TEST(hsc_internal_heap_string_layout_notes)
+TEST(winrt_hstring_core_internal_heap_string_layout_notes)
 {
     HSTRING h = hs_makez(L"layout"), d = NULL; unsigned char *b = (unsigned char *)h; REQUIRE_HS();
     /* Win10 combase: flags(+0, bit0 clear for heap strings), length(+4), buffer ptr(+16), refcount(+24), data(+28) */

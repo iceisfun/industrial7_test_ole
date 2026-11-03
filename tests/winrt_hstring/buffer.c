@@ -6,7 +6,7 @@ struct delb_ctx { HSTRING_BUFFER b; HRESULT hr; };
 static void do_delb(void *p) { struct delb_ctx *c = p; c->hr = WDELB(c->b); }
 
 /* adapted from Wine dlls/combase/tests/string.c (LGPL-2.1+) */
-TEST(hsb_prealloc_promote_basic)
+TEST(winrt_hstring_buf_prealloc_promote_basic)
 {
     static const WCHAR src[] = L"abcdef";
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; HSTRING h = HS_SENTINEL; REQUIRE_HS_BUF();
@@ -21,7 +21,7 @@ TEST(hsb_prealloc_promote_basic)
     EXPECT_EQ(WDEL(h), S_OK);
 }
 
-TEST(hsb_prealloc_zero_length)
+TEST(winrt_hstring_buf_prealloc_zero_length)
 {
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; HSTRING h = HS_SENTINEL; REQUIRE_HS_BUF();
     EXPECT_EQ(WPRE(0, &buf, &b), S_OK);
@@ -32,14 +32,14 @@ TEST(hsb_prealloc_zero_length)
     CHECK(h == NULL);                           /* empty promotion is the NULL HSTRING (buffer released) */
 }
 
-TEST(hsb_prealloc_zero_length_then_delete)
+TEST(winrt_hstring_buf_prealloc_zero_length_then_delete)
 {
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; REQUIRE_HS_BUF();
     EXPECT_EQ(WPRE(0, &buf, &b), S_OK);
     EXPECT_EQ(WDELB(b), S_OK);
 }
 
-TEST(hsb_prealloc_then_delete_without_promote)
+TEST(winrt_hstring_buf_prealloc_then_delete_without_promote)
 {
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; unsigned i; REQUIRE_HS_BUF();
     for (i = 1; i < 300; i += 7) {
@@ -49,13 +49,13 @@ TEST(hsb_prealloc_then_delete_without_promote)
     }
 }
 
-TEST(hsb_delete_buffer_null_is_ok)
+TEST(winrt_hstring_buf_delete_buffer_null_is_ok)
 {
     REQUIRE_HS_BUF();
     EXPECT_EQ(WDELB(NULL), S_OK);
 }
 
-TEST(hsb_prealloc_null_arguments)
+TEST(winrt_hstring_buf_prealloc_null_arguments)
 {
     HSTRING_BUFFER b = (HSTRING_BUFFER)(ULONG_PTR)0x77; WCHAR *buf = (WCHAR *)(ULONG_PTR)0x55; REQUIRE_HS_BUF();
     EXPECT_EQ(WPRE(4, NULL, &b), HS_E_POINTER);
@@ -66,7 +66,7 @@ TEST(hsb_prealloc_null_arguments)
     EXPECT_EQ(WPRE(0, NULL, NULL), HS_E_POINTER);
 }
 
-TEST(hsb_prealloc_length_too_large)
+TEST(winrt_hstring_buf_prealloc_length_too_large)
 {
     UINT32 lens[] = { 0x7ffffff0, 0x7fffffff, 0x80000000, 0xfffffffe, 0xffffffff };
     unsigned i; REQUIRE_HS_BUF();
@@ -80,7 +80,7 @@ TEST(hsb_prealloc_length_too_large)
     }
 }
 
-TEST(hsb_prealloc_outputs_cleared_on_failure)
+TEST(winrt_hstring_buf_prealloc_outputs_cleared_on_failure)
 {
     HSTRING_BUFFER b = (HSTRING_BUFFER)(ULONG_PTR)0x77; WCHAR *buf = (WCHAR *)(ULONG_PTR)0x55; REQUIRE_HS_BUF();
     if (t_is_wine()) { t_skip("wine does not validate buffer handles/lengths"); return; }
@@ -88,14 +88,14 @@ TEST(hsb_prealloc_outputs_cleared_on_failure)
     CHECK(buf == NULL && b == NULL);
 }
 
-TEST(hsb_promote_null_buffer)
+TEST(winrt_hstring_buf_promote_null_buffer)
 {
     HSTRING h = HS_SENTINEL; REQUIRE_HS_BUF();
     EXPECT_EQ(WPRO(NULL, &h), S_OK);
     CHECK(h == NULL);
 }
 
-TEST(hsb_promote_null_output)
+TEST(winrt_hstring_buf_promote_null_output)
 {
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; REQUIRE_HS_BUF();
     EXPECT_EQ(WPRO(NULL, NULL), HS_E_POINTER);
@@ -110,7 +110,7 @@ TEST(hsb_promote_null_output)
     }
 }
 
-TEST(hsb_promote_regular_hstring_is_invalidarg)
+TEST(winrt_hstring_buf_promote_regular_hstring_is_invalidarg)
 {
     HSTRING s = hs_makez(L"regular"), h = HS_SENTINEL; REQUIRE_HS_BUF();
     if (t_is_wine()) { t_skip("wine does not validate buffer handles/lengths"); return; }
@@ -120,7 +120,7 @@ TEST(hsb_promote_regular_hstring_is_invalidarg)
     WDEL(s);
 }
 
-TEST(hsb_promote_reference_string_is_invalidarg)
+TEST(winrt_hstring_buf_promote_reference_string_is_invalidarg)
 {
     static const WCHAR str[] = L"ref";
     HSTRING_HEADER hdr; HSTRING r, h = HS_SENTINEL; REQUIRE_HS_BUF();
@@ -131,7 +131,7 @@ TEST(hsb_promote_reference_string_is_invalidarg)
     HS_EXPECT(r, str, 3, 0);
 }
 
-TEST(hsb_promote_twice_second_fails)
+TEST(winrt_hstring_buf_promote_twice_second_fails)
 {
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; HSTRING h = HS_SENTINEL, h2 = HS_SENTINEL; REQUIRE_HS_BUF();
     if (t_is_wine()) { t_skip("wine does not validate buffer handles/lengths"); return; }
@@ -145,7 +145,7 @@ TEST(hsb_promote_twice_second_fails)
     WDEL(h);
 }
 
-TEST(hsb_promote_corrupted_terminator_is_invalidarg_and_recoverable)
+TEST(winrt_hstring_buf_promote_corrupted_terminator_is_invalidarg_and_recoverable)
 {
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; HSTRING h = HS_SENTINEL; REQUIRE_HS_BUF();
     if (t_is_wine()) { t_skip("wine does not validate buffer handles/lengths"); return; }
@@ -160,7 +160,7 @@ TEST(hsb_promote_corrupted_terminator_is_invalidarg_and_recoverable)
     WDEL(h);
 }
 
-TEST(hsb_promote_corrupted_terminator_then_delete)
+TEST(winrt_hstring_buf_promote_corrupted_terminator_then_delete)
 {
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; HSTRING h = HS_SENTINEL; REQUIRE_HS_BUF();
     if (t_is_wine()) { t_skip("wine does not validate buffer handles/lengths"); return; }
@@ -170,7 +170,7 @@ TEST(hsb_promote_corrupted_terminator_then_delete)
     EXPECT_EQ(WDELB(b), S_OK);
 }
 
-TEST(hsb_promote_embedded_nuls)
+TEST(winrt_hstring_buf_promote_embedded_nuls)
 {
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; HSTRING h = HS_SENTINEL; REQUIRE_HS_BUF();
     EXPECT_EQ(WPRE(5, &buf, &b), S_OK);
@@ -180,7 +180,7 @@ TEST(hsb_promote_embedded_nuls)
     WDEL(h);
 }
 
-TEST(hsb_promote_all_chars_filled_table)
+TEST(winrt_hstring_buf_promote_all_chars_filled_table)
 {
     static const UINT32 lens[] = { 1, 2, 3, 15, 16, 17, 255, 256, 1000, 65536 };
     unsigned i; REQUIRE_HS_BUF();
@@ -197,7 +197,7 @@ TEST(hsb_promote_all_chars_filled_table)
     }
 }
 
-TEST(hsb_promoted_string_behaves_like_heap_string)
+TEST(winrt_hstring_buf_promoted_string_behaves_like_heap_string)
 {
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; HSTRING h = HS_SENTINEL, d = HS_SENTINEL, r = HS_SENTINEL; REQUIRE_HS_BUF();
     EXPECT_EQ(WPRE(4, &buf, &b), S_OK);
@@ -210,7 +210,7 @@ TEST(hsb_promoted_string_behaves_like_heap_string)
     WDEL(r); WDEL(d); WDEL(h);
 }
 
-TEST(hsb_delete_buffer_on_regular_hstring_raises)
+TEST(winrt_hstring_buf_delete_buffer_on_regular_hstring_raises)
 {
     HSTRING s = hs_makez(L"not a buffer"); struct delb_ctx c; DWORD code; REQUIRE_HS_BUF();
     if (t_is_wine()) { t_skip("wine does not validate buffer handles/lengths"); return; }
@@ -221,7 +221,7 @@ TEST(hsb_delete_buffer_on_regular_hstring_raises)
     WDEL(s);
 }
 
-TEST(hsb_delete_buffer_on_reference_raises)
+TEST(winrt_hstring_buf_delete_buffer_on_reference_raises)
 {
     static const WCHAR str[] = L"ref";
     HSTRING_HEADER hdr; HSTRING r; struct delb_ctx c; DWORD code; REQUIRE_HS_BUF();
@@ -232,7 +232,7 @@ TEST(hsb_delete_buffer_on_reference_raises)
     EXPECT_EQ(code, 0xc000000d);
 }
 
-TEST(hsb_delete_buffer_on_promoted_string_raises)
+TEST(winrt_hstring_buf_delete_buffer_on_promoted_string_raises)
 {
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; HSTRING h = HS_SENTINEL; struct delb_ctx c; DWORD code; REQUIRE_HS_BUF();
     if (t_is_wine()) { t_skip("wine does not validate buffer handles/lengths"); return; }
@@ -246,7 +246,7 @@ TEST(hsb_delete_buffer_on_promoted_string_raises)
     WDEL(h);
 }
 
-TEST(hsb_prealloc_distinct_buffers)
+TEST(winrt_hstring_buf_prealloc_distinct_buffers)
 {
     HSTRING_BUFFER b1 = NULL, b2 = NULL; WCHAR *p1 = NULL, *p2 = NULL; REQUIRE_HS_BUF();
     EXPECT_EQ(WPRE(4, &p1, &b1), S_OK);
@@ -256,7 +256,7 @@ TEST(hsb_prealloc_distinct_buffers)
     WDELB(b1); WDELB(b2);
 }
 
-TEST(hsb_buffer_after_end_is_writable_terminator_slot)
+TEST(winrt_hstring_buf_buffer_after_end_is_writable_terminator_slot)
 {
     /* the allocation always holds len+1 chars: both slots are usable */
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; REQUIRE_HS_BUF();
@@ -271,7 +271,7 @@ TEST(hsb_buffer_after_end_is_writable_terminator_slot)
     }
 }
 
-TEST(hsb_internal_magic_note)
+TEST(winrt_hstring_buf_internal_magic_note)
 {
     HSTRING_BUFFER b = NULL; WCHAR *buf = NULL; REQUIRE_HS_BUF();
     EXPECT_EQ(WPRE(2, &buf, &b), S_OK);
