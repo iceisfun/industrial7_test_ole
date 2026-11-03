@@ -158,15 +158,14 @@ static HRESULT rd_i4(IPropertyStorage *ps, ULONG id, VARTYPE *vt, LONG *val) {
     *vt = v.vt; *val = v.lVal; U(PropVariantClear)(&v); return hr;
 }
 static HRESULT name_to_id(IPropertyStorage *ps, const WCHAR *name, PROPID *id) {
-    /* Find the id by enumerating the dictionary with ReadPropertyNames over a window of ids. */
-    PROPID ids[64]; LPOLESTR names[64]; int i;
-    for (i = 0; i < 64; i++) ids[i] = 2 + i;
-    HRESULT hr = CALL(ps, ReadPropertyNames, 64, ids, names);
-    if (FAILED(hr)) return hr;
+    /* Find the id bound to a name by walking the property enumeration. */
+    IEnumSTATPROPSTG *e = NULL; STATPROPSTG st; ULONG got = 0;
     HRESULT found = S_FALSE;
-    for (i = 0; i < 64; i++) {
-        if (names[i]) { if (!lstrcmpiW(names[i], name)) { *id = ids[i]; found = S_OK; } U(CoTaskMemFree)(names[i]); }
+    if (CALL(ps, Enum, &e) != S_OK || !e) return E_FAIL;
+    while (CALL(e, Next, 1, &st, &got) == S_OK && got == 1) {
+        if (st.lpwstrName) { if (!lstrcmpiW(st.lpwstrName, name)) { *id = st.propid; found = S_OK; } U(CoTaskMemFree)(st.lpwstrName); }
     }
+    CALL(e, Release);
     return found;
 }
 
