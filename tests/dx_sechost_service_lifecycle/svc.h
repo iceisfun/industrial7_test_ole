@@ -7,6 +7,7 @@
 #include "t.h"
 #include <winsvc.h>
 #include <stdlib.h>
+#include <sddl.h>
 
 #ifndef SERVICE_CONFIG_DELAYED_AUTO_START_INFO
 #define SERVICE_CONFIG_DELAYED_AUTO_START_INFO 3
