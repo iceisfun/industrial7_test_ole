@@ -74,6 +74,7 @@ static IUnknownVtbl g_tu_vtbl = { tu_qi, tu_addref, tu_release };
 static void tu_init(TUnk *u) { u->lpVtbl = &g_tu_vtbl; u->ref = 1; }
 
 /* ---- storage fixtures ---------------------------------------------------------- */
+static const char *g_ctx = "";
 typedef struct {
     IStorage *stg;
     IPropertySetStorage *pss;
@@ -117,13 +118,13 @@ static int fx_reopen(FX *f, const GUID *fmtid, DWORD mode) {
     if (f->ps) { HRESULT c = CALL(f->ps, Commit, STGC_DEFAULT); (void)c; }
     fx_close(f);
     HRESULT hr = U(StgOpenStorage)(path, NULL, STGM_RW_EX, NULL, 0, &f->stg);
-    EXPECT_EQ(hr, S_OK);
+    CHECKF(hr == S_OK, "reopen [%s]: hr=%08lx", g_ctx, hr);
     if (hr != S_OK) return 0;
     hr = U(StgCreatePropSetStg)(f->stg, 0, &f->pss);
-    EXPECT_EQ(hr, S_OK);
+    CHECKF(hr == S_OK, "reopen [%s]: hr=%08lx", g_ctx, hr);
     if (hr != S_OK) return 0;
     hr = CALL(f->pss, Open, fmtid, mode, &f->ps);
-    EXPECT_EQ(hr, S_OK);
+    CHECKF(hr == S_OK, "reopen [%s]: hr=%08lx", g_ctx, hr);
     return hr == S_OK && f->ps;
 }
 
