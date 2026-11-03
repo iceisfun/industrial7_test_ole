@@ -45,6 +45,7 @@ static SC_HANDLE svc_fixture(const char *name, DWORD access, SC_HANDLE *scm) {
     TEST(base##_EventLog)     { fn("EventLog"); } \
     TEST(base##_Winmgmt)      { fn("Winmgmt"); }
 
+#define WINE_UNIMPL() do { if (t_is_wine()) { t_skip("unimplemented in wine (aborts)"); return; } } while (0)
 static void wide_to_narrow(char *dst, size_t cap, const WCHAR *w) {
     if (WideCharToMultiByte(CP_ACP, 0, w, -1, dst, (int)cap, NULL, NULL) <= 0) dst[0] = 0;
 }
