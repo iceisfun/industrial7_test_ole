@@ -130,4 +130,5 @@ static inline HRESULT ro_apt(APTTYPE *t, APTTYPEQUALIFIER *q) {
     HRESULT h = U(CoGetApartmentType)(&a, &b);
     if (t) *t = a; if (q) *q = b; return h;
 }
+#define RO_WINE_UNIMPL(n) do { if (t_is_wine()) { t_skip("%s is an aborting stub in the emulator", n); return; } } while (0)
 #endif
