@@ -11,6 +11,15 @@
 #include <oleauto.h>
 #include <stdlib.h>
 
+/* t.h's EXPECT_EQ/EXPECT_NE evaluate their arguments twice (once for the test, once for the message),
+ * which repeats side effects such as AddRef() or a COM call. Use single-evaluation versions here. */
+#undef EXPECT_EQ
+#undef EXPECT_NE
+#define EXPECT_EQ(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
+    t_check(a_ == b_, __FILE__, __LINE__, #a " == " #b, "got 0x%llx want 0x%llx", (unsigned long long)a_, (unsigned long long)b_); } while (0)
+#define EXPECT_NE(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
+    t_check(a_ != b_, __FILE__, __LINE__, #a " != " #b, "got 0x%llx", (unsigned long long)a_); } while (0)
+
 #define SLM_GUID(name, a, b, c, d0, d1, d2, d3, d4, d5, d6, d7) \
     static const GUID name = { a, b, c, { d0, d1, d2, d3, d4, d5, d6, d7 } }
 SLM_GUID(G_IUnknown,        0x00000000, 0, 0, 0xC0, 0, 0, 0, 0, 0, 0, 0x46);

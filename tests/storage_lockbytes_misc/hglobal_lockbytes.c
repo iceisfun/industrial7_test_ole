@@ -23,6 +23,7 @@ static HRESULT wr(ILockBytes *lb, ULONGLONG off, const void *p, ULONG cb, ULONG 
 static HRESULT rd(ILockBytes *lb, ULONGLONG off, void *p, ULONG cb, ULONG *r) { return ILockBytes_ReadAt(lb, UL(off), p, cb, r); }
 
 TEST(slm_hg_create_null_out) {
+    if (t_is_wine()) { t_skip("wine dereferences NULL out pointers"); return; }
     REQUIRE(U(CreateILockBytesOnHGlobal));
     EXPECT_EQ(U(CreateILockBytesOnHGlobal)(NULL, TRUE, NULL), H_INVALIDARG);
     HGLOBAL h = GlobalAlloc(GMEM_MOVEABLE, 16);
@@ -95,6 +96,7 @@ TEST(slm_hg_stat_empty) {
     ILockBytes_Release(lb);
 }
 TEST(slm_hg_stat_null) {
+    if (t_is_wine()) { t_skip("wine dereferences NULL out pointers"); return; }
     REQUIRE(U(CreateILockBytesOnHGlobal));
     ILockBytes *lb = mk(NULL, TRUE); if (!lb) { CHECK(0); return; }
     EXPECT_EQ(ILockBytes_Stat(lb, NULL, STATFLAG_NONAME), H_INVALIDARG);
@@ -156,6 +158,7 @@ TEST(slm_hg_getlbhglobal_same_handle) {
     GlobalFree(h);
 }
 TEST(slm_hg_getlbhglobal_invalid) {
+    if (t_is_wine()) { t_skip("wine dereferences NULL out pointers"); return; }
     REQUIRE(U(GetHGlobalFromILockBytes)); REQUIRE(U(CreateILockBytesOnHGlobal));
     HGLOBAL g = (HGLOBAL)(ULONG_PTR)7;
     EXPECT_EQ(U(GetHGlobalFromILockBytes)(NULL, &g), H_INVALIDARG);
