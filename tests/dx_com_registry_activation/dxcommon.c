@@ -175,6 +175,7 @@ void dx_reg_local(GUID *clsid, const char *apt, const char *regcls, char *key, s
 static HANDLE g_qev[64]; static unsigned g_qid[64]; static int g_nq;
 void dx_local_prepare(const GUID *c) {
     char n[100]; qname(c, n, sizeof n);
+    for (int i = 0; i < g_nq; i++) if (g_qid[i] == c->Data3 && g_qev[i]) { ResetEvent(g_qev[i]); return; }
     if (g_nq < 64) { g_qev[g_nq] = CreateEventA(NULL, TRUE, FALSE, n); g_qid[g_nq++] = c->Data3; }
 }
 void dx_local_stop(const GUID *c, DWORD pid) {
@@ -334,3 +335,5 @@ CHILD(dxlsrv) {
     U(CoUninitialize)();
     return 0;
 }
+
+CHILD(dxexit) { return 0; }   /* a "server" that exits without registering its class */
