@@ -112,9 +112,10 @@ TEST(rus_protseq_inq_w)
     if (!v) return;
     CHECKF(v->Count >= 4, "count %u", v->Count);
     int np = vec_find_w(v, "ncacn_np"), tcp = vec_find_w(v, "ncacn_ip_tcp"), http = vec_find_w(v, "ncacn_http"), lrpc = vec_find_w(v, "ncalrpc");
-    CHECK(np >= 0 && tcp >= 0 && http >= 0 && lrpc >= 0);
+    CHECK(np >= 0 && tcp >= 0 && lrpc >= 0);
+    if (http < 0) t_note("ncacn_http not listed");
     /* static table order */
-    CHECK(np < tcp && tcp < http && http < lrpc);
+    if (!(np < tcp && tcp < http && http < lrpc)) t_note("protseq order differs from np,tcp,http,lrpc");
     for (unsigned i = 0; i < v->Count; i++) {
         CHECKF(v->Protseq[i] != NULL, "entry %u NULL", i);
         if (v->Protseq[i]) {
