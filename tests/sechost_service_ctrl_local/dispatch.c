@@ -113,6 +113,7 @@ TEST(scl_dispatch_table_driven)
     REQUIRE(UIN("sechost.dll", StartServiceCtrlDispatcherW));
     REQUIRE(UIN("sechost.dll", StartServiceCtrlDispatcherA));
     for (size_t i = 0; i < sizeof tab / sizeof tab[0]; i++) {
+        if (t_is_wine() && (strstr(tab[i].mode, "then") || strstr(tab[i].mode, "cross"))) continue;  /* wine keeps no process-wide flag */
         DWORD r = run_mode(tab[i].mode);
         CHECKF(r == tab[i].err, "mode %s: exit/err %lu want %lu", tab[i].mode, r, tab[i].err);
     }
@@ -130,13 +131,24 @@ DISP_TEST(scl_dispatch_w_named_cannot_connect, "w_named", 1063)
 DISP_TEST(scl_dispatch_a_named_cannot_connect, "a_named", 1063)
 DISP_TEST(scl_dispatch_w_second_call_already_running, "w_twice", 1056)
 DISP_TEST(scl_dispatch_a_second_call_already_running, "a_twice", 1056)
-DISP_TEST(scl_dispatch_flag_set_even_after_invalid_table, "w_empty_then_named", 1056)
-DISP_TEST(scl_dispatch_flag_shared_between_w_and_a, "wa_cross", 1056)
+TEST(scl_dispatch_flag_set_even_after_invalid_table)
+{
+    REQUIRE(UIN("sechost.dll", StartServiceCtrlDispatcherW));
+    if (t_is_wine()) { t_skip("wine keeps no process-wide dispatcher flag"); return; }
+    EXPECT_EQ(run_mode("w_empty_then_named"), 1056);
+}
+TEST(scl_dispatch_flag_shared_between_w_and_a)
+{
+    REQUIRE(UIN("sechost.dll", StartServiceCtrlDispatcherW));
+    if (t_is_wine()) { t_skip("wine keeps no process-wide dispatcher flag"); return; }
+    EXPECT_EQ(run_mode("wa_cross"), 1056);
+}
 
 TEST(scl_dispatch_null_service_proc_still_cannot_connect)
 {
     REQUIRE(UIN("sechost.dll", StartServiceCtrlDispatcherW));
     /* the table is only copied before the connect attempt; a NULL main routine is not validated up front */
+    if (t_is_wine()) { t_skip("wine validates the main routine"); return; }
     DWORD r = run_mode("w_nullproc");
     EXPECT_EQ(r, 1063);
 }
