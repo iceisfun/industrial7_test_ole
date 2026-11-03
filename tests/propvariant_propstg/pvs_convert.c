@@ -13,7 +13,7 @@ static void ipss_name(WCHAR *out) {
     memcpy(out, t, sizeof t);
 }
 
-TEST(fmtid_name_null_arguments) {
+TEST(pvps_fmtid_name_null_arguments) {
     REQUIRE(U(FmtIdToPropStgName));
     WCHAR name[32];
     EQ(U(FmtIdToPropStgName)(NULL, name), E_INVALIDARG_);
@@ -21,7 +21,7 @@ TEST(fmtid_name_null_arguments) {
     EQ(U(FmtIdToPropStgName)(NULL, NULL), E_INVALIDARG_);
 }
 
-TEST(fmtid_name_well_known) {
+TEST(pvps_fmtid_name_well_known) {
     REQUIRE(U(FmtIdToPropStgName));
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     WCHAR name[40];
@@ -36,7 +36,7 @@ TEST(fmtid_name_well_known) {
     CHECK(!lstrcmpW(name, NAME_DSI));
 }
 
-TEST(fmtid_name_generic_guid) {
+TEST(pvps_fmtid_name_generic_guid) {
     REQUIRE(U(FmtIdToPropStgName));
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     WCHAR name[40], want[40];
@@ -47,7 +47,7 @@ TEST(fmtid_name_generic_guid) {
     EQ(name[0], 5);
 }
 
-TEST(fmtid_name_shape_for_arbitrary_guids) {
+TEST(pvps_fmtid_name_shape_for_arbitrary_guids) {
     REQUIRE(U(FmtIdToPropStgName));
     GUID g[8] = {G_ANY_GUID, G_ANY_GUID2, G_NULL_GUID, G_IID_IUnknown, G_IID_IPropStg};
     memset(&g[5], 0xFF, sizeof(GUID));
@@ -65,7 +65,7 @@ TEST(fmtid_name_shape_for_arbitrary_guids) {
     }
 }
 
-TEST(fmtid_name_distinct_for_distinct_guids) {
+TEST(pvps_fmtid_name_distinct_for_distinct_guids) {
     REQUIRE(U(FmtIdToPropStgName));
     static WCHAR names[64][40];
     for (int i = 0; i < 64; i++) {
@@ -86,7 +86,7 @@ static int guid_roundtrip(const GUID *g) {
     return guid_eq(g, &back);
 }
 
-TEST(fmtid_name_roundtrip_table) {
+TEST(pvps_fmtid_name_roundtrip_table) {
     REQUIRE(U(FmtIdToPropStgName)); REQUIRE(U(PropStgNameToFmtId));
     GUID tab[12] = {G_FMTID_SI, G_FMTID_DSI, G_IID_IUnknown, G_IID_IPropSetStg, G_IID_IPropStg, G_ANY_GUID, G_ANY_GUID2, G_NULL_GUID};
     memset(&tab[8], 0xFF, 16); memset(&tab[9], 0x5A, 16); memset(&tab[10], 0xA5, 16);
@@ -99,7 +99,7 @@ TEST(fmtid_name_roundtrip_table) {
     CHECK(guid_eq(&back, &G_FMTID_DSI));
 }
 
-TEST(fmtid_name_roundtrip_bit_patterns) {
+TEST(pvps_fmtid_name_roundtrip_bit_patterns) {
     REQUIRE(U(FmtIdToPropStgName)); REQUIRE(U(PropStgNameToFmtId));
     int bad = 0;
     for (int bit = 0; bit < 128; bit++) {
@@ -111,7 +111,7 @@ TEST(fmtid_name_roundtrip_bit_patterns) {
     CHECKF(bad == 0, "%d single-bit guids failed to round trip", bad);
 }
 
-TEST(fmtid_name_to_fmtid_null_arguments) {
+TEST(pvps_fmtid_name_to_fmtid_null_arguments) {
     REQUIRE(U(PropStgNameToFmtId));
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     GUID g; WCHAR dsi[40]; lstrcpyW(dsi, NAME_DSI);
@@ -120,7 +120,7 @@ TEST(fmtid_name_to_fmtid_null_arguments) {
     EQ(U(PropStgNameToFmtId)(dsi, NULL), E_INVALIDARG_);
 }
 
-TEST(fmtid_name_to_fmtid_well_known) {
+TEST(pvps_fmtid_name_to_fmtid_well_known) {
     REQUIRE(U(PropStgNameToFmtId));
     GUID g; WCHAR n[40], want[40];
     lstrcpyW(n, NAME_SI); memset(&g, 0, sizeof g);
@@ -131,7 +131,7 @@ TEST(fmtid_name_to_fmtid_well_known) {
     EQ(U(PropStgNameToFmtId)(want, &g), S_OK); CHECK(guid_eq(&g, &G_IID_IPropSetStg));
 }
 
-TEST(fmtid_name_to_fmtid_case_insensitive) {
+TEST(pvps_fmtid_name_to_fmtid_case_insensitive) {
     REQUIRE(U(PropStgNameToFmtId));
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     GUID g; WCHAR n[40];
@@ -147,7 +147,7 @@ TEST(fmtid_name_to_fmtid_case_insensitive) {
     EQ(U(PropStgNameToFmtId)(n, &g), S_OK); CHECK(guid_eq(&g, &G_IID_IPropSetStg));
 }
 
-TEST(fmtid_name_to_fmtid_rejects_malformed) {
+TEST(pvps_fmtid_name_to_fmtid_rejects_malformed) {
     REQUIRE(U(PropStgNameToFmtId));
     GUID g; WCHAR n[40];
     static const WCHAR *bad[] = { L"", L"SummaryInformation", L"\005", L"\005Summary", L"\005NotAKnownName",
@@ -210,7 +210,7 @@ static void ser_expect(const char *what, const PROPVARIANT *pv, USHORT cp, const
     }
 }
 
-TEST(serialize_scalars_unicode) {
+TEST(pvps_serialize_scalars_unicode) {
     REQUIRE_V2P();
     PROPVARIANT v;
     { static const BYTE e[] = {3,0,0,0, 0xef,0xcd,0xab,0xfe}; PropVariantInit(&v); v.vt = VT_I4; v.lVal = 0xfeabcdef; ser_expect("I4", &v, CP_WINUNICODE, e, 8); }
@@ -224,7 +224,7 @@ TEST(serialize_scalars_unicode) {
     { static const BYTE e[] = {0xa,0,0,0, 0x57,0,7,0x80}; PropVariantInit(&v); v.vt = VT_ERROR; v.scode = (SCODE)0x80070057; ser_expect("ERROR", &v, CP_WINUNICODE, e, 8); }
 }
 
-TEST(serialize_8byte_scalars_unicode) {
+TEST(pvps_serialize_8byte_scalars_unicode) {
     REQUIRE_V2P();
     PROPVARIANT v;
     { static const BYTE e[] = {5,0,0,0, 0,0,0,0,0,0,0xf0,0x3f}; PropVariantInit(&v); v.vt = VT_R8; v.dblVal = 1.0; ser_expect("R8", &v, CP_WINUNICODE, e, 12); }
@@ -235,7 +235,7 @@ TEST(serialize_8byte_scalars_unicode) {
     { static const BYTE e[] = {7,0,0,0, 0,0,0,0,0,0,0xf0,0x3f}; PropVariantInit(&v); v.vt = VT_DATE; v.date = 1.0; ser_expect("DATE", &v, CP_WINUNICODE, e, 12); }
 }
 
-TEST(serialize_empty_null) {
+TEST(pvps_serialize_empty_null) {
     REQUIRE_V2P();
     /* adapted from Wine dlls/ole32/tests/propvariant.c (LGPL-2.1+) */
     PROPVARIANT v; PropVariantInit(&v);
@@ -244,7 +244,7 @@ TEST(serialize_empty_null) {
     v.vt = VT_NULL;  ser_expect("NULL", &v, CP_WINUNICODE, en, 4);
 }
 
-TEST(serialize_strings_unicode_codepage) {
+TEST(pvps_serialize_strings_unicode_codepage) {
     REQUIRE_V2P();
     PROPVARIANT v;
     /* LPWSTR: type, length in characters including NUL, UTF-16 data padded to 4 */
@@ -261,7 +261,7 @@ TEST(serialize_strings_unicode_codepage) {
       ser_expect("BSTR test @1200", &v, CP_WINUNICODE, e, 20); U(SysFreeString)(b); }
 }
 
-TEST(serialize_strings_ansi_codepages) {
+TEST(pvps_serialize_strings_ansi_codepages) {
     REQUIRE_V2P(); REQUIRE(U(SysAllocString));
     PROPVARIANT v;
     /* adapted from Wine dlls/ole32/tests/propvariant.c (LGPL-2.1+): BSTR at CP_UTF8 */
@@ -280,7 +280,7 @@ TEST(serialize_strings_ansi_codepages) {
       PropVariantInit(&v); v.vt = VT_LPSTR; v.pszVal = ""; ser_expect("LPSTR empty @1252", &v, 1252, e, 12); }
 }
 
-TEST(serialize_blob_clsid) {
+TEST(pvps_serialize_blob_clsid) {
     REQUIRE_V2P();
     PROPVARIANT v;
     { static const BYTE e[] = {0x41,0,0,0, 3,0,0,0, 1,2,3,0}; BYTE d[] = {1,2,3};
@@ -293,7 +293,7 @@ TEST(serialize_blob_clsid) {
       PropVariantInit(&v); v.vt = VT_CLSID; v.puuid = &g; ser_expect("CLSID", &v, CP_WINUNICODE, e, 20); }
 }
 
-TEST(serialize_vectors) {
+TEST(pvps_serialize_vectors) {
     REQUIRE_V2P();
     PROPVARIANT v;
     { static const BYTE e[] = {0x10,0x10,0,0, 3,0,0,0, 1,2,3,0}; BYTE d[] = {1,2,3};   /* VT_VECTOR|VT_I1 */
@@ -310,7 +310,7 @@ TEST(serialize_vectors) {
       (void)e; }
 }
 
-TEST(serialize_variant_vector) {
+TEST(pvps_serialize_variant_vector) {
     REQUIRE_V2P();
     PROPVARIANT el[2]; memset(el, 0, sizeof el);
     el[0].vt = VT_I1; el[0].cVal = 1; el[1].vt = VT_I4; el[1].lVal = 2;
@@ -320,7 +320,7 @@ TEST(serialize_variant_vector) {
     ser_expect("VARIANT vector", &v, CP_WINUNICODE, e, 24);
 }
 
-TEST(serialize_buffer_protocol) {
+TEST(pvps_serialize_buffer_protocol) {
     REQUIRE_V2P();
     pfnV2P f = v2p();
     PROPVARIANT v; PropVariantInit(&v); v.vt = VT_I4; v.lVal = 7;
@@ -344,7 +344,7 @@ TEST(serialize_buffer_protocol) {
     CHECK(r == (SERIALIZEDPROPERTYVALUE *)raw); EQ(len, 8);
 }
 
-TEST(serialize_unsupported_vt_fails) {
+TEST(pvps_serialize_unsupported_vt_fails) {
     REQUIRE_V2P();
     pfnV2P f = v2p();
     static const VARTYPE bad[] = {VT_DISPATCH, VT_UNKNOWN, VT_VARIANT, VT_VOID, VT_HRESULT, VT_PTR, VT_SAFEARRAY, VT_USERDEFINED};
@@ -357,7 +357,7 @@ TEST(serialize_unsupported_vt_fails) {
     }
 }
 
-TEST(serialize_roundtrip_through_deserialize) {
+TEST(pvps_serialize_roundtrip_through_deserialize) {
     REQUIRE_V2P(); REQUIRE(p2v()); REQUIRE(U(CoTaskMemAlloc));
     pfnV2P f = v2p(); pfnP2V g = p2v();
     PROPVARIANT src[8]; memset(src, 0, sizeof src);
@@ -398,7 +398,7 @@ static void de_expect_i4(const BYTE *img, USHORT cp, const char *what, LONG want
     CHECKF(a.allocs == 0, "%s used the allocator %d times for a scalar", what, a.allocs);
 }
 
-TEST(deserialize_scalars) {
+TEST(pvps_deserialize_scalars) {
     REQUIRE(p2v()); REQUIRE(U(CoTaskMemAlloc));
     /* adapted from Wine dlls/ole32/tests/propvariant.c (LGPL-2.1+) */
     static const BYTE i4[] = {3,0,0,0, 0xef,0xcd,0xab,0xfe};
@@ -421,7 +421,7 @@ TEST(deserialize_scalars) {
     EQ(p.filetime.dwLowDateTime, 0x12345678); CHECK(p.filetime.dwHighDateTime == 0x9abcdef0);
 }
 
-TEST(deserialize_strings) {
+TEST(pvps_deserialize_strings) {
     REQUIRE(p2v()); REQUIRE(U(CoTaskMemAlloc)); REQUIRE(U(PropVariantClear));
     TAlloc a; ta_init(&a); PROPVARIANT p;
     static const BYTE wc[] = {8,0,0,0, 10,0,0,0, 't',0,'e',0,'s',0,'t',0,0,0,0,0};
@@ -453,7 +453,7 @@ TEST(deserialize_strings) {
     U(PropVariantClear)(&p);
 }
 
-TEST(deserialize_blob_clsid) {
+TEST(pvps_deserialize_blob_clsid) {
     REQUIRE(p2v()); REQUIRE(U(PropVariantClear));
     TAlloc a; ta_init(&a); PROPVARIANT p;
     static const BYTE bl[] = {0x41,0,0,0, 3,0,0,0, 1,2,3,0};
@@ -469,7 +469,7 @@ TEST(deserialize_blob_clsid) {
     U(PropVariantClear)(&p);
 }
 
-TEST(deserialize_vectors) {
+TEST(pvps_deserialize_vectors) {
     REQUIRE(p2v()); REQUIRE(U(PropVariantClear));
     /* adapted from Wine dlls/ole32/tests/propvariant.c (LGPL-2.1+) */
     TAlloc a; ta_init(&a); PROPVARIANT p;
@@ -504,7 +504,7 @@ TEST(deserialize_vectors) {
     U(PropVariantClear)(&p);
 }
 
-TEST(deserialize_unsupported_type_fails) {
+TEST(pvps_deserialize_unsupported_type_fails) {
     REQUIRE(p2v());
     TAlloc a; ta_init(&a);
     static const BYTE bad[][8] = { {0x7f,0x7f,0,0, 0,0,0,0}, {0x18,0,0,0, 0,0,0,0}, {0x1a,0,0,0, 0,0,0,0}, {0x24,0,0,0, 0,0,0,0}, {0x0f,0,0,0, 0,0,0,0} };
@@ -515,7 +515,7 @@ TEST(deserialize_unsupported_type_fails) {
     }
 }
 
-TEST(propertylength_as_variant_observed) {
+TEST(pvps_propertylength_as_variant_observed) {
     REQUIRE(UN(StgPropertyLengthAsVariant));
     /* Undocumented helper: returns the in-memory size the property needs as a PROPVARIANT payload.
        Only record what Windows reports; the corpus does not (yet) assert on it. */

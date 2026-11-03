@@ -104,8 +104,8 @@ static void rt_scalars(DWORD flags) {
     RT("VT_FILETIME", (v_.vt = VT_FILETIME, v_.filetime.dwLowDateTime = 0x01234567, v_.filetime.dwHighDateTime = 0x01d00000), 1);
 }
 
-TEST(rt_scalars_unicode_set) { REQUIRE(U(StgCreatePropSetStg)); COM_BEGIN(); rt_scalars(PROPSETFLAG_DEFAULT); COM_END(); }
-TEST(rt_scalars_ansi_set)    { REQUIRE(U(StgCreatePropSetStg)); COM_BEGIN(); rt_scalars(PROPSETFLAG_ANSI); COM_END(); }
+TEST(pvps_rt_scalars_unicode_set) { REQUIRE(U(StgCreatePropSetStg)); COM_BEGIN(); rt_scalars(PROPSETFLAG_DEFAULT); COM_END(); }
+TEST(pvps_rt_scalars_ansi_set)    { REQUIRE(U(StgCreatePropSetStg)); COM_BEGIN(); rt_scalars(PROPSETFLAG_ANSI); COM_END(); }
 
 static void rt_strings_blobs(DWORD flags) {
     RT("LPSTR", (v_.vt = VT_LPSTR, v_.pszVal = (LPSTR)"plain ascii text"), 1);
@@ -131,8 +131,8 @@ static void rt_strings_blobs(DWORD flags) {
     RT("CLSID", (v_.vt = VT_CLSID, v_.puuid = &g), 1);
 }
 
-TEST(rt_strings_blobs_unicode_set) { REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(SysAllocString)); COM_BEGIN(); rt_strings_blobs(PROPSETFLAG_DEFAULT); COM_END(); }
-TEST(rt_strings_blobs_ansi_set)    { REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(SysAllocString)); COM_BEGIN(); rt_strings_blobs(PROPSETFLAG_ANSI); COM_END(); }
+TEST(pvps_rt_strings_blobs_unicode_set) { REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(SysAllocString)); COM_BEGIN(); rt_strings_blobs(PROPSETFLAG_DEFAULT); COM_END(); }
+TEST(pvps_rt_strings_blobs_ansi_set)    { REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(SysAllocString)); COM_BEGIN(); rt_strings_blobs(PROPSETFLAG_ANSI); COM_END(); }
 
 static void rt_vectors(DWORD flags) {
     { static const CHAR e[] = {-1, 0, 1, 127, -128};  RT("vector I1", (v_.vt = VT_VECTOR | VT_I1, v_.cac.cElems = 5, v_.cac.pElems = (CHAR *)e), 1); }
@@ -165,10 +165,10 @@ static void rt_vectors(DWORD flags) {
     RT("vector I4 empty", (v_.vt = VT_VECTOR | VT_I4, v_.cal.cElems = 0, v_.cal.pElems = NULL), 0);
 }
 
-TEST(rt_vectors_unicode_set) { REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(SysAllocString)); COM_BEGIN(); rt_vectors(PROPSETFLAG_DEFAULT); COM_END(); }
-TEST(rt_vectors_ansi_set)    { REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(SysAllocString)); COM_BEGIN(); rt_vectors(PROPSETFLAG_ANSI); COM_END(); }
+TEST(pvps_rt_vectors_unicode_set) { REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(SysAllocString)); COM_BEGIN(); rt_vectors(PROPSETFLAG_DEFAULT); COM_END(); }
+TEST(pvps_rt_vectors_ansi_set)    { REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(SysAllocString)); COM_BEGIN(); rt_vectors(PROPSETFLAG_ANSI); COM_END(); }
 
-TEST(rt_nonsimple_set_scalars_and_strings) {
+TEST(pvps_rt_nonsimple_set_scalars_and_strings) {
     REQUIRE(U(StgCreatePropSetStg));
     if (t_is_wine()) { t_skip("wine lacks nonsimple property sets"); return; }
     COM_BEGIN();
@@ -182,7 +182,7 @@ TEST(rt_nonsimple_set_scalars_and_strings) {
     COM_END();
 }
 
-TEST(rt_nonsimple_stream_and_storage_properties) {
+TEST(pvps_rt_nonsimple_stream_and_storage_properties) {
     REQUIRE(U(StgCreatePropSetStg));
     if (t_is_wine()) { t_skip("wine lacks nonsimple property sets"); return; }
     COM_BEGIN();
@@ -215,7 +215,7 @@ TEST(rt_nonsimple_stream_and_storage_properties) {
     COM_END();
 }
 
-TEST(rt_stream_property_rejected_in_simple_set) {
+TEST(pvps_rt_stream_property_rejected_in_simple_set) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -238,7 +238,7 @@ TEST(rt_stream_property_rejected_in_simple_set) {
 
 /* ------------------------------------------------------------------ persistence */
 
-TEST(persist_mixed_set_survives_reopen) {
+TEST(pvps_persist_mixed_set_survives_reopen) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     for (int pass = 0; pass < 2; pass++) {
@@ -272,7 +272,7 @@ TEST(persist_mixed_set_survives_reopen) {
     COM_END();
 }
 
-TEST(persist_second_reopen_and_modify) {
+TEST(pvps_persist_second_reopen_and_modify) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -295,7 +295,7 @@ TEST(persist_second_reopen_and_modify) {
     COM_END();
 }
 
-TEST(persist_release_without_commit_observed) {
+TEST(pvps_persist_release_without_commit_observed) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -316,7 +316,7 @@ TEST(persist_release_without_commit_observed) {
     COM_END();
 }
 
-TEST(persist_survives_storage_commit_and_file_reopen_readonly) {
+TEST(pvps_persist_survives_storage_commit_and_file_reopen_readonly) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -367,25 +367,25 @@ static void large_case(DWORD flags, const char *leaf, ULONG size, int as_blob) {
     fx_close(&f);
 }
 
-TEST(large_blob_boundaries_simple) {
+TEST(pvps_large_blob_boundaries_simple) {
     REQUIRE(U(StgCreatePropSetStg)); COM_BEGIN();
     static const ULONG sizes[] = {4000, 4084, 4085, 4096, 4097, 8192, 65536, 300000};
     for (int i = 0; i < N_ELEM(sizes); i++) large_case(PROPSETFLAG_DEFAULT, "large_blob.stg", sizes[i], 1);
     COM_END();
 }
-TEST(large_lpstr_boundaries_simple_ansi) {
+TEST(pvps_large_lpstr_boundaries_simple_ansi) {
     REQUIRE(U(StgCreatePropSetStg)); COM_BEGIN();
     static const ULONG sizes[] = {4095, 4096, 5000, 70000};
     for (int i = 0; i < N_ELEM(sizes); i++) large_case(PROPSETFLAG_ANSI, "large_lpstr.stg", sizes[i], 0);
     COM_END();
 }
-TEST(large_lpstr_unicode_set) {
+TEST(pvps_large_lpstr_unicode_set) {
     REQUIRE(U(StgCreatePropSetStg)); COM_BEGIN();
     static const ULONG sizes[] = {2047, 2048, 5000, 70000};
     for (int i = 0; i < N_ELEM(sizes); i++) large_case(PROPSETFLAG_DEFAULT, "large_lpstr_u.stg", sizes[i], 0);
     COM_END();
 }
-TEST(large_blob_nonsimple) {
+TEST(pvps_large_blob_nonsimple) {
     REQUIRE(U(StgCreatePropSetStg));
     if (t_is_wine()) { t_skip("wine lacks nonsimple property sets"); return; }
     COM_BEGIN();
@@ -394,7 +394,7 @@ TEST(large_blob_nonsimple) {
     COM_END();
 }
 
-TEST(large_many_small_properties) {
+TEST(pvps_large_many_small_properties) {
     REQUIRE(U(StgCreatePropSetStg)); COM_BEGIN();
     FX f;
     if (fx_new(&f, "many_props.stg", &G_ANY_GUID, PROPSETFLAG_DEFAULT)) {
@@ -417,7 +417,7 @@ TEST(large_many_small_properties) {
 
 /* ------------------------------------------------------------------ standard property sets */
 
-TEST(stdset_summary_information_roundtrip) {
+TEST(pvps_stdset_summary_information_roundtrip) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -455,7 +455,7 @@ TEST(stdset_summary_information_roundtrip) {
     COM_END();
 }
 
-TEST(stdset_document_summary_information_types) {
+TEST(pvps_stdset_document_summary_information_types) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -495,7 +495,7 @@ TEST(stdset_document_summary_information_types) {
     COM_END();
 }
 
-TEST(stdset_user_defined_named_properties) {
+TEST(pvps_stdset_user_defined_named_properties) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -536,7 +536,7 @@ static ULONG find_prop(const BYTE *p, ULONG len, ULONG sect, DWORD id) {
     return 0;
 }
 
-TEST(layout_header_and_codepage_property) {
+TEST(pvps_layout_header_and_codepage_property) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     for (int pass = 0; pass < 2; pass++) {
@@ -577,7 +577,7 @@ TEST(layout_header_and_codepage_property) {
     COM_END();
 }
 
-TEST(layout_string_encodings) {
+TEST(pvps_layout_string_encodings) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     for (int pass = 0; pass < 2; pass++) {
@@ -613,7 +613,7 @@ TEST(layout_string_encodings) {
     COM_END();
 }
 
-TEST(layout_dictionary_property) {
+TEST(pvps_layout_dictionary_property) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     for (int pass = 0; pass < 2; pass++) {
@@ -643,7 +643,7 @@ TEST(layout_dictionary_property) {
     COM_END();
 }
 
-TEST(layout_section_size_and_alignment) {
+TEST(pvps_layout_section_size_and_alignment) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -684,7 +684,7 @@ static HRESULT open_crafted(FX *f, const char *leaf, const GUID *fmtid, const PB
     return CALL(f->pss, Open, fmtid, STGM_RW_EX, &f->ps);
 }
 
-TEST(crafted_ansi_set_with_dictionary) {
+TEST(pvps_crafted_ansi_set_with_dictionary) {
     REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(FmtIdToPropStgName));
     COM_BEGIN();
     PB p; pb_set_header(&p, &G_ANY_GUID);
@@ -729,7 +729,7 @@ TEST(crafted_ansi_set_with_dictionary) {
     COM_END();
 }
 
-TEST(crafted_unicode_set_strings) {
+TEST(pvps_crafted_unicode_set_strings) {
     REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(FmtIdToPropStgName));
     COM_BEGIN();
     PB p; pb_set_header(&p, &G_ANY_GUID);
@@ -761,7 +761,7 @@ TEST(crafted_unicode_set_strings) {
     COM_END();
 }
 
-TEST(crafted_scalar_types) {
+TEST(pvps_crafted_scalar_types) {
     REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(FmtIdToPropStgName));
     COM_BEGIN();
     PB p; pb_set_header(&p, &G_ANY_GUID);
@@ -800,7 +800,7 @@ TEST(crafted_scalar_types) {
     COM_END();
 }
 
-TEST(crafted_corrupt_sections) {
+TEST(pvps_crafted_corrupt_sections) {
     REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(FmtIdToPropStgName));
     COM_BEGIN();
     for (int variant = 0; variant < 4; variant++) {
@@ -829,7 +829,7 @@ TEST(crafted_corrupt_sections) {
     COM_END();
 }
 
-TEST(crafted_format_version_1_accepted) {
+TEST(pvps_crafted_format_version_1_accepted) {
     REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(FmtIdToPropStgName));
     COM_BEGIN();
     PB p; pb_set_header(&p, &G_ANY_GUID);
@@ -846,7 +846,7 @@ TEST(crafted_format_version_1_accepted) {
     COM_END();
 }
 
-TEST(crafted_header_clsid_visible_in_stat) {
+TEST(pvps_crafted_header_clsid_visible_in_stat) {
     REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(FmtIdToPropStgName));
     COM_BEGIN();
     PB p; pb_set_header(&p, &G_ANY_GUID);

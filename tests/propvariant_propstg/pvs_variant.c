@@ -9,13 +9,13 @@ static void fill(void *p, size_t n, unsigned seed) { BYTE *b = p; for (size_t i 
 
 /* ------------------------------------------------------------------ Clear: argument handling */
 
-TEST(pvc_clear_null_pointer) {
+TEST(pvps_pvc_clear_null_pointer) {
     REQUIRE(U(PropVariantClear));
     /* decomp: PropVariantClearWorker returns 0 for a NULL pointer */
     EQ(U(PropVariantClear)(NULL), S_OK);
 }
 
-TEST(pvc_init_macro_is_zero) {
+TEST(pvps_pvc_init_macro_is_zero) {
     PROPVARIANT v; memset(&v, 0x5A, sizeof v);
     PropVariantInit(&v);
     CHECK(pv_zero(&v));
@@ -25,7 +25,7 @@ TEST(pvc_init_macro_is_zero) {
     EQ(offsetof(PROPVARIANT, caub.pElems), 16);
 }
 
-TEST(pvc_clear_empty_and_null) {
+TEST(pvps_pvc_clear_empty_and_null) {
     REQUIRE(U(PropVariantClear));
     PROPVARIANT v;
     memset(&v, 0, sizeof v);
@@ -46,7 +46,7 @@ static const struct { VARTYPE vt; const char *n; } scalars[] = {
     {VT_INT,"INT"},{VT_UINT,"UINT"},{VT_FILETIME,"FILETIME"},
 };
 
-TEST(pvc_clear_scalars_zero_struct) {
+TEST(pvps_pvc_clear_scalars_zero_struct) {
     REQUIRE(U(PropVariantClear));
     for (int i = 0; i < N_ELEM(scalars); i++) {
         PROPVARIANT v; memset(&v, 0x55, sizeof v);
@@ -57,7 +57,7 @@ TEST(pvc_clear_scalars_zero_struct) {
     }
 }
 
-TEST(pvc_clear_invalid_simple_vt) {
+TEST(pvps_pvc_clear_invalid_simple_vt) {
     REQUIRE(U(PropVariantClear));
     /* valid in a VARIANT/PROPVARIANT sense? no: these are rejected by Clear with STG_E_INVALIDPARAMETER
        (the failure is mapped from DISP_E_BADVARTYPE) and the structure is still zeroed. */
@@ -72,7 +72,7 @@ TEST(pvc_clear_invalid_simple_vt) {
     }
 }
 
-TEST(pvc_clear_garbage_vt_0x5555) {
+TEST(pvps_pvc_clear_garbage_vt_0x5555) {
     REQUIRE(U(PropVariantClear));
     PROPVARIANT v; memset(&v, 0x55, sizeof v);
     EQ(U(PropVariantClear)(&v), STG_E_INVALIDPARAMETER_);
@@ -80,7 +80,7 @@ TEST(pvc_clear_garbage_vt_0x5555) {
     CHECK(v.uhVal.QuadPart == 0);
 }
 
-TEST(pvc_clear_vt_illegal_0xffff_succeeds) {
+TEST(pvps_pvc_clear_vt_illegal_0xffff_succeeds) {
     REQUIRE(U(PropVariantClear));
     /* decomp: vt == 0xFFFF is special-cased to "nothing to free": S_OK and the struct is zeroed */
     PROPVARIANT v; memset(&v, 0, sizeof v); v.vt = 0xFFFF; v.lVal = 7;
@@ -88,7 +88,7 @@ TEST(pvc_clear_vt_illegal_0xffff_succeeds) {
     CHECK(pv_zero(&v));
 }
 
-TEST(pvc_clear_byref_not_freed) {
+TEST(pvps_pvc_clear_byref_not_freed) {
     REQUIRE(U(PropVariantClear)); REQUIRE(U(SysAllocString)); REQUIRE(U(SysStringLen)); REQUIRE(U(SysFreeString));
     LONG x = 42; PROPVARIANT v; PropVariantInit(&v);
     v.vt = VT_BYREF | VT_I4; v.plVal = &x;
@@ -105,7 +105,7 @@ TEST(pvc_clear_byref_not_freed) {
 
 /* ------------------------------------------------------------------ Clear: owned storage */
 
-TEST(pvc_clear_bstr) {
+TEST(pvps_pvc_clear_bstr) {
     REQUIRE(U(PropVariantClear)); REQUIRE(U(SysAllocString));
     PROPVARIANT v; PropVariantInit(&v);
     v.vt = VT_BSTR; v.bstrVal = U(SysAllocString)(L"hello bstr");
@@ -117,7 +117,7 @@ TEST(pvc_clear_bstr) {
     CHECK(pv_zero(&v));
 }
 
-TEST(pvc_clear_lpstr_lpwstr_clsid) {
+TEST(pvps_pvc_clear_lpstr_lpwstr_clsid) {
     REQUIRE(U(PropVariantClear)); REQUIRE(U(CoTaskMemAlloc));
     PROPVARIANT v;
     PropVariantInit(&v); v.vt = VT_LPSTR; v.pszVal = tm_strA("ansi");
@@ -132,7 +132,7 @@ TEST(pvc_clear_lpstr_lpwstr_clsid) {
     PropVariantInit(&v); v.vt = VT_CLSID; EQ(U(PropVariantClear)(&v), S_OK); CHECK(pv_zero(&v));
 }
 
-TEST(pvc_clear_blob) {
+TEST(pvps_pvc_clear_blob) {
     REQUIRE(U(PropVariantClear)); REQUIRE(U(CoTaskMemAlloc));
     PROPVARIANT v; PropVariantInit(&v);
     BYTE d[10]; fill(d, 10, 1);
@@ -144,7 +144,7 @@ TEST(pvc_clear_blob) {
     EQ(U(PropVariantClear)(&v), S_OK); CHECK(pv_zero(&v));
 }
 
-TEST(pvc_clear_cf_frees_both_allocations) {
+TEST(pvps_pvc_clear_cf_frees_both_allocations) {
     REQUIRE(U(PropVariantClear)); REQUIRE(U(CoTaskMemAlloc));
     PROPVARIANT v; PropVariantInit(&v);
     CLIPDATA *cd = tm_alloc(sizeof *cd);
@@ -155,7 +155,7 @@ TEST(pvc_clear_cf_frees_both_allocations) {
     EQ(U(PropVariantClear)(&v), S_OK); CHECK(pv_zero(&v));
 }
 
-TEST(pvc_clear_unknown_dispatch_releases) {
+TEST(pvps_pvc_clear_unknown_dispatch_releases) {
     REQUIRE(U(PropVariantClear));
     TUnk u; tu_init(&u); PROPVARIANT v; PropVariantInit(&v);
     u.ref = 2;                                  /* one for us, one owned by the variant */
@@ -169,7 +169,7 @@ TEST(pvc_clear_unknown_dispatch_releases) {
     EQ(U(PropVariantClear)(&v), S_OK); CHECK(pv_zero(&v));
 }
 
-TEST(pvc_clear_stream_storage_release) {
+TEST(pvps_pvc_clear_stream_storage_release) {
     REQUIRE(U(PropVariantClear));
     COM_BEGIN();
     FX f;
@@ -193,7 +193,7 @@ TEST(pvc_clear_stream_storage_release) {
     COM_END();
 }
 
-TEST(pvc_clear_streamed_stored_object_types) {
+TEST(pvps_pvc_clear_streamed_stored_object_types) {
     REQUIRE(U(PropVariantClear));
     COM_BEGIN();
     FX f;
@@ -219,7 +219,7 @@ static const struct { VARTYPE vt; size_t esz; const char *n; } vscalars[] = {
     {VT_CLSID,16,"CLSID"},
 };
 
-TEST(pvc_clear_vector_scalars) {
+TEST(pvps_pvc_clear_vector_scalars) {
     REQUIRE(U(PropVariantClear)); REQUIRE(U(CoTaskMemAlloc));
     for (int i = 0; i < N_ELEM(vscalars); i++) {
         PROPVARIANT v; PropVariantInit(&v);
@@ -236,7 +236,7 @@ TEST(pvc_clear_vector_scalars) {
     }
 }
 
-TEST(pvc_clear_vector_strings) {
+TEST(pvps_pvc_clear_vector_strings) {
     REQUIRE(U(PropVariantClear)); REQUIRE(U(CoTaskMemAlloc)); REQUIRE(U(SysAllocString));
     PROPVARIANT v; PropVariantInit(&v);
     v.vt = VT_VECTOR | VT_LPSTR; v.calpstr.cElems = 2;
@@ -258,7 +258,7 @@ TEST(pvc_clear_vector_strings) {
     EQ(U(PropVariantClear)(&v), S_OK); CHECK(pv_zero(&v));
 }
 
-TEST(pvc_clear_vector_variant_recursive) {
+TEST(pvps_pvc_clear_vector_variant_recursive) {
     REQUIRE(U(PropVariantClear)); REQUIRE(U(CoTaskMemAlloc)); REQUIRE(U(SysAllocString));
     PROPVARIANT v; PropVariantInit(&v);
     v.vt = VT_VECTOR | VT_VARIANT; v.capropvar.cElems = 3;
@@ -270,7 +270,7 @@ TEST(pvc_clear_vector_variant_recursive) {
     EQ(U(PropVariantClear)(&v), S_OK); CHECK(pv_zero(&v));
 }
 
-TEST(pvc_clear_vector_cf) {
+TEST(pvps_pvc_clear_vector_cf) {
     REQUIRE(U(PropVariantClear)); REQUIRE(U(CoTaskMemAlloc));
     PROPVARIANT v; PropVariantInit(&v);
     v.vt = VT_VECTOR | VT_CF; v.caclipdata.cElems = 2;
@@ -282,7 +282,7 @@ TEST(pvc_clear_vector_cf) {
     EQ(U(PropVariantClear)(&v), S_OK); CHECK(pv_zero(&v));
 }
 
-TEST(pvc_clear_safearray) {
+TEST(pvps_pvc_clear_safearray) {
     REQUIRE(U(PropVariantClear)); REQUIRE(U(SafeArrayCreate)); REQUIRE(U(SafeArrayPutElement));
     TUnk u; tu_init(&u);
     SAFEARRAYBOUND b = {2, 0};
@@ -300,7 +300,7 @@ TEST(pvc_clear_safearray) {
 
 /* ------------------------------------------------------------------ FreePropVariantArray */
 
-TEST(pvc_freearray_null_and_zero) {
+TEST(pvps_pvc_freearray_null_and_zero) {
     REQUIRE(U(FreePropVariantArray));
     EQ(U(FreePropVariantArray)(0, NULL), S_OK);          /* decomp: c==0 && p==NULL -> 0 */
     PROPVARIANT v; memset(&v, 0x55, sizeof v);
@@ -310,7 +310,7 @@ TEST(pvc_freearray_null_and_zero) {
     EQ(U(FreePropVariantArray)(100, NULL), E_INVALIDARG_);
 }
 
-TEST(pvc_freearray_clears_all_elements) {
+TEST(pvps_pvc_freearray_clears_all_elements) {
     REQUIRE(U(FreePropVariantArray)); REQUIRE(U(CoTaskMemAlloc));
     PROPVARIANT a[4]; memset(a, 0, sizeof a);
     a[0].vt = VT_I4; a[0].lVal = 9;
@@ -321,7 +321,7 @@ TEST(pvc_freearray_clears_all_elements) {
     for (int i = 0; i < 4; i++) CHECKF(pv_zero(&a[i]), "element %d not zeroed", i);
 }
 
-TEST(pvc_freearray_continues_past_invalid_element) {
+TEST(pvps_pvc_freearray_continues_past_invalid_element) {
     REQUIRE(U(FreePropVariantArray)); REQUIRE(U(CoTaskMemAlloc));
     PROPVARIANT a[3]; memset(a, 0, sizeof a);
     a[0].vt = VT_LPSTR; a[0].pszVal = tm_strA("first");
@@ -332,7 +332,7 @@ TEST(pvc_freearray_continues_past_invalid_element) {
     CHECK(pv_zero(&a[0])); CHECK(pv_zero(&a[2])); CHECK(a[1].vt == 0);
 }
 
-TEST(pvc_freearray_unknown_refs) {
+TEST(pvps_pvc_freearray_unknown_refs) {
     REQUIRE(U(FreePropVariantArray));
     TUnk u; tu_init(&u); u.ref = 3;
     PROPVARIANT a[2]; memset(a, 0, sizeof a);
@@ -344,7 +344,7 @@ TEST(pvc_freearray_unknown_refs) {
 
 /* ------------------------------------------------------------------ Copy */
 
-TEST(pvc_copy_null_arguments) {
+TEST(pvps_pvc_copy_null_arguments) {
     REQUIRE(U(PropVariantCopy));
     if (t_is_wine()) { t_skip("wine dereferences NULL"); return; }
     PROPVARIANT a, b; PropVariantInit(&a); PropVariantInit(&b); a.vt = VT_I4;
@@ -353,7 +353,7 @@ TEST(pvc_copy_null_arguments) {
     EQ(U(PropVariantCopy)(NULL, NULL), E_INVALIDARG_);
 }
 
-TEST(pvc_copy_scalars_bitwise) {
+TEST(pvps_pvc_copy_scalars_bitwise) {
     REQUIRE(U(PropVariantCopy));
     for (int i = 0; i < N_ELEM(scalars); i++) {
         PROPVARIANT s, d; memset(&s, 0, sizeof s); memset(&d, 0x77, sizeof d);
@@ -365,7 +365,7 @@ TEST(pvc_copy_scalars_bitwise) {
     }
 }
 
-TEST(pvc_copy_empty_null) {
+TEST(pvps_pvc_copy_empty_null) {
     REQUIRE(U(PropVariantCopy));
     PROPVARIANT s, d; PropVariantInit(&s); memset(&d, 0x77, sizeof d);
     EQ(U(PropVariantCopy)(&d, &s), S_OK); EQ(d.vt, VT_EMPTY);
@@ -373,7 +373,7 @@ TEST(pvc_copy_empty_null) {
     EQ(U(PropVariantCopy)(&d, &s), S_OK); EQ(d.vt, VT_NULL);
 }
 
-TEST(pvc_copy_decimal_and_variant_types) {
+TEST(pvps_pvc_copy_decimal_and_variant_types) {
     REQUIRE(U(PropVariantCopy));
     PROPVARIANT s, d; memset(&s, 0, sizeof s); memset(&d, 0, sizeof d);
     s.vt = VT_DECIMAL; s.decVal.Lo64 = 0x1122334455667788ull; s.decVal.Hi32 = 0x99; s.decVal.scale = 2; s.decVal.sign = 0x80;
@@ -383,7 +383,7 @@ TEST(pvc_copy_decimal_and_variant_types) {
     EQ(d.decVal.scale, 2); EQ(d.decVal.sign, 0x80);
 }
 
-TEST(pvc_copy_bstr_independent) {
+TEST(pvps_pvc_copy_bstr_independent) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear)); REQUIRE(U(SysAllocString));
     REQUIRE(U(SysStringLen)); REQUIRE(U(SysAllocStringLen));
     PROPVARIANT s, d; PropVariantInit(&s); PropVariantInit(&d);
@@ -402,7 +402,7 @@ TEST(pvc_copy_bstr_independent) {
     EQ(d.vt, VT_BSTR); CHECK(d.bstrVal == NULL);
 }
 
-TEST(pvc_copy_bstr_embedded_nul_truncates) {
+TEST(pvps_pvc_copy_bstr_embedded_nul_truncates) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear)); REQUIRE(U(SysAllocStringLen)); REQUIRE(U(SysStringLen));
     /* adapted from Wine dlls/ole32/tests/propvariant.c (LGPL-2.1+) */
     PROPVARIANT s, d; PropVariantInit(&s); PropVariantInit(&d);
@@ -415,7 +415,7 @@ TEST(pvc_copy_bstr_embedded_nul_truncates) {
     U(PropVariantClear)(&s); U(PropVariantClear)(&d);
 }
 
-TEST(pvc_copy_lpstr_lpwstr) {
+TEST(pvps_pvc_copy_lpstr_lpwstr) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear));
     char as[] = "Test String"; WCHAR ws[] = L"Test String";
     PROPVARIANT s, d; PropVariantInit(&s); PropVariantInit(&d);
@@ -438,7 +438,7 @@ TEST(pvc_copy_lpstr_lpwstr) {
     EQ(U(PropVariantCopy)(&d, &s), S_OK); EQ(d.vt, VT_LPWSTR); CHECK(d.pwszVal == NULL);
 }
 
-TEST(pvc_copy_clsid_filetime) {
+TEST(pvps_pvc_copy_clsid_filetime) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear));
     PROPVARIANT s, d; PropVariantInit(&s); PropVariantInit(&d);
     GUID g = G_ANY_GUID;
@@ -451,7 +451,7 @@ TEST(pvc_copy_clsid_filetime) {
     EQ(d.filetime.dwLowDateTime, 0x1234); EQ(d.filetime.dwHighDateTime, 0x5678);
 }
 
-TEST(pvc_copy_blob) {
+TEST(pvps_pvc_copy_blob) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear));
     BYTE data[33]; fill(data, sizeof data, 9);
     PROPVARIANT s, d; PropVariantInit(&s); PropVariantInit(&d);
@@ -469,7 +469,7 @@ TEST(pvc_copy_blob) {
     U(PropVariantClear)(&d);
 }
 
-TEST(pvc_copy_cf) {
+TEST(pvps_pvc_copy_cf) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear));
     BYTE data[] = {1, 2, 3, 4, 5, 6, 7};
     CLIPDATA cd; cd.cbSize = sizeof data + sizeof(ULONG); cd.ulClipFmt = CF_ENHMETAFILE; cd.pClipData = data;
@@ -486,7 +486,7 @@ TEST(pvc_copy_cf) {
     EQ(U(PropVariantClear)(&d), S_OK);
 }
 
-TEST(pvc_copy_unknown_addrefs) {
+TEST(pvps_pvc_copy_unknown_addrefs) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear));
     /* adapted from Wine dlls/ole32/tests/propvariant.c (LGPL-2.1+) */
     TUnk u; tu_init(&u);
@@ -501,7 +501,7 @@ TEST(pvc_copy_unknown_addrefs) {
     U(PropVariantClear)(&d); EQ(u.ref, 1);
 }
 
-TEST(pvc_copy_stream_storage_addrefs) {
+TEST(pvps_pvc_copy_stream_storage_addrefs) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear));
     COM_BEGIN();
     FX f;
@@ -522,7 +522,7 @@ TEST(pvc_copy_stream_storage_addrefs) {
     COM_END();
 }
 
-TEST(pvc_copy_safearray_unknown_refs) {
+TEST(pvps_pvc_copy_safearray_unknown_refs) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear)); REQUIRE(U(SafeArrayCreate)); REQUIRE(U(SafeArrayPutElement));
     /* adapted from Wine dlls/ole32/tests/propvariant.c (LGPL-2.1+) */
     TUnk u; tu_init(&u);
@@ -540,7 +540,7 @@ TEST(pvc_copy_safearray_unknown_refs) {
     EQ(U(PropVariantClear)(&s), S_OK); EQ(u.ref, 1);
 }
 
-TEST(pvc_copy_safearray_i4_deep) {
+TEST(pvps_pvc_copy_safearray_i4_deep) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear)); REQUIRE(U(SafeArrayCreate));
     REQUIRE(U(SafeArrayPutElement)); REQUIRE(U(SafeArrayGetElement));
     SAFEARRAYBOUND b = {3, 0};
@@ -556,7 +556,7 @@ TEST(pvc_copy_safearray_i4_deep) {
     U(PropVariantClear)(&d);
 }
 
-TEST(pvc_copy_byref_shallow) {
+TEST(pvps_pvc_copy_byref_shallow) {
     REQUIRE(U(PropVariantCopy));
     LONG x = 5; PROPVARIANT s, d; PropVariantInit(&s); PropVariantInit(&d);
     s.vt = VT_BYREF | VT_I4; s.plVal = &x;
@@ -564,7 +564,7 @@ TEST(pvc_copy_byref_shallow) {
     EQ(d.vt, VT_BYREF | VT_I4); CHECK(d.plVal == &x);
 }
 
-TEST(pvc_copy_invalid_simple_vt) {
+TEST(pvps_pvc_copy_invalid_simple_vt) {
     REQUIRE(U(PropVariantCopy));
     /* adapted from Wine dlls/ole32/tests/propvariant.c (LGPL-2.1+): invalid simple types are rejected with
        DISP_E_BADVARTYPE and the destination is left untouched */
@@ -579,7 +579,7 @@ TEST(pvc_copy_invalid_simple_vt) {
     }
 }
 
-TEST(pvc_copy_invalid_vector_base) {
+TEST(pvps_pvc_copy_invalid_vector_base) {
     REQUIRE(U(PropVariantCopy));
     /* vector of types that cannot be vectors: Windows reports one of two codes */
     static const VARTYPE bad[] = {VT_DISPATCH, VT_UNKNOWN, VT_DECIMAL, VT_INT, VT_UINT, VT_BLOB, VT_STREAM, VT_STORAGE, VT_EMPTY, VT_NULL};
@@ -591,7 +591,7 @@ TEST(pvc_copy_invalid_vector_base) {
     }
 }
 
-TEST(pvc_copy_vector_scalars_deep) {
+TEST(pvps_pvc_copy_vector_scalars_deep) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear));
     for (int i = 0; i < N_ELEM(vscalars); i++) {
         BYTE data[16 * 5]; fill(data, sizeof data, i + 40);
@@ -608,7 +608,7 @@ TEST(pvc_copy_vector_scalars_deep) {
     }
 }
 
-TEST(pvc_copy_vector_empty_forms) {
+TEST(pvps_pvc_copy_vector_empty_forms) {
     REQUIRE(U(PropVariantCopy));
     PROPVARIANT s, d;
     PropVariantInit(&s); memset(&d, 0x77, sizeof d);
@@ -623,7 +623,7 @@ TEST(pvc_copy_vector_empty_forms) {
     EQ(d.vt, VT_VECTOR | VT_I4); EQ(d.cal.cElems, 0); CHECK(d.cal.pElems == NULL);
 }
 
-TEST(pvc_copy_vector_lpstr) {
+TEST(pvps_pvc_copy_vector_lpstr) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear));
     char *el[3] = {"one", "", "three"};
     PROPVARIANT s, d; PropVariantInit(&s); PropVariantInit(&d);
@@ -637,7 +637,7 @@ TEST(pvc_copy_vector_lpstr) {
     EQ(U(PropVariantClear)(&d), S_OK);
 }
 
-TEST(pvc_copy_vector_lpwstr) {
+TEST(pvps_pvc_copy_vector_lpwstr) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear));
     WCHAR *el[3] = {L"a", L"bc", L"def"};
     PROPVARIANT s, d; PropVariantInit(&s); PropVariantInit(&d);
@@ -651,7 +651,7 @@ TEST(pvc_copy_vector_lpwstr) {
     EQ(U(PropVariantClear)(&d), S_OK);
 }
 
-TEST(pvc_copy_vector_bstr) {
+TEST(pvps_pvc_copy_vector_bstr) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear)); REQUIRE(U(SysAllocString));
     BSTR el[2] = {U(SysAllocString)(L"alpha"), U(SysAllocString)(L"beta")};
     PROPVARIANT s, d; PropVariantInit(&s); PropVariantInit(&d);
@@ -666,7 +666,7 @@ TEST(pvc_copy_vector_bstr) {
     U(SysFreeString)(el[0]); U(SysFreeString)(el[1]);
 }
 
-TEST(pvc_copy_vector_variant_deep) {
+TEST(pvps_pvc_copy_vector_variant_deep) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear));
     PROPVARIANT el[3]; memset(el, 0, sizeof el);
     el[0].vt = VT_I4; el[0].lVal = -7;
@@ -687,7 +687,7 @@ TEST(pvc_copy_vector_variant_deep) {
     EQ(U(PropVariantClear)(&d), S_OK);
 }
 
-TEST(pvc_copy_vector_cf) {
+TEST(pvps_pvc_copy_vector_cf) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear));
     if (t_is_wine()) { t_skip("wine mis-copies VT_VECTOR|VT_CF"); return; }
     BYTE b0[] = "ab", b1[] = "wxyz";
@@ -710,7 +710,7 @@ TEST(pvc_copy_vector_cf) {
 }
 
 /* Copy followed by Clear on both sides must never double-free: run a mixed batch many times. */
-TEST(pvc_copy_clear_loop_stability) {
+TEST(pvps_pvc_copy_clear_loop_stability) {
     REQUIRE(U(PropVariantCopy)); REQUIRE(U(PropVariantClear)); REQUIRE(U(SysAllocString));
     for (int i = 0; i < 2000; i++) {
         PROPVARIANT s, d; PropVariantInit(&s); PropVariantInit(&d);

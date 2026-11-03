@@ -11,7 +11,7 @@ static const PROPVARIANT *pvi4(PROPVARIANT *v, LONG x) { PropVariantInit(v); v->
 
 /* ============================================================ argument handling */
 
-TEST(props_zero_count_and_null_arrays) {
+TEST(pvps_props_zero_count_and_null_arrays) {
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     WITH_PS("props_args.stg", PROPSETFLAG_ANSI)
         EQ(CALL(f.ps, WriteMultiple, 0, NULL, NULL, 0), S_OK);
@@ -27,7 +27,7 @@ TEST(props_zero_count_and_null_arrays) {
     END_PS()
 }
 
-TEST(props_names_null_arrays) {
+TEST(pvps_props_names_null_arrays) {
     WITH_PS("props_names_args.stg", PROPSETFLAG_DEFAULT)
         PROPID id = 5; LPOLESTR nm = (LPOLESTR)L"x";
         EQ(CALL(f.ps, WritePropertyNames, 0, NULL, NULL), S_OK);
@@ -46,7 +46,7 @@ TEST(props_names_null_arrays) {
     END_PS()
 }
 
-TEST(props_invalid_propspec_kind) {
+TEST(pvps_props_invalid_propspec_kind) {
     WITH_PS("props_badkind.stg", PROPSETFLAG_DEFAULT)
         PROPSPEC s; s.ulKind = 7; s.propid = 5;
         PROPVARIANT v; pvi4(&v, 1);
@@ -60,7 +60,7 @@ TEST(props_invalid_propspec_kind) {
 
 /* ============================================================ special / reserved ids */
 
-TEST(props_write_dictionary_id_rejected) {
+TEST(pvps_props_write_dictionary_id_rejected) {
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     WITH_PS("props_dict.stg", PROPSETFLAG_ANSI)
         PROPVARIANT v; pvi4(&v, 1);
@@ -74,7 +74,7 @@ TEST(props_write_dictionary_id_rejected) {
     END_PS()
 }
 
-TEST(props_delete_dictionary_id_rejected) {
+TEST(pvps_props_delete_dictionary_id_rejected) {
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+): "contrary to what the docs say, you can't delete the dictionary" */
     WITH_PS("props_deldict.stg", PROPSETFLAG_ANSI)
         PROPSPEC s; s.ulKind = PRSPEC_PROPID; s.propid = PID_DICTIONARY;
@@ -82,7 +82,7 @@ TEST(props_delete_dictionary_id_rejected) {
     END_PS()
 }
 
-TEST(props_write_behavior_id) {
+TEST(pvps_props_write_behavior_id) {
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     WITH_PS("props_behavior.stg", PROPSETFLAG_ANSI)
         PROPVARIANT v; pvi4(&v, 1);
@@ -93,7 +93,7 @@ TEST(props_write_behavior_id) {
     END_PS()
 }
 
-TEST(props_behavior_property_in_case_sensitive_set) {
+TEST(pvps_props_behavior_property_in_case_sensitive_set) {
     WITH_PS("props_behavior_cs.stg", PROPSETFLAG_CASE_SENSITIVE)
         PROPVARIANT v; HRESULT hr = rd_id(f.ps, PID_BEHAVIOR, &v);
         t_note("PID_BEHAVIOR read in a case-sensitive set -> 0x%08lx vt=%d val=%lu", hr, v.vt, v.ulVal);
@@ -106,7 +106,7 @@ TEST(props_behavior_property_in_case_sensitive_set) {
     END_PS()
 }
 
-TEST(props_pid_illegal_is_ignored) {
+TEST(pvps_props_pid_illegal_is_ignored) {
     WITH_PS("props_illegal.stg", PROPSETFLAG_ANSI)
         PROPSPEC s[2]; PROPVARIANT v[2];
         s[0].ulKind = PRSPEC_PROPID; s[0].propid = PID_ILLEGAL; pvi4(&v[0], 99);
@@ -122,7 +122,7 @@ TEST(props_pid_illegal_is_ignored) {
     END_PS()
 }
 
-TEST(props_readonly_id_range_write) {
+TEST(pvps_props_readonly_id_range_write) {
     WITH_PS("props_ro_range.stg", PROPSETFLAG_ANSI)
         PROPVARIANT v; pvi4(&v, 1);
         HRESULT hr = wr_id(f.ps, PID_MODIFY_TIME_, &v);
@@ -137,7 +137,7 @@ TEST(props_readonly_id_range_write) {
 
 /* ============================================================ basic read / write / delete */
 
-TEST(props_write_read_by_id) {
+TEST(pvps_props_write_read_by_id) {
     WITH_PS("props_rw_id.stg", PROPSETFLAG_ANSI)
         PROPVARIANT v; pvi4(&v, 1);
         EQ(wr_id(f.ps, PID_FIRST_USABLE, &v), S_OK);
@@ -147,7 +147,7 @@ TEST(props_write_read_by_id) {
     END_PS()
 }
 
-TEST(props_overwrite_changes_type) {
+TEST(pvps_props_overwrite_changes_type) {
     WITH_PS("props_overwrite.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1);
         EQ(wr_id(f.ps, 5, &v), S_OK);
@@ -162,7 +162,7 @@ TEST(props_overwrite_changes_type) {
     END_PS()
 }
 
-TEST(props_missing_property_reads_empty_s_false) {
+TEST(pvps_props_missing_property_reads_empty_s_false) {
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     WITH_PS("props_missing.stg", PROPSETFLAG_ANSI)
         PROPVARIANT v; memset(&v, 0x77, sizeof v); v.vt = VT_BSTR;
@@ -174,7 +174,7 @@ TEST(props_missing_property_reads_empty_s_false) {
     END_PS()
 }
 
-TEST(props_partial_read_is_s_ok_and_marks_missing_empty) {
+TEST(pvps_props_partial_read_is_s_ok_and_marks_missing_empty) {
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     WITH_PS("props_partial.stg", PROPSETFLAG_ANSI)
         PROPVARIANT w; pvi4(&w, 1); EQ(wr_id(f.ps, PID_FIRST_USABLE, &w), S_OK);
@@ -195,7 +195,7 @@ TEST(props_partial_read_is_s_ok_and_marks_missing_empty) {
     END_PS()
 }
 
-TEST(props_read_same_id_twice_in_one_call) {
+TEST(pvps_props_read_same_id_twice_in_one_call) {
     WITH_PS("props_dupread.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT w; pvi4(&w, 31); wr_id(f.ps, 9, &w);
         PROPSPEC s[2]; PROPVARIANT v[2];
@@ -205,7 +205,7 @@ TEST(props_read_same_id_twice_in_one_call) {
     END_PS()
 }
 
-TEST(props_batch_write_read_mixed_kinds) {
+TEST(pvps_props_batch_write_read_mixed_kinds) {
     WITH_PS("props_batch.stg", PROPSETFLAG_DEFAULT)
         PROPSPEC s[4]; PROPVARIANT v[4];
         s[0].ulKind = PRSPEC_PROPID; s[0].propid = 10; pvi4(&v[0], 100);
@@ -222,7 +222,7 @@ TEST(props_batch_write_read_mixed_kinds) {
     END_PS()
 }
 
-TEST(props_write_does_not_take_ownership) {
+TEST(pvps_props_write_does_not_take_ownership) {
     WITH_PS("props_ownership.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; PropVariantInit(&v); v.vt = VT_LPSTR; v.pszVal = tm_strA("owned by caller");
         EQ(wr_id(f.ps, 3, &v), S_OK);
@@ -241,7 +241,7 @@ TEST(props_write_does_not_take_ownership) {
     END_PS()
 }
 
-TEST(props_read_returns_independent_memory) {
+TEST(pvps_props_read_returns_independent_memory) {
     WITH_PS("props_indep.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT w; PropVariantInit(&w); w.vt = VT_LPWSTR; w.pwszVal = (LPWSTR)L"shared?";
         EQ(wr_id(f.ps, 3, &w), S_OK);
@@ -255,7 +255,7 @@ TEST(props_read_returns_independent_memory) {
     END_PS()
 }
 
-TEST(props_delete_existing_and_missing) {
+TEST(pvps_props_delete_existing_and_missing) {
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     WITH_PS("props_delete.stg", PROPSETFLAG_ANSI)
         PROPVARIANT v; pvi4(&v, 1);
@@ -269,7 +269,7 @@ TEST(props_delete_existing_and_missing) {
     END_PS()
 }
 
-TEST(props_delete_by_name) {
+TEST(pvps_props_delete_by_name) {
     WITH_PS("props_delname.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1);
         EQ(wr_name(f.ps, L"victim", &v, 2), S_OK);
@@ -281,7 +281,7 @@ TEST(props_delete_by_name) {
     END_PS()
 }
 
-TEST(props_delete_batch_then_enum_empty) {
+TEST(pvps_props_delete_batch_then_enum_empty) {
     WITH_PS("props_delbatch.stg", PROPSETFLAG_DEFAULT)
         PROPSPEC s[10];
         for (int i = 0; i < 10; i++) { PROPVARIANT v; pvi4(&v, i); wr_id(f.ps, 20 + i, &v); s[i].ulKind = PRSPEC_PROPID; s[i].propid = 20 + i; }
@@ -292,7 +292,7 @@ TEST(props_delete_batch_then_enum_empty) {
     END_PS()
 }
 
-TEST(props_sparse_and_extreme_ids) {
+TEST(pvps_props_sparse_and_extreme_ids) {
     WITH_PS("props_ids.stg", PROPSETFLAG_DEFAULT)
         static const ULONG ids[] = {2, 3, 100, 0xFFF, 0x10000, 0x7FFFFFFE, 0x7FFFFFFF};
         for (int i = 0; i < N_ELEM(ids); i++) { PROPVARIANT v; pvi4(&v, (LONG)ids[i] ^ 0x55); HRESULT hr = wr_id(f.ps, ids[i], &v); CHECKF(hr == S_OK, "write id %lx hr=%08lx", ids[i], hr); }
@@ -302,7 +302,7 @@ TEST(props_sparse_and_extreme_ids) {
 
 /* ============================================================ unsupported types */
 
-TEST(props_write_invalid_vt_rejected) {
+TEST(pvps_props_write_invalid_vt_rejected) {
     WITH_PS("props_badvt.stg", PROPSETFLAG_DEFAULT)
         static const VARTYPE bad[] = {15, VT_VOID, VT_HRESULT, VT_PTR, VT_SAFEARRAY, VT_CARRAY, VT_USERDEFINED, 32, 40, 63, 0x7f};
         for (int i = 0; i < N_ELEM(bad); i++) {
@@ -315,7 +315,7 @@ TEST(props_write_invalid_vt_rejected) {
     END_PS()
 }
 
-TEST(props_write_object_types_in_simple_set) {
+TEST(pvps_props_write_object_types_in_simple_set) {
     WITH_PS("props_objvt.stg", PROPSETFLAG_DEFAULT)
         TUnk u; tu_init(&u);
         PROPVARIANT v; PropVariantInit(&v);
@@ -335,7 +335,7 @@ TEST(props_write_object_types_in_simple_set) {
     END_PS()
 }
 
-TEST(props_write_byref_array_types) {
+TEST(pvps_props_write_byref_array_types) {
     WITH_PS("props_byref.stg", PROPSETFLAG_DEFAULT)
         LONG x = 5; PROPVARIANT v; PropVariantInit(&v);
         v.vt = VT_BYREF | VT_I4; v.plVal = &x;
@@ -353,7 +353,7 @@ TEST(props_write_byref_array_types) {
 
 /* ============================================================ property names (dictionary) */
 
-TEST(names_write_by_name_allocates_ids_from_first) {
+TEST(pvps_names_write_by_name_allocates_ids_from_first) {
     WITH_PS("names_alloc.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1);
         PROPID id1 = 0, id2 = 0, id3 = 0;
@@ -382,7 +382,7 @@ TEST(names_write_by_name_allocates_ids_from_first) {
     END_PS()
 }
 
-TEST(names_first_id_is_exactly_propid_name_first_when_free) {
+TEST(pvps_names_first_id_is_exactly_propid_name_first_when_free) {
     WITH_PS("names_exact.stg", PROPSETFLAG_ANSI)
         PROPVARIANT v; pvi4(&v, 1);
         EQ(wr_name(f.ps, L"prop", &v, PID_FIRST_USABLE), S_OK);
@@ -393,7 +393,7 @@ TEST(names_first_id_is_exactly_propid_name_first_when_free) {
     END_PS()
 }
 
-TEST(names_allocation_skips_ids_in_use) {
+TEST(pvps_names_allocation_skips_ids_in_use) {
     WITH_PS("names_skip.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1);
         EQ(wr_id(f.ps, 2, &v), S_OK); EQ(wr_id(f.ps, 3, &v), S_OK);
@@ -405,7 +405,7 @@ TEST(names_allocation_skips_ids_in_use) {
     END_PS()
 }
 
-TEST(names_rewrite_keeps_id_and_replaces_value) {
+TEST(pvps_names_rewrite_keeps_id_and_replaces_value) {
     WITH_PS("names_rewrite.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1);
         EQ(wr_name(f.ps, L"stable", &v, 2), S_OK);
@@ -419,7 +419,7 @@ TEST(names_rewrite_keeps_id_and_replaces_value) {
     END_PS()
 }
 
-TEST(names_case_insensitive_by_default) {
+TEST(pvps_names_case_insensitive_by_default) {
     WITH_PS("names_ci.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1);
         EQ(wr_name(f.ps, L"MixedCase", &v, 2), S_OK);
@@ -437,7 +437,7 @@ TEST(names_case_insensitive_by_default) {
     END_PS()
 }
 
-TEST(names_case_sensitive_set_distinguishes_case) {
+TEST(pvps_names_case_sensitive_set_distinguishes_case) {
     WITH_PS("names_cs.stg", PROPSETFLAG_CASE_SENSITIVE)
         PROPVARIANT v; pvi4(&v, 1);
         EQ(wr_name(f.ps, L"Name", &v, 2), S_OK);
@@ -450,14 +450,14 @@ TEST(names_case_sensitive_set_distinguishes_case) {
     END_PS()
 }
 
-TEST(names_read_missing_name) {
+TEST(pvps_names_read_missing_name) {
     WITH_PS("names_missing.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT r; memset(&r, 0x33, sizeof r);
         EQ(rd_name(f.ps, L"nothing", &r), S_FALSE); EQ(r.vt, VT_EMPTY);
     END_PS()
 }
 
-TEST(names_write_property_names_basic) {
+TEST(pvps_names_write_property_names_basic) {
     WITH_PS("names_wpn.stg", PROPSETFLAG_DEFAULT)
         /* "It is explicitly valid to define a name for a property ID that is not currently present" */
         PROPID id = 77; LPOLESTR nm = (LPOLESTR)L"seventy-seven";
@@ -472,7 +472,7 @@ TEST(names_write_property_names_basic) {
     END_PS()
 }
 
-TEST(names_read_property_names_unnamed_is_null_s_false) {
+TEST(pvps_names_read_property_names_unnamed_is_null_s_false) {
     WITH_PS("names_rpn.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1); wr_id(f.ps, 9, &v);
         PROPID ids[2] = {9, 10}; LPOLESTR out[2] = {(LPOLESTR)1, (LPOLESTR)1};
@@ -489,7 +489,7 @@ TEST(names_read_property_names_unnamed_is_null_s_false) {
     END_PS()
 }
 
-TEST(names_name_is_unique_remap) {
+TEST(pvps_names_name_is_unique_remap) {
     WITH_PS("names_remap.stg", PROPSETFLAG_DEFAULT)
         PROPID a = 20, b = 21; LPOLESTR nm = (LPOLESTR)L"shared";
         EQ(CALL(f.ps, WritePropertyNames, 1, &a, &nm), S_OK);
@@ -512,7 +512,7 @@ TEST(names_name_is_unique_remap) {
     END_PS()
 }
 
-TEST(names_rename_property_id) {
+TEST(pvps_names_rename_property_id) {
     WITH_PS("names_rename.stg", PROPSETFLAG_DEFAULT)
         PROPID a = 30; LPOLESTR n1 = (LPOLESTR)L"first-name", n2 = (LPOLESTR)L"second-name";
         EQ(CALL(f.ps, WritePropertyNames, 1, &a, &n1), S_OK);
@@ -526,7 +526,7 @@ TEST(names_rename_property_id) {
     END_PS()
 }
 
-TEST(names_delete_property_names) {
+TEST(pvps_names_delete_property_names) {
     WITH_PS("names_dpn.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1);
         EQ(wr_name(f.ps, L"kept", &v, 2), S_OK);
@@ -544,7 +544,7 @@ TEST(names_delete_property_names) {
     END_PS()
 }
 
-TEST(names_delete_property_names_zero_clears_all) {
+TEST(pvps_names_delete_property_names_zero_clears_all) {
     WITH_PS("names_dpn0.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1);
         wr_name(f.ps, L"one", &v, 2); wr_name(f.ps, L"two", &v, 2); wr_name(f.ps, L"three", &v, 2);
@@ -560,7 +560,7 @@ TEST(names_delete_property_names_zero_clears_all) {
     END_PS()
 }
 
-TEST(names_pid_illegal_ignored_in_write_property_names) {
+TEST(pvps_names_pid_illegal_ignored_in_write_property_names) {
     WITH_PS("names_illegal.stg", PROPSETFLAG_DEFAULT)
         PROPID ids[2] = {PID_ILLEGAL, 40}; LPOLESTR nm[2] = {(LPOLESTR)L"ignored", (LPOLESTR)L"used"};
         EQ(CALL(f.ps, WritePropertyNames, 2, ids, nm), S_OK);
@@ -571,7 +571,7 @@ TEST(names_pid_illegal_ignored_in_write_property_names) {
     END_PS()
 }
 
-TEST(names_write_property_names_reserved_ids) {
+TEST(pvps_names_write_property_names_reserved_ids) {
     WITH_PS("names_resid.stg", PROPSETFLAG_DEFAULT)
         LPOLESTR nm = (LPOLESTR)L"x";
         PROPID ids[] = {PID_DICTIONARY, PID_CODEPAGE, PID_LOCALE_, PID_BEHAVIOR};
@@ -583,7 +583,7 @@ TEST(names_write_property_names_reserved_ids) {
     END_PS()
 }
 
-TEST(names_length_limits) {
+TEST(pvps_names_length_limits) {
     WITH_PS("names_len.stg", PROPSETFLAG_DEFAULT)
         WCHAR n128[130], n129[131];
         for (int i = 0; i < 128; i++) n128[i] = L'a' + (i % 26);
@@ -604,7 +604,7 @@ TEST(names_length_limits) {
     END_PS()
 }
 
-TEST(names_unicode_names_roundtrip) {
+TEST(pvps_names_unicode_names_roundtrip) {
     WITH_PS("names_uni.stg", PROPSETFLAG_DEFAULT)
         static const WCHAR nm[] = {0x00e9, 0x00fc, 0x4e2d, 0x6587, ' ', 'x', 0};
         PROPVARIANT v; pvi4(&v, 12);
@@ -614,7 +614,7 @@ TEST(names_unicode_names_roundtrip) {
     END_PS()
 }
 
-TEST(names_property_with_name_keeps_name_on_id_write) {
+TEST(pvps_names_property_with_name_keeps_name_on_id_write) {
     WITH_PS("names_idwrite.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1);
         EQ(wr_name(f.ps, L"labelled", &v, 2), S_OK);
@@ -625,7 +625,7 @@ TEST(names_property_with_name_keeps_name_on_id_write) {
     END_PS()
 }
 
-TEST(names_many_names) {
+TEST(pvps_names_many_names) {
     WITH_PS("names_many.stg", PROPSETFLAG_DEFAULT)
         for (int i = 0; i < 150; i++) {
             WCHAR nm[32]; wsprintfW(nm, L"name_%03d", i);
@@ -644,7 +644,7 @@ TEST(names_many_names) {
 
 /* ============================================================ codepage / locale */
 
-TEST(special_codepage_defaults) {
+TEST(pvps_special_codepage_defaults) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -662,7 +662,7 @@ TEST(special_codepage_defaults) {
     COM_END();
 }
 
-TEST(special_codepage_change_on_empty_set) {
+TEST(pvps_special_codepage_change_on_empty_set) {
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     WITH_PS("special_cp_change.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; PropVariantInit(&v); v.vt = VT_I2; v.iVal = 1252;
@@ -679,7 +679,7 @@ TEST(special_codepage_change_on_empty_set) {
     END_PS()
 }
 
-TEST(special_codepage_frozen_by_name_only_set) {
+TEST(pvps_special_codepage_frozen_by_name_only_set) {
     WITH_PS("special_cp_names.stg", PROPSETFLAG_DEFAULT)
         /* documented: a set is "non-empty" also when it has names in its dictionary */
         PROPID id = 30; LPOLESTR nm = (LPOLESTR)L"label";
@@ -691,7 +691,7 @@ TEST(special_codepage_frozen_by_name_only_set) {
     END_PS()
 }
 
-TEST(special_codepage_wrong_type_and_unknown_page) {
+TEST(pvps_special_codepage_wrong_type_and_unknown_page) {
     WITH_PS("special_cp_type.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1252);
         HRESULT hr = wr_id(f.ps, PID_CODEPAGE, &v);
@@ -709,7 +709,7 @@ TEST(special_codepage_wrong_type_and_unknown_page) {
     END_PS()
 }
 
-TEST(special_codepage_not_deletable_when_default) {
+TEST(pvps_special_codepage_not_deletable_when_default) {
     WITH_PS("special_cp_del.stg", PROPSETFLAG_DEFAULT)
         PROPSPEC s; s.ulKind = PRSPEC_PROPID; s.propid = PID_CODEPAGE;
         HRESULT hr = CALL(f.ps, DeleteMultiple, 1, &s);
@@ -720,7 +720,7 @@ TEST(special_codepage_not_deletable_when_default) {
     END_PS()
 }
 
-TEST(special_locale_property) {
+TEST(pvps_special_locale_property) {
     WITH_PS("special_locale.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; HRESULT hr = rd_id(f.ps, PID_LOCALE_, &v);
         t_note("PID_LOCALE read -> 0x%08lx vt=%d value=0x%lx (user default LCID 0x%lx)", hr, v.vt, v.ulVal, GetUserDefaultLCID());
@@ -733,7 +733,7 @@ TEST(special_locale_property) {
     END_PS()
 }
 
-TEST(special_modify_time_property) {
+TEST(pvps_special_modify_time_property) {
     WITH_PS("special_mtime.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; HRESULT hr = rd_id(f.ps, PID_MODIFY_TIME_, &v);
         t_note("PID_MODIFY_TIME read -> 0x%08lx vt=%d", hr, v.vt);
@@ -744,7 +744,7 @@ TEST(special_modify_time_property) {
 
 /* ============================================================ ANSI vs Unicode string storage */
 
-TEST(strings_lpwstr_roundtrip_in_ansi_and_unicode_sets) {
+TEST(pvps_strings_lpwstr_roundtrip_in_ansi_and_unicode_sets) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     for (int pass = 0; pass < 2; pass++) {
@@ -767,7 +767,7 @@ TEST(strings_lpwstr_roundtrip_in_ansi_and_unicode_sets) {
     COM_END();
 }
 
-TEST(strings_lpstr_in_unicode_set) {
+TEST(pvps_strings_lpstr_in_unicode_set) {
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     WITH_PS("strings_a_in_w.stg", PROPSETFLAG_DEFAULT)
         char aval[] = "hi";
@@ -788,7 +788,7 @@ TEST(strings_lpstr_in_unicode_set) {
     END_PS()
 }
 
-TEST(strings_lpstr_high_chars_in_ansi_set) {
+TEST(pvps_strings_lpstr_high_chars_in_ansi_set) {
     WITH_PS("strings_a_high.stg", PROPSETFLAG_ANSI)
         char aval[] = "caf\xe9 \x80";
         PROPVARIANT v; PropVariantInit(&v); v.vt = VT_LPSTR; v.pszVal = aval;
@@ -800,7 +800,7 @@ TEST(strings_lpstr_high_chars_in_ansi_set) {
     END_PS()
 }
 
-TEST(strings_bstr_roundtrip_and_empty) {
+TEST(pvps_strings_bstr_roundtrip_and_empty) {
     REQUIRE(U(SysAllocString));
     WITH_PS("strings_bstr.stg", PROPSETFLAG_DEFAULT)
         BSTR b = U(SysAllocString)(L"bstr value");
@@ -818,7 +818,7 @@ TEST(strings_bstr_roundtrip_and_empty) {
     END_PS()
 }
 
-TEST(strings_empty_lpstr_lpwstr) {
+TEST(pvps_strings_empty_lpstr_lpwstr) {
     WITH_PS("strings_empty.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; PropVariantInit(&v); v.vt = VT_LPSTR; v.pszVal = (LPSTR)"";
         EQ(wr_id(f.ps, 5, &v), S_OK);
@@ -857,7 +857,7 @@ static int enum_props(IPropertyStorage *ps, STATPROPSTG *out, int cap) {
 }
 static void free_stats(STATPROPSTG *s, int n) { for (int i = 0; i < n; i++) if (s[i].lpwstrName) U(CoTaskMemFree)(s[i].lpwstrName); }
 
-TEST(enum_props_excludes_special_properties) {
+TEST(pvps_enum_props_excludes_special_properties) {
     WITH_PS("enum_special.stg", PROPSETFLAG_ANSI)
         STATPROPSTG st[8];
         EQ(enum_props(f.ps, st, 8), 0);                  /* codepage / locale / dictionary are not enumerated */
@@ -869,7 +869,7 @@ TEST(enum_props_excludes_special_properties) {
     END_PS()
 }
 
-TEST(enum_props_reports_names_and_types) {
+TEST(pvps_enum_props_reports_names_and_types) {
     WITH_PS("enum_types.stg", PROPSETFLAG_DEFAULT)
         PROPVARIANT v; pvi4(&v, 1); wr_id(f.ps, 5, &v);
         PropVariantInit(&v); v.vt = VT_R8; v.dblVal = 1.0; wr_name(f.ps, L"floaty", &v, 0x40);
@@ -887,7 +887,7 @@ TEST(enum_props_reports_names_and_types) {
     END_PS()
 }
 
-TEST(enum_props_is_a_snapshot_or_live_observed) {
+TEST(pvps_enum_props_is_a_snapshot_or_live_observed) {
     WITH_PS("enum_snap.stg", PROPSETFLAG_DEFAULT)
         wr_i4(f.ps, 5, 1);
         IEnumSTATPROPSTG *e = NULL; STATPROPSTG st; ULONG got = 0;
@@ -901,7 +901,7 @@ TEST(enum_props_is_a_snapshot_or_live_observed) {
     END_PS()
 }
 
-TEST(enum_props_skip_reset_next) {
+TEST(pvps_enum_props_skip_reset_next) {
     WITH_PS("enum_skip.stg", PROPSETFLAG_DEFAULT)
         for (int i = 0; i < 5; i++) wr_i4(f.ps, 10 + i, i);
         IEnumSTATPROPSTG *e = NULL; STATPROPSTG st[8]; ULONG got = 0;
@@ -932,7 +932,7 @@ TEST(enum_props_skip_reset_next) {
     END_PS()
 }
 
-TEST(enum_props_order_is_stable_and_complete) {
+TEST(pvps_enum_props_order_is_stable_and_complete) {
     WITH_PS("enum_order.stg", PROPSETFLAG_DEFAULT)
         static STATPROPSTG st[300];
         for (int i = 0; i < 200; i++) wr_i4(f.ps, 2 + ((i * 37) % 997), i);
@@ -944,7 +944,7 @@ TEST(enum_props_order_is_stable_and_complete) {
     END_PS()
 }
 
-TEST(enum_props_null_argument) {
+TEST(pvps_enum_props_null_argument) {
     if (t_is_wine()) { t_skip("wine dereferences NULL"); return; }
     WITH_PS("enum_null.stg", PROPSETFLAG_DEFAULT)
         HRESULT hr = CALL(f.ps, Enum, NULL);
@@ -953,7 +953,7 @@ TEST(enum_props_null_argument) {
     END_PS()
 }
 
-TEST(enum_props_released_storage_still_usable) {
+TEST(pvps_enum_props_released_storage_still_usable) {
     WITH_PS("enum_after.stg", PROPSETFLAG_DEFAULT)
         wr_i4(f.ps, 5, 1);
         IEnumSTATPROPSTG *e = NULL; EQ(CALL(f.ps, Enum, &e), S_OK);

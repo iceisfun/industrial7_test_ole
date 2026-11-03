@@ -18,7 +18,7 @@ static int storage_exists(IStorage *stg, const WCHAR *name) {
 
 /* ============================================================ StgCreatePropSetStg */
 
-TEST(pss_create_propsetstg_ok_and_qi) {
+TEST(pvps_pss_create_propsetstg_ok_and_qi) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -39,7 +39,7 @@ TEST(pss_create_propsetstg_ok_and_qi) {
     COM_END();
 }
 
-TEST(pss_create_propsetstg_bad_arguments) {
+TEST(pvps_pss_create_propsetstg_bad_arguments) {
     REQUIRE(U(StgCreatePropSetStg));
     if (t_is_wine()) { t_skip("not run under wine"); return; }
     COM_BEGIN();
@@ -62,7 +62,7 @@ TEST(pss_create_propsetstg_bad_arguments) {
     COM_END();
 }
 
-TEST(pss_create_two_propsetstg_same_storage) {
+TEST(pvps_pss_create_two_propsetstg_same_storage) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -90,7 +90,7 @@ TEST(pss_create_two_propsetstg_same_storage) {
 
 /* ============================================================ IPropertySetStorage::Create */
 
-TEST(pss_create_makes_named_stream) {
+TEST(pvps_pss_create_makes_named_stream) {
     REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(FmtIdToPropStgName));
     COM_BEGIN();
     struct { const GUID *id; const char *n; } t[] = { {&G_FMTID_SI, "SI"}, {&G_FMTID_DSI, "DSI"}, {&G_ANY_GUID, "any"}, {&G_IID_IPropSetStg, "ipss"} };
@@ -106,7 +106,7 @@ TEST(pss_create_makes_named_stream) {
     COM_END();
 }
 
-TEST(pss_create_nonsimple_makes_storage_with_contents) {
+TEST(pvps_pss_create_nonsimple_makes_storage_with_contents) {
     REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(FmtIdToPropStgName));
     if (t_is_wine()) { t_skip("wine does not implement PROPSETFLAG_NONSIMPLE"); return; }
     COM_BEGIN();
@@ -130,7 +130,7 @@ TEST(pss_create_nonsimple_makes_storage_with_contents) {
     COM_END();
 }
 
-TEST(pss_create_fail_if_there_without_create_flag) {
+TEST(pvps_pss_create_fail_if_there_without_create_flag) {
     REQUIRE(U(StgCreatePropSetStg));
     if (t_is_wine()) { t_skip("wine does not implement PROPSETFLAG_NONSIMPLE"); return; }
     COM_BEGIN();
@@ -153,7 +153,7 @@ TEST(pss_create_fail_if_there_without_create_flag) {
     COM_END();
 }
 
-TEST(pss_create_with_create_flag_replaces) {
+TEST(pvps_pss_create_with_create_flag_replaces) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -171,7 +171,7 @@ TEST(pss_create_with_create_flag_replaces) {
     COM_END();
 }
 
-TEST(pss_create_clsid_and_stat) {
+TEST(pvps_pss_create_clsid_and_stat) {
     REQUIRE(U(StgCreatePropSetStg));
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     COM_BEGIN();
@@ -194,7 +194,7 @@ TEST(pss_create_clsid_and_stat) {
     COM_END();
 }
 
-TEST(pss_create_null_clsid_stat_zero) {
+TEST(pvps_pss_create_null_clsid_stat_zero) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -209,7 +209,7 @@ TEST(pss_create_null_clsid_stat_zero) {
     COM_END();
 }
 
-TEST(pss_create_stat_flags_nonsimple) {
+TEST(pvps_pss_create_stat_flags_nonsimple) {
     REQUIRE(U(StgCreatePropSetStg));
     if (t_is_wine()) { t_skip("wine does not implement PROPSETFLAG_NONSIMPLE"); return; }
     COM_BEGIN();
@@ -224,7 +224,7 @@ TEST(pss_create_stat_flags_nonsimple) {
     COM_END();
 }
 
-TEST(pss_create_flag_combinations_succeed) {
+TEST(pvps_pss_create_flag_combinations_succeed) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     static const DWORD fl[] = { 0, PROPSETFLAG_ANSI, PROPSETFLAG_NONSIMPLE, PROPSETFLAG_UNBUFFERED, PROPSETFLAG_CASE_SENSITIVE,
@@ -244,7 +244,7 @@ TEST(pss_create_flag_combinations_succeed) {
     COM_END();
 }
 
-TEST(pss_create_invalid_flag_bits) {
+TEST(pvps_pss_create_invalid_flag_bits) {
     REQUIRE(U(StgCreatePropSetStg));
     if (t_is_wine()) { t_skip("not run under wine"); return; }
     COM_BEGIN();
@@ -266,7 +266,7 @@ TEST(pss_create_invalid_flag_bits) {
     COM_END();
 }
 
-TEST(pss_create_in_readonly_storage_fails) {
+TEST(pvps_pss_create_in_readonly_storage_fails) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -301,7 +301,7 @@ TEST(pss_create_in_readonly_storage_fails) {
 
 /* ============================================================ Open / Delete */
 
-TEST(pss_open_missing_fails_not_found) {
+TEST(pvps_pss_open_missing_fails_not_found) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -319,7 +319,7 @@ TEST(pss_open_missing_fails_not_found) {
     COM_END();
 }
 
-TEST(pss_open_readonly_blocks_write_ops) {
+TEST(pvps_pss_open_readonly_blocks_write_ops) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -344,7 +344,7 @@ TEST(pss_open_readonly_blocks_write_ops) {
     COM_END();
 }
 
-TEST(pss_delete_removes_set) {
+TEST(pvps_pss_delete_removes_set) {
     REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(FmtIdToPropStgName));
     COM_BEGIN();
     FX f;
@@ -368,7 +368,7 @@ TEST(pss_delete_removes_set) {
     COM_END();
 }
 
-TEST(pss_create_without_create_flag_on_missing_set) {
+TEST(pvps_pss_create_without_create_flag_on_missing_set) {
     REQUIRE(U(StgCreatePropSetStg));
     /* documented: STGM_FAILIFTHERE is the default; with no existing set the call simply creates it
        (wine insists on STGM_CREATE here) */
@@ -382,7 +382,7 @@ TEST(pss_create_without_create_flag_on_missing_set) {
     COM_END();
 }
 
-TEST(pss_delete_nonsimple_removes_storage) {
+TEST(pvps_pss_delete_nonsimple_removes_storage) {
     REQUIRE(U(StgCreatePropSetStg)); REQUIRE(U(FmtIdToPropStgName));
     if (t_is_wine()) { t_skip("wine does not implement PROPSETFLAG_NONSIMPLE"); return; }
     COM_BEGIN();
@@ -398,7 +398,7 @@ TEST(pss_delete_nonsimple_removes_storage) {
     COM_END();
 }
 
-TEST(pss_delete_missing_set_fails) {
+TEST(pvps_pss_delete_missing_set_fails) {
     REQUIRE(U(StgCreatePropSetStg));
     if (t_is_wine()) { t_skip("wine does not implement PROPSETFLAG_NONSIMPLE"); return; }
     COM_BEGIN();
@@ -427,7 +427,7 @@ static int enum_sets(IPropertySetStorage *pss, GUID *out, DWORD *flags, int cap)
     return n;
 }
 
-TEST(pss_enum_null_argument) {
+TEST(pvps_pss_enum_null_argument) {
     REQUIRE(U(StgCreatePropSetStg));
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     COM_BEGIN();
@@ -439,7 +439,7 @@ TEST(pss_enum_null_argument) {
     COM_END();
 }
 
-TEST(pss_enum_empty_storage) {
+TEST(pvps_pss_enum_empty_storage) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -458,7 +458,7 @@ TEST(pss_enum_empty_storage) {
     COM_END();
 }
 
-TEST(pss_enum_lists_created_sets) {
+TEST(pvps_pss_enum_lists_created_sets) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -485,7 +485,7 @@ TEST(pss_enum_lists_created_sets) {
     COM_END();
 }
 
-TEST(pss_enum_ignores_plain_streams) {
+TEST(pvps_pss_enum_ignores_plain_streams) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -505,7 +505,7 @@ TEST(pss_enum_ignores_plain_streams) {
     COM_END();
 }
 
-TEST(pss_enum_next_skip_reset_semantics) {
+TEST(pvps_pss_enum_next_skip_reset_semantics) {
     REQUIRE(U(StgCreatePropSetStg));
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+); the Windows-side results of the todo_wine lines are kept */
     COM_BEGIN();
@@ -538,7 +538,7 @@ TEST(pss_enum_next_skip_reset_semantics) {
     COM_END();
 }
 
-TEST(pss_enum_next_celt_zero_and_null_fetched) {
+TEST(pvps_pss_enum_next_celt_zero_and_null_fetched) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -562,7 +562,7 @@ TEST(pss_enum_next_celt_zero_and_null_fetched) {
 
 /* ============================================================ DocumentSummaryInformation: two sections */
 
-TEST(pss_docsummary_userdefined_share_stream) {
+TEST(pvps_pss_docsummary_userdefined_share_stream) {
     REQUIRE(U(StgCreatePropSetStg));
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+) */
     COM_BEGIN();
@@ -591,7 +591,7 @@ TEST(pss_docsummary_userdefined_share_stream) {
     COM_END();
 }
 
-TEST(pss_docsummary_userdefined_stat_clsid_independent) {
+TEST(pvps_pss_docsummary_userdefined_stat_clsid_independent) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -614,7 +614,7 @@ TEST(pss_docsummary_userdefined_stat_clsid_independent) {
     COM_END();
 }
 
-TEST(pss_docsummary_raw_two_section_stream) {
+TEST(pvps_pss_docsummary_raw_two_section_stream) {
     REQUIRE(U(StgCreatePropSetStg));
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+): a hand-built two-section stream */
     COM_BEGIN();
@@ -662,7 +662,7 @@ TEST(pss_docsummary_raw_two_section_stream) {
 
 /* ============================================================ IPropertyStorage object level */
 
-TEST(pst_qi_addref_release) {
+TEST(pvps_pst_qi_addref_release) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -682,7 +682,7 @@ TEST(pst_qi_addref_release) {
     COM_END();
 }
 
-TEST(pst_stat_null_pointer) {
+TEST(pvps_pst_stat_null_pointer) {
     REQUIRE(U(StgCreatePropSetStg));
     if (t_is_wine()) { t_skip("not run under wine"); return; }
     COM_BEGIN();
@@ -696,7 +696,7 @@ TEST(pst_stat_null_pointer) {
     COM_END();
 }
 
-TEST(pst_setclass_stat_and_persist) {
+TEST(pvps_pst_setclass_stat_and_persist) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -715,7 +715,7 @@ TEST(pst_setclass_stat_and_persist) {
     COM_END();
 }
 
-TEST(pst_setclass_null_pointer) {
+TEST(pvps_pst_setclass_null_pointer) {
     REQUIRE(U(StgCreatePropSetStg));
     if (t_is_wine()) { t_skip("not run under wine"); return; }
     COM_BEGIN();
@@ -729,7 +729,7 @@ TEST(pst_setclass_null_pointer) {
     COM_END();
 }
 
-TEST(pst_settimes_roundtrip_in_stat) {
+TEST(pvps_pst_settimes_roundtrip_in_stat) {
     REQUIRE(U(StgCreatePropSetStg));
     /* adapted from Wine dlls/ole32/tests/stg_prop.c (LGPL-2.1+): SetTimes succeeds on Windows (todo_wine there) */
     COM_BEGIN();
@@ -750,7 +750,7 @@ TEST(pst_settimes_roundtrip_in_stat) {
     COM_END();
 }
 
-TEST(pst_commit_revert_success_codes) {
+TEST(pvps_pst_commit_revert_success_codes) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -765,7 +765,7 @@ TEST(pst_commit_revert_success_codes) {
     COM_END();
 }
 
-TEST(pst_revert_discards_uncommitted_in_transacted_nonsimple) {
+TEST(pvps_pst_revert_discards_uncommitted_in_transacted_nonsimple) {
     REQUIRE(U(StgCreatePropSetStg));
     if (t_is_wine()) { t_skip("wine does not implement PROPSETFLAG_NONSIMPLE"); return; }
     COM_BEGIN();
@@ -790,7 +790,7 @@ TEST(pst_revert_discards_uncommitted_in_transacted_nonsimple) {
 
 /* ============================================================ StgCreatePropStg / StgOpenPropStg on streams and storages */
 
-TEST(stgprop_create_on_stream_roundtrip) {
+TEST(pvps_stgprop_create_on_stream_roundtrip) {
     REQUIRE(U(StgCreatePropStg)); REQUIRE(U(StgOpenPropStg));
     COM_BEGIN();
     FX f;
@@ -810,7 +810,7 @@ TEST(stgprop_create_on_stream_roundtrip) {
     COM_END();
 }
 
-TEST(stgprop_create_on_storage_is_nonsimple) {
+TEST(pvps_stgprop_create_on_storage_is_nonsimple) {
     REQUIRE(U(StgCreatePropStg)); REQUIRE(U(StgOpenPropStg));
     if (t_is_wine()) { t_skip("wine does not implement PROPSETFLAG_NONSIMPLE"); return; }
     COM_BEGIN();
@@ -836,7 +836,7 @@ TEST(stgprop_create_on_storage_is_nonsimple) {
     COM_END();
 }
 
-TEST(stgprop_bad_arguments) {
+TEST(pvps_stgprop_bad_arguments) {
     REQUIRE(U(StgCreatePropStg)); REQUIRE(U(StgOpenPropStg));
     if (t_is_wine()) { t_skip("not run under wine"); return; }
     COM_BEGIN();
@@ -872,7 +872,7 @@ TEST(stgprop_bad_arguments) {
     COM_END();
 }
 
-TEST(stgprop_open_rejects_garbage_header) {
+TEST(pvps_stgprop_open_rejects_garbage_header) {
     REQUIRE(U(StgOpenPropStg));
     COM_BEGIN();
     FX f;
@@ -899,7 +899,7 @@ TEST(stgprop_open_rejects_garbage_header) {
     COM_END();
 }
 
-TEST(stgprop_open_unknown_byte_order_or_version) {
+TEST(pvps_stgprop_open_unknown_byte_order_or_version) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
@@ -937,7 +937,7 @@ TEST(stgprop_open_unknown_byte_order_or_version) {
     COM_END();
 }
 
-TEST(stgprop_open_empty_stream_observed) {
+TEST(pvps_stgprop_open_empty_stream_observed) {
     REQUIRE(U(StgCreatePropSetStg));
     COM_BEGIN();
     FX f;
