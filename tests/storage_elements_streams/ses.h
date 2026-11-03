@@ -163,3 +163,13 @@ static int ses_list(const ses_api *a, IStorage *stg, WCHAR out[][40], DWORD *typ
 }
 static void ses_delete(const WCHAR *w) { DeleteFileW(w); }
 #endif
+
+/* DF_TEST(name) generates two tests, <name>_mem (ILockBytes-on-HGLOBAL docfile) and <name>_file (real file),
+ * both running body_<name>(api, stg) on a fresh direct-mode root storage. */
+#define DF_TEST(name) \
+    static void body_##name(const ses_api *a, IStorage *stg); \
+    TEST(name##_mem) { SES_REQUIRE(a); IStorage *s = ses_mem(&a, MODE_CREATE, NULL); if (!s) { t_skip("cannot create in-memory docfile"); return; } \
+        body_##name(&a, s); IStorage_Release(s); } \
+    TEST(name##_file) { SES_REQUIRE(a); WCHAR wp[MAX_PATH]; IStorage *s = ses_file(&a, MODE_CREATE, wp); if (!s) { t_skip("cannot create docfile"); return; } \
+        body_##name(&a, s); IStorage_Release(s); ses_delete(wp); } \
+    static void body_##name(const ses_api *a, IStorage *stg)
