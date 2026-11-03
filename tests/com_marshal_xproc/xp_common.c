@@ -52,6 +52,7 @@ static HRESULT WINAPI o_qi(IClassFactory *f, REFIID riid, void **ppv)
     if (!ppv) return E_POINTER;
     InterlockedIncrement(&o->qiCalls);
     o->lastQi = *riid;
+    if (o->ftm && IsEqualGUID(riid, &XP_IID_IMarshal)) return IUnknown_QueryInterface(o->ftm, riid, ppv);
     if (IsEqualGUID(riid, &XP_IID_IUnknown) || IsEqualGUID(riid, &XP_IID_IClassFactory)) {
         *ppv = f; InterlockedIncrement(&o->ref); return S_OK;
     }
@@ -65,6 +66,7 @@ static ULONG WINAPI o_release(IClassFactory *f)
     LONG r = InterlockedDecrement(&o->ref);
     if (!r) {
         if (o->destroyedFlag) InterlockedExchange(o->destroyedFlag, 1);
+        if (o->ftm) { IUnknown *f = o->ftm; o->ftm = NULL; IUnknown_Release(f); }
         InterlockedDecrement(&xp_live_objs);
         HeapFree(GetProcessHeap(), 0, o);
     }
@@ -393,4 +395,13 @@ GUID xp_hr_iid(HRESULT hr)
     GUID g = { 0xC0DE5000, 0x7E57, 0x4A11, { 0, 0, 0, 0, 0xA5, 0xA5, 0xA5, 0xA5 } };
     memcpy(g.Data4, &hr, 4);
     return g;
+}
+
+BOOL xp_obj_enable_ftm(XpObj *o)
+{
+    IUnknown *inner = NULL;
+    if (!U(CoCreateFreeThreadedMarshaler)) return FALSE;
+    if (FAILED(U(CoCreateFreeThreadedMarshaler)(XP_OBJ_UNK(o), &inner)) || !inner) return FALSE;
+    o->ftm = inner;
+    return TRUE;
 }

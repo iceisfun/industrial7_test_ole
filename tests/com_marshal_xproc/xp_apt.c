@@ -638,6 +638,7 @@ XT(apt_message_filter_not_allowed_in_mta) {
 XT(apt_interthread_stream_helpers_invalid_args) {
     IStream *s = NULL; XpObj *o; void *pv = (void *)1;
     XP_NEED_BASE(); NEED(CoMarshalInterThreadInterfaceInStream); NEED(CoGetInterfaceAndReleaseStream);
+    if (t_is_wine()) { t_skip("emulator dereferences NULL arguments"); return; }
     o = xp_obj_new();
     XEQ(U(CoMarshalInterThreadInterfaceInStream)(NULL, XP_OBJ_UNK(o), &s), E_INVALIDARG);
     XEQ(U(CoMarshalInterThreadInterfaceInStream)(&XP_IID_IClassFactory, NULL, &s), E_INVALIDARG);

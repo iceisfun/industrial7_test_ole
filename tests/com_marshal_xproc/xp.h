@@ -80,6 +80,7 @@ struct XpObj {
     volatile LONG *destroyedFlag;    /* set to 1 when the object is freed */
     IUnknown *extra;                 /* when non-NULL, CreateInstance(IID_IUnknown) returns this instead of self */
     HRESULT hookHr;                  /* result recorded by hooks */
+    IUnknown *ftm;                   /* free-threaded marshaler (aggregated), see xp_obj_enable_ftm */
     DWORD pad[4];
 };
 extern volatile LONG xp_live_objs;   /* XpObj currently alive */
@@ -87,6 +88,8 @@ XpObj *xp_obj_new(void);
 #define XP_OBJ_UNK(o) ((IUnknown *)&(o)->iface)
 #define XP_OBJ_CF(o)  (&(o)->iface)
 XpObj *xp_obj_from(IUnknown *u);
+/* aggregate a free-threaded marshaler: QueryInterface(IID_IMarshal) then returns the FTM */
+BOOL xp_obj_enable_ftm(XpObj *o);
 
 /* IExternalConnection variant: also implements IExternalConnection and records calls (for lock tests) */
 XpObj *xp_obj_new_extconn(void);
