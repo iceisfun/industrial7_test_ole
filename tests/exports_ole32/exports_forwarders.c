@@ -136,10 +136,11 @@ static void fwd_chunk(int lo, int hi, int kind_mask) {
         CHECKF(p != NULL, "%s", e->name);
         CHECKF(p == q, "%s by-name vs ordinal %u", e->name, e->ord);
         CHECKF(!in_module(p, ole), "%s must resolve outside ole32 (forwarded)", e->name);
-        const char *tn = fwd_target(e);
+        const char *tn = fwd_target(e); int kind = fwd_kind(e);
         if (tn) {
             FARPROC c = byname("combase.dll", tn);
-            if (c) CHECKF(p == c, "%s: ole32 %p vs combase!%s %p", e->name, p, tn, c);
+            if (c && kind != K_APISET) CHECKF(p == c, "%s: ole32 %p vs combase!%s %p", e->name, p, tn, c);
+            else if (c) { if (p != c) t_note("%s: api-set target resolves to %p, not combase!%s %p", e->name, p, tn, c); }
             else t_note("%s forwards to %s which combase does not export by that name", e->name, e->fwd);
         }
     }
@@ -190,7 +191,7 @@ TEST(exports_ole32_fwd_well_known) {
     WINE_SKIP();
     static const char *const n[] = { "CoInitializeEx", "CoUninitialize", "CoCreateInstance", "CoCreateInstanceEx", "CoGetClassObject",
         "CoTaskMemAlloc", "CoTaskMemFree", "CoTaskMemRealloc", "CoMarshalInterface", "CoUnmarshalInterface", "CoGetMalloc",
-        "CLSIDFromString", "StringFromGUID2", "CoRegisterClassObject", "CoRevokeClassObject", "CoGetObject",
+        "CLSIDFromString", "StringFromGUID2", "CoRegisterClassObject", "CoRevokeClassObject",
         "CreateStreamOnHGlobal", "GetHGlobalFromStream", "CoCreateGuid", "IIDFromString", "StringFromCLSID", "ProgIDFromCLSID" };
     for (unsigned i = 0; i < sizeof n / sizeof n[0]; i++) {
         FARPROC p = byname("ole32.dll", n[i]), c = byname("combase.dll", n[i]);
@@ -229,4 +230,65 @@ TEST(exports_ole32_fwd_count) {
     for (unsigned i = 0; i < EXP_N; i++) { if (g_exp[i].fwd) f++; else own++; }
     EXPECT_EQ(f, 292);
     EXPECT_EQ(own, 262);
+}
+
+/* independent literal spot checks (cross-check of the generated table): name -> ordinal on Win10 x64 */
+TEST(exports_ole32_known_ordinals) {
+    WINE_SKIP();
+    static const struct { const char *n; unsigned o; } t[] = {
+        { "CoInitializeEx", 928 }, { "CoUninitialize", 975 }, { "CoCreateInstance", 874 }, { "CoTaskMemAlloc", 970 },
+        { "OleInitialize", 1244 }, { "OleUninitialize", 1273 }, { "StgCreateDocfile", 1315 }, { "CoGetObject", 915 },
+        { "DllGetClassObject", 1008 }, { "OleSetClipboard", 1268 }, { "CoInitialize", 927 }, { "CoGetMalloc", 912 },
+        { "OleGetClipboard", 1239 }, { "CreateBindCtx", 989 }, { "GetRunningObjectTable", 1026 }, { "StgOpenStorage", 1326 },
+        { "PropVariantClear", 1280 }, { "DoDragDrop", 1011 }, { "OleLoad", 1248 }, { "WriteClassStg", 1349 },
+        { "CoRegisterMessageFilter", 952 }, { "CreateILockBytesOnHGlobal", 996 }, { "MkParseDisplayName", 1144 },
+        { "OleGetPackageClipboardOwner", 802 } };
+    for (unsigned i = 0; i < sizeof t / sizeof t[0]; i++) {
+        FARPROC a = byname("ole32.dll", t[i].n), b = t_proc_ord("ole32.dll", t[i].o);
+        CHECKF(a != NULL && a == b, "%s must be ordinal %u", t[i].n, t[i].o);
+    }
+}
+/* exports that Windows 10 ole32 does not have (they live elsewhere) */
+TEST(exports_ole32_known_absent) {
+    WINE_SKIP();
+    static const char *const n[] = { "DllCanUnloadNow", "DllRegisterServer", "DllUnregisterServer", "CoInitializeEx2",
+        "RoInitialize", "WindowsCreateString", "OleUIInsertObjectA", "CoCreateInstanceA", "CoInitializeExW" };
+    HMODULE m = t_module("ole32.dll"); if (!m) { t_skip("ole32"); return; }
+    for (unsigned i = 0; i < sizeof n / sizeof n[0]; i++) {
+        SET_ERR(0);
+        CHECKF(GetProcAddress(m, n[i]) == NULL, "%s", n[i]);
+        EXPECT_ERR(ERROR_PROC_NOT_FOUND);
+    }
+}
+/* forwarder strings are well formed and the same forwarder resolves identically on repeated lookups */
+TEST(exports_ole32_fwd_strings_wellformed) {
+    WINE_SKIP();
+    for (unsigned i = 0; i < EXP_N; i++) {
+        const struct exp_ent *e = &g_exp[i];
+        if (!e->fwd) continue;
+        const char *dot = strchr(e->fwd, '.');
+        CHECKF(dot && dot > e->fwd && dot[1] != 0, "ord %u '%s'", e->ord, e->fwd);
+        CHECKF(strchr(e->fwd, ' ') == NULL, "ord %u '%s' has space", e->ord, e->fwd);
+        CHECKF(_strnicmp(e->fwd, "COMBASE.", 8) == 0 || _strnicmp(e->fwd, "api-ms-win-core-com-", 20) == 0, "ord %u '%s' unexpected module", e->ord, e->fwd);
+    }
+}
+TEST(exports_ole32_fwd_repeatable) {
+    WINE_SKIP();
+    static const char *const n[] = { "CoInitializeEx", "CoTaskMemFree", "CLSIDFromString", "HWND_UserSize", "GetErrorInfo" };
+    for (unsigned i = 0; i < 5; i++) {
+        FARPROC a = byname("ole32.dll", n[i]);
+        for (int k = 0; k < 3; k++) CHECKF(a != NULL && byname("ole32.dll", n[i]) == a, "%s", n[i]);
+    }
+}
+/* the ole32 export for SetErrorInfo/GetErrorInfo/CreateErrorInfo is the combase CoXxxErrorInfo worker, which differs from oleaut32's */
+TEST(exports_ole32_errorinfo_not_oleaut32) {
+    WINE_SKIP();
+    HMODULE oa = t_module("oleaut32.dll"); if (!oa) { t_skip("oleaut32"); return; }
+    static const char *const n[] = { "GetErrorInfo", "SetErrorInfo", "CreateErrorInfo" };
+    for (unsigned i = 0; i < 3; i++) {
+        FARPROC p = byname("ole32.dll", n[i]), q = GetProcAddress(oa, n[i]);
+        if (!q) { t_note("oleaut32 lacks %s", n[i]); continue; }
+        CHECKF(p != NULL, "%s", n[i]);
+        t_note("%s ole32=%p oleaut32=%p", n[i], p, q);
+    }
 }

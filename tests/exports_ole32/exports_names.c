@@ -166,6 +166,5 @@ TEST(exports_ole32_no_decorated_names) {
         CHECKF(GetProcAddress(m, b) == NULL, "%s", b);
         snprintf(b, sizeof b, "_%s", g_exp[i].name);
         CHECKF(GetProcAddress(m, b) == NULL, "%s", b);
-        if (i > 80) break;
     }
 }
