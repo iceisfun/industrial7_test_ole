@@ -68,6 +68,7 @@ DWORD um_x_free(void *fn, ULONG *fl, void *obj);
 #define um_x_unm um_x_mar
 
 #define RD_U32(b, o) (*(ULONG *)((b) + (o)))
+#define XEQ(call, want) do { DWORD x__ = (call); t_check(x__ == (DWORD)(want), __FILE__, __LINE__, #call " == " #want, "got 0x%lx want 0x%lx", x__, (DWORD)(want)); } while (0)
 #define NEED(x) if (!(x)) { t_note("missing export: " #x); continue; }
 #define UM_ALIGN(x, a) (((x) + (a) - 1) & ~((ULONG)(a) - 1))
 #define UM_FN(name) ((void *)t_proc(name))

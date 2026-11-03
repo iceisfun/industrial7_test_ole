@@ -39,7 +39,7 @@ TEST(usr_handle_size_null_obj)
         for (ctx = 0; ctx <= C_CONT; ctx++)
             for (off = 0; off < 10; off++) {
                 UMC c; um_init(&c, NULL, 0, ctx);
-                EXPECT_EQ(um_x_size(f, UMF(&c), off, NULL, &r), 0);
+                XEQ(um_x_size(f, UMF(&c), off, NULL, &r), 0);
                 CHECKF(r == off, "%s ctx %lu off %lu got %lu", um_hfams[i].pfx, ctx, off, r);
             }
     }
@@ -55,7 +55,7 @@ TEST(usr_handle_size_alignment)
             for (off = 0; off < 20; off++) {
                 UMC c; HANDLE h = (HANDLE)k_hvals[v];
                 um_init(&c, NULL, 0, C_LOCAL);
-                EXPECT_EQ(um_x_size(f, UMF(&c), off, &h, &r), 0);
+                XEQ(um_x_size(f, UMF(&c), off, &h, &r), 0);
                 CHECKF(r == UM_ALIGN(off, 4) + 8, "%s h=%p off %lu got %lu", um_hfams[i].pfx, h, off, r);
             }
     }
@@ -70,15 +70,15 @@ TEST(usr_handle_size_context_matrix)
         for (k = 0; k < 4; k++) {   /* contexts that are not "remote" */
             UMC c; HANDLE h = (HANDLE)0x4321;
             um_init(&c, NULL, 0, k_nonremote[k]);
-            EXPECT_EQ(um_x_size(f, UMF(&c), 0, &h, &r), 0);
+            XEQ(um_x_size(f, UMF(&c), 0, &h, &r), 0);
             CHECKF(r == 8, "%s ctx %lu size %lu", um_hfams[i].pfx, k_nonremote[k], r);
         }
         for (k = 0; k < 2; k++) {   /* REMOTE_CALL(): low byte 2 or 5 */
             UMC c; HANDLE h = (HANDLE)0x4321, n = NULL;
             ULONG ctx = k ? C_CONT : C_DIFFM;
             um_init(&c, NULL, 0, ctx);
-            EXPECT_EQ(um_x_size(f, UMF(&c), 0, &h, &r), X_BADTAG);
-            EXPECT_EQ(um_x_size(f, UMF(&c), 0, &n, &r), 0);
+            XEQ(um_x_size(f, UMF(&c), 0, &h, &r), X_BADTAG);
+            XEQ(um_x_size(f, UMF(&c), 0, &n, &r), 0);
             CHECKF(r == 8, "%s remote null size %lu", um_hfams[i].pfx, r);
         }
     }
@@ -95,7 +95,7 @@ TEST(usr_handle_marshal_wire)
                 UMC c; HANDLE h = (HANDLE)k_hvals[v];
                 unsigned char *b = um_buf_new(32), *end; ULONG a = UM_ALIGN(off, 4);
                 um_init(&c, b, 32, C_LOCAL);
-                EXPECT_EQ(um_x_mar(f, UMF(&c), b + off, &h, &end), 0);
+                XEQ(um_x_mar(f, UMF(&c), b + off, &h, &end), 0);
                 CHECKF(end == b + a + 8, "%s off %lu end %+ld", um_hfams[i].pfx, off, (long)(end - b));
                 EXPECT_EQ(*(ULONG *)(b + a), UM_TAG_H);
                 EXPECT_EQ(*(ULONG *)(b + a + 4), (ULONG)k_hvals[v]);
@@ -116,7 +116,7 @@ TEST(usr_handle_marshal_null_obj)
         for (off = 0; off < 4; off++) {
             UMC c; unsigned char *b = um_buf_new(16), *end;
             um_init(&c, b, 16, C_LOCAL);
-            EXPECT_EQ(um_x_mar(f, UMF(&c), b + off, NULL, &end), 0);
+            XEQ(um_x_mar(f, UMF(&c), b + off, NULL, &end), 0);
             CHECKF(end == b + off, "%s unaligned buffer must be returned unchanged", um_hfams[i].pfx);
             CHECK(um_untouched(b, 0, 16));
             um_buf_free(b);
@@ -133,9 +133,9 @@ TEST(usr_handle_marshal_remote_raises)
         for (k = 0; k < 2; k++) {
             UMC c; HANDLE h = (HANDLE)0x77, n = NULL; unsigned char *b = um_buf_new(16), *end;
             um_init(&c, b, 16, k ? C_CONT : C_DIFFM);
-            EXPECT_EQ(um_x_mar(f, UMF(&c), b, &h, &end), X_BADTAG);
+            XEQ(um_x_mar(f, UMF(&c), b, &h, &end), X_BADTAG);
             CHECK(um_untouched(b, 0, 16));
-            EXPECT_EQ(um_x_mar(f, UMF(&c), b, &n, &end), 0);       /* NULL handle is fine remotely */
+            XEQ(um_x_mar(f, UMF(&c), b, &n, &end), 0);       /* NULL handle is fine remotely */
             CHECK(end == b + 8);
             EXPECT_EQ(*(ULONG *)b, UM_TAG_H);
             EXPECT_EQ(*(ULONG *)(b + 4), 0);
@@ -154,9 +154,9 @@ TEST(usr_handle_unmarshal_roundtrip)
             for (v = 0; v < 4; v++) {
                 UMC c; HANDLE h = (HANDLE)k_hvals[v], o = (HANDLE)0x5555; unsigned char *b = um_buf_new(32), *e1, *e2;
                 um_init(&c, b, 32, k_nonremote[k]);
-                EXPECT_EQ(um_x_mar(fm, UMF(&c), b + 1, &h, &e1), 0);
+                XEQ(um_x_mar(fm, UMF(&c), b + 1, &h, &e1), 0);
                 um_init(&c, b, (ULONG)(e1 - b), k_nonremote[k]);
-                EXPECT_EQ(um_x_mar(fu, UMF(&c), b + 1, &o, &e2), 0);
+                XEQ(um_x_mar(fu, UMF(&c), b + 1, &o, &e2), 0);
                 CHECK(e2 == e1);
                 CHECKF(o == h, "%s ctx %lu: %p != %p", um_hfams[i].pfx, k_nonremote[k], o, h);
                 um_buf_free(b);
@@ -180,7 +180,7 @@ TEST(usr_handle_unmarshal_sign_extends)
             ULONG ctx = C_LOCAL;
             ((ULONG *)b)[0] = UM_TAG_H; ((ULONG *)b)[1] = t[k].wire;
             um_init(&c, b, 8, ctx);
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b, &o, &e), 0);
+            XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), 0);
             CHECKF((ULONG_PTR)o == t[k].want, "%s wire %08lx got %p", um_hfams[i].pfx, t[k].wire, o);
             um_buf_free(b);
         }
@@ -197,10 +197,10 @@ TEST(usr_handle_unmarshal_remote)
             UMC c; HANDLE o = (HANDLE)9; unsigned char *b = um_buf_new(16), *e;
             ((ULONG *)b)[0] = UM_TAG_H; ((ULONG *)b)[1] = 0x1234;
             um_init(&c, b, 8, k ? C_CONT : C_DIFFM);
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b, &o, &e), X_BADTAG);
+            XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), X_BADTAG);
             ((ULONG *)b)[1] = 0;
             um_init(&c, b, 8, k ? C_CONT : C_DIFFM);
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b, &o, &e), 0);
+            XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), 0);
             CHECK(o == NULL); CHECK(e == b + 8);
             um_buf_free(b);
         }
@@ -218,7 +218,7 @@ TEST(usr_handle_unmarshal_bad_tag)
             UMC c; HANDLE o = (HANDLE)9; unsigned char *b = um_buf_new(16), *e;
             ((ULONG *)b)[0] = tags[t]; ((ULONG *)b)[1] = 5;
             um_init(&c, b, 8, C_LOCAL);
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b, &o, &e), X_BADTAG);
+            XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), X_BADTAG);
             CHECKF(o == (HANDLE)9, "output must be untouched on failure");
             um_buf_free(b);
         }
@@ -235,7 +235,7 @@ TEST(usr_handle_unmarshal_truncated)
             UMC c; HANDLE o = NULL; unsigned char *b = um_buf_new(16), *e;
             ((ULONG *)b)[0] = UM_TAG_H; ((ULONG *)b)[1] = 5;
             um_init(&c, b, len, C_LOCAL);
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b, &o, &e), len < 8 ? X_BADSTUB : 0);
+            XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), len < 8 ? X_BADSTUB : 0);
             if (len >= 8) CHECK(o == (HANDLE)5);
             um_buf_free(b);
         }
@@ -243,9 +243,9 @@ TEST(usr_handle_unmarshal_truncated)
             UMC c; HANDLE o = NULL; unsigned char *b = um_buf_new(32), *e;
             ((ULONG *)(b + 4))[0] = UM_TAG_H; ((ULONG *)(b + 4))[1] = 5;
             um_init(&c, b, 11, C_LOCAL);
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b + 1, &o, &e), X_BADSTUB);
+            XEQ(um_x_mar(fu, UMF(&c), b + 1, &o, &e), X_BADSTUB);
             um_init(&c, b, 12, C_LOCAL);
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b + 1, &o, &e), 0);
+            XEQ(um_x_mar(fu, UMF(&c), b + 1, &o, &e), 0);
             CHECK(e == b + 12);
             um_buf_free(b);
         }
@@ -262,10 +262,10 @@ TEST(usr_handle_unmarshal_supplied_outside)
             UMC c; HANDLE o = NULL; unsigned char *b = um_buf_new(64), *e;
             ((ULONG *)(b + 16))[0] = UM_TAG_H; ((ULONG *)(b + 16))[1] = 5;
             um_init(&c, b + 8, 16, C_LOCAL);         /* declared range [b+8, b+24] */
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b + 7, &o, &e), X_BADBUFPOS);   /* before */
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b + 25, &o, &e), X_BADBUFPOS);  /* after */
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b + 24, &o, &e), X_BADSTUB);    /* at the end: allowed, but empty */
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b + 16, &o, &e), 0);            /* exactly 8 bytes left: fits */
+            XEQ(um_x_mar(fu, UMF(&c), b + 7, &o, &e), X_BADBUFPOS);   /* before */
+            XEQ(um_x_mar(fu, UMF(&c), b + 25, &o, &e), X_BADBUFPOS);  /* after */
+            XEQ(um_x_mar(fu, UMF(&c), b + 24, &o, &e), X_BADSTUB);    /* at the end: allowed, but empty */
+            XEQ(um_x_mar(fu, UMF(&c), b + 16, &o, &e), 0);            /* exactly 8 bytes left: fits */
             CHECK(o == (HANDLE)5);
             um_buf_free(b);
         }
@@ -285,7 +285,7 @@ TEST(usr_handle_unmarshal_bad_signature)
             ((ULONG *)b)[0] = UM_TAG_H; ((ULONG *)b)[1] = 6;
             um_init(&c, b, 0, C_LOCAL);
             c.cb.Signature = 0;
-            EXPECT_EQ(um_x_mar(fu, UMF(&c), b, &o, &e), 0);
+            XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), 0);
             CHECK(o == (HANDLE)6); CHECK(e == b + 8);
             um_buf_free(b);
         }
@@ -301,7 +301,7 @@ TEST(usr_handle_unaligned_marshal)
         for (off = 1; off < 4; off++) {
             UMC c; HANDLE h = (HANDLE)0x1020; unsigned char *b = um_buf_new(32), *e;
             um_init(&c, b, 32, C_LOCAL);
-            EXPECT_EQ(um_x_mar(fm, UMF(&c), b + off, &h, &e), 0);
+            XEQ(um_x_mar(fm, UMF(&c), b + off, &h, &e), 0);
             CHECK(e == b + 12);      /* aligned up to 4 even though b + off is not */
             EXPECT_EQ(*(ULONG *)(b + 4), UM_TAG_H);
             CHECK(um_untouched(b, 0, 4));
@@ -320,10 +320,10 @@ TEST(usr_handle_free_is_noop)
             UMC c; HANDLE h = (HANDLE)0x1234;
             int a = um_nalloc, f = um_nfree;
             um_init(&c, NULL, 0, k);
-            EXPECT_EQ(um_x_free(ff, UMF(&c), &h), 0);
+            XEQ(um_x_free(ff, UMF(&c), &h), 0);
             CHECK(h == (HANDLE)0x1234);
             h = NULL;
-            EXPECT_EQ(um_x_free(ff, UMF(&c), &h), 0);
+            XEQ(um_x_free(ff, UMF(&c), &h), 0);
             CHECK(a == um_nalloc && f == um_nfree);
         }
     }
@@ -339,15 +339,15 @@ TEST(usr_handle_flags_use_low_byte_only)
             UMC c; HANDLE h = (HANDLE)0x42; ULONG r; unsigned char *b = um_buf_new(16), *e;
             um_init(&c, NULL, 0, C_LOCAL);
             c.cb.Flags = 0x0100 | (0x10u << 16) | C_LOCAL;           /* aux bit 8 + data representation */
-            EXPECT_EQ(um_x_size(fs, UMF(&c), 0, &h, &r), 0);
+            XEQ(um_x_size(fs, UMF(&c), 0, &h, &r), 0);
             CHECK(r == 8);
             c.cb.Flags = 0x0100 | (0x10u << 16) | C_DIFFM;
-            EXPECT_EQ(um_x_size(fs, UMF(&c), 0, &h, &r), X_BADTAG);
+            XEQ(um_x_size(fs, UMF(&c), 0, &h, &r), X_BADTAG);
             c.cb.Flags = 0x0000 | (0x10u << 16) | C_CONT;
-            EXPECT_EQ(um_x_size(fs, UMF(&c), 0, &h, &r), X_BADTAG);
+            XEQ(um_x_size(fs, UMF(&c), 0, &h, &r), X_BADTAG);
             c.cb.Flags = 0x1200 | C_LOCAL;
             um_init(&c, b, 16, C_LOCAL); c.cb.Flags = 0x1200 | C_LOCAL;
-            EXPECT_EQ(um_x_mar(fm, UMF(&c), b, &h, &e), 0);
+            XEQ(um_x_mar(fm, UMF(&c), b, &h, &e), 0);
             CHECK(e == b + 8);
             um_buf_free(b);
         }
@@ -396,14 +396,14 @@ TEST(usr_hwnd_ext_variants_match)
     for (k = 0; k < 2; k++) {
         UMC c; HANDLE h = (HANDLE)0x3344, o = NULL; ULONG r; unsigned char *b = um_buf_new(32), *e;
         um_init(&c, NULL, 0, C_LOCAL);
-        EXPECT_EQ(um_x_size(sz[k], UMF(&c), 1, &h, &r), 0); EXPECT_EQ(r, 12);
+        XEQ(um_x_size(sz[k], UMF(&c), 1, &h, &r), 0); EXPECT_EQ(r, 12);
         um_init(&c, b, 32, C_LOCAL);
-        EXPECT_EQ(um_x_mar(ma[k], UMF(&c), b + 1, &h, &e), 0); CHECK(e == b + 12);
+        XEQ(um_x_mar(ma[k], UMF(&c), b + 1, &h, &e), 0); CHECK(e == b + 12);
         EXPECT_EQ(*(ULONG *)(b + 4), UM_TAG_H); EXPECT_EQ(*(ULONG *)(b + 8), 0x3344);
-        EXPECT_EQ(um_x_mar(un[k], UMF(&c), b + 1, &o, &e), 0); CHECK(o == h);
-        EXPECT_EQ(um_x_free(fr[k], UMF(&c), &h), 0); CHECK(h == (HANDLE)0x3344);
+        XEQ(um_x_mar(un[k], UMF(&c), b + 1, &o, &e), 0); CHECK(o == h);
+        XEQ(um_x_free(fr[k], UMF(&c), &h), 0); CHECK(h == (HANDLE)0x3344);
         um_init(&c, NULL, 0, C_DIFFM);
-        EXPECT_EQ(um_x_size(sz[k], UMF(&c), 0, &h, &r), X_BADTAG);
+        XEQ(um_x_size(sz[k], UMF(&c), 0, &h, &r), X_BADTAG);
         um_buf_free(b);
     }
 }
