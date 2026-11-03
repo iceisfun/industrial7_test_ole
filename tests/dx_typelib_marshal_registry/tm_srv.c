@@ -298,13 +298,13 @@ static HRESULT TM_CALL ev_reset(IEnumVARIANT *i) { ((EnumV *)i)->pos = 0; return
 static HRESULT TM_CALL ev_clone(IEnumVARIANT *i, IEnumVARIANT **pp)
 {
     EnumV *e = (EnumV *)i, *n = calloc(1, sizeof *n);
-    n->e = e->e; n->ref = 1; n->pos = e->pos; InterlockedIncrement(&g_live);
+    n->e.lpVtbl = e->e.lpVtbl; n->ref = 1; n->pos = e->pos; InterlockedIncrement(&g_live);
     *pp = &n->e; return S_OK;
 }
 static const IEnumVARIANTVtbl ev_vtbl = { ev_qi, ev_addref, ev_release, ev_next, ev_skip, ev_reset, ev_clone };
 static IEnumVARIANT *new_enumv(void)
 {
-    EnumV *e = calloc(1, sizeof *e); e->e.lpVtbl = &ev_vtbl; e->ref = 1; InterlockedIncrement(&g_live); return &e->e;
+    EnumV *e = calloc(1, sizeof *e); e->e.lpVtbl = (IEnumVARIANTVtbl *)&ev_vtbl; e->ref = 1; InterlockedIncrement(&g_live); return &e->e;
 }
 
 /* ------------------------------------------------------------------ IOletDual */

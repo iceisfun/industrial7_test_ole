@@ -5,7 +5,7 @@
 static int same_path(const WCHAR *reg, const WCHAR *given)
 {
     if (!reg) return 0;
-    if (!wcsncmp(reg, L"\\\\?\\", 4)) { t_note("registered path carries a \\?\ prefix"); reg += 4; }
+    if (!wcsncmp(reg, L"\\\\?\\", 4)) { t_note("registered path carries a long-path prefix"); reg += 4; }
     return !lstrcmpiW(reg, given);
 }
 
