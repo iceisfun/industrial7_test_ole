@@ -19,6 +19,7 @@ static HRESULT WINAPI Obj_QI(IClassFactory *iface, REFIID riid, void **ppv) {
     if (!ppv) return E_POINTER;
     *ppv = NULL;
     if (IsEqualGUID(riid, &IID_IUnknown) || IsEqualGUID(riid, &IID_IClassFactory)) *ppv = &o->cf;
+    else if (IsEqualGUID(riid, &IID_IMarshal) && o->marshal_inner) return IUnknown_QueryInterface(o->marshal_inner, riid, ppv);
     else if (IsEqualGUID(riid, &IID_IExternalConnection)) {
         InterlockedIncrement((LONG *)&o->qi_extconn);
         if (o->with_ec) *ppv = &o->ec;

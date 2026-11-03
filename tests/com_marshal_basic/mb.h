@@ -40,6 +40,7 @@ typedef struct MBObj {
     BOOL with_ec;        /* expose IExternalConnection through QueryInterface */
     DWORD last_tid;      /* thread that executed the last LockServer/CreateInstance */
     LONG ci_calls;
+    IUnknown *marshal_inner; /* if set, QueryInterface(IID_IMarshal) is forwarded here (aggregation of the free-threaded marshaler) */
     DWORD qi_extconn;    /* number of QI(IID_IExternalConnection) calls */
 } MBObj;
 extern MBObj g_obj[2];
