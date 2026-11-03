@@ -1,4 +1,5 @@
 /* combase.dll export directory structure and table-wide invariants. Resolve-only: no export is ever called. */
+#define EXP_WINE_TOLERANT
 #include "exp_common.h"
 
 #define NAMED_COUNT 457

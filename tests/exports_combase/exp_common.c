@@ -1,3 +1,4 @@
+#define EXP_WINE_TOLERANT
 #include "exp_common.h"
 
 const IMAGE_NT_HEADERS *exp_nt(HMODULE m) {
@@ -123,4 +124,11 @@ void exp_check_fwd_range(HMODULE m, const struct fwd *tab, size_t lo, size_t hi,
             }
         }
     }
+}
+
+static unsigned g_miss;
+void exp_wine_miss(void) { g_miss++; }
+unsigned exp_wine_misses(void) { return g_miss; }
+TEST(exports_combase_zz_wine_tolerated_summary) {
+    if (t_is_wine()) t_note("%u reference-table expectations not met by this Wine (tolerated)", exp_wine_misses());
 }

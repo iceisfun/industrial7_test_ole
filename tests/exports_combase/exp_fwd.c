@@ -1,5 +1,6 @@
 /* ole32.dll / oleaut32.dll forwarders that land in combase.dll: a forwarded GetProcAddress must resolve to the
  * target module's real function (and never to a stub inside the forwarding DLL). */
+#define EXP_WINE_TOLERANT
 #include "exp_common.h"
 #include <objbase.h>
 #include <combaseapi.h>

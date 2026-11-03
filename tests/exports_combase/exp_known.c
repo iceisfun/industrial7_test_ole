@@ -1,4 +1,5 @@
 /* Well-known combase exports: pinned resolution, typed through the SDK headers where available. */
+#define EXP_WINE_TOLERANT
 #include "exp_common.h"
 #include <objbase.h>
 #include <combaseapi.h>

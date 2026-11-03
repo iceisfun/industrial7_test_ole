@@ -23,4 +23,19 @@ const struct cbexp *exp_find_ord(unsigned ord);
 void exp_check_names(const char *const *names, size_t n);
 void exp_check_ord_range(unsigned lo, unsigned hi);
 void exp_check_fwd_range(HMODULE m, const struct fwd *tab, size_t lo, size_t hi, const char *dll);
+/* The reference table is the Windows 10 export layout. Wine's combase has a different ordinal layout and lacks
+ * exports, so files defining EXP_WINE_TOLERANT downgrade failing checks to a counted miss when running on Wine
+ * (Windows is the authority; on Windows every check is hard). */
+void exp_wine_miss(void);
+unsigned exp_wine_misses(void);
+#ifdef EXP_WINE_TOLERANT
+#undef CHECK
+#undef CHECKF
+#undef EXPECT_EQ
+#undef EXPECT_ERR
+#define CHECK(c)        do { int ok_ = !!(c); if (!ok_ && t_is_wine()) exp_wine_miss(); else t_check(ok_, __FILE__, __LINE__, #c, NULL); } while (0)
+#define CHECKF(c, ...)  do { int ok_ = !!(c); if (!ok_ && t_is_wine()) exp_wine_miss(); else t_check(ok_, __FILE__, __LINE__, #c, __VA_ARGS__); } while (0)
+#define EXPECT_EQ(a, b) do { int ok_ = (ULONG_PTR)(a) == (ULONG_PTR)(b); if (!ok_ && t_is_wine()) exp_wine_miss(); else t_check(ok_, __FILE__, __LINE__, #a " == " #b, "got 0x%llx want 0x%llx", (unsigned long long)(ULONG_PTR)(a), (unsigned long long)(ULONG_PTR)(b)); } while (0)
+#define EXPECT_ERR(err) do { DWORD e_ = GetLastError(); int ok_ = e_ == (DWORD)(err); if (!ok_ && t_is_wine()) exp_wine_miss(); else t_check(ok_, __FILE__, __LINE__, #err, "GetLastError got %lu want %lu", e_, (DWORD)(err)); } while (0)
+#endif
 #endif
