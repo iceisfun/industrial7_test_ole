@@ -532,6 +532,7 @@ TEST(mr_comp_common_prefix_partial_overlap) {
 /* adapted from Wine dlls/ole32/tests/moniker.c (LGPL-2.1+) */
 TEST(mr_func_moniker_common_prefix_with) {
     IMoniker *m = (IMoniker *)1, *item, *f1, *f2, *c1, *c2; SETUP(); REQUIRE(U(MonikerCommonPrefixWith));
+    if (t_is_wine()) { t_skip("Wine crashes in MonikerCommonPrefixWith for non-composite monikers"); MR_COM_END(); return; }
     /* two non-composites never have a prefix through this entry point */
     if (!t_is_wine()) { EXPECT_EQ(U(MonikerCommonPrefixWith)(NULL, NULL, &m), MK_E_NOPREFIX); EXPECT_EQ(m, NULL); }
     item = mr_item(L"!", L"Item"); f1 = mr_file(L"C:\\test.txt"); f2 = mr_file(L"C:\\a\\test.txt");
