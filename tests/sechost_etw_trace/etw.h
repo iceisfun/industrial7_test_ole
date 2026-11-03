@@ -16,9 +16,13 @@ static inline FARPROC etw_res(const char *name) {
     if (!p) { char b[96]; _snprintf(b, sizeof b, "Etw%s", name); p = t_proc_in("ntdll.dll", b); }
     return p;
 }
-/* Wine's ETW controller functions are stubs that return success for everything; the expectations below
- * are Windows behaviour, so skip the controller tests under an emulator (no-op on Windows). */
-#define ETW_REQ(p) do { REQUIRE(p); if (t_is_wine()) { t_skip("emulator ETW controller is a stub"); return; } } while (0)
+/* Wine's ETW implementation (controller, consumer and Event* provider API) is a set of stubs that
+ * return success for everything. All expectations here are Windows behaviour, so under an emulator
+ * REQUIRE() also skips the test (no-op on Windows). */
+#undef REQUIRE
+#define REQUIRE(ptr) do { if (!(ptr)) { t_skip("missing export: " #ptr); return; } \
+    if (t_is_wine()) { t_skip("emulator ETW is a stub"); return; } } while (0)
+#define ETW_REQ(p) REQUIRE(p)
 #define ET(name) ((__typeof__(&name))etw_res(#name))
 
 /* Win10 value of EVENT_TRACE_PROPERTIES fixed size (WNODE_HEADER 0x30 + 0x48). */
