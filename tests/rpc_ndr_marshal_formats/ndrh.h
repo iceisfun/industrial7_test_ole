@@ -8,16 +8,11 @@
 #include <ndrtypes.h>
 #include <midles.h>
 #include <setjmp.h>
+#include <objbase.h>
 
 /* Wine aborts the process on calls to unimplemented rpcrt4 exports: skip those there (no-op on Windows). */
 #define WSTUB(n) do { if (t_is_wine()) { t_skip("unimplemented in wine: " n); return; } } while (0)
 
-#ifndef MSHCTX_LOCAL
-#define MSHCTX_LOCAL 0
-#define MSHCTX_NOSHAREDMEM 1
-#define MSHCTX_DIFFERENTMACHINE 2
-#define MSHCTX_INPROC 3
-#endif
 #define S16(x) (unsigned char)((x) & 0xff), (unsigned char)(((x) >> 8) & 0xff)
 
 /* RPC exception codes raised by the NDR engine (RpcRaiseException) */
