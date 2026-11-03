@@ -120,7 +120,8 @@ static int fam_ok(const fam *f) { return f->bs && f->ma && f->um && f->ms; }
  * *bsz receives the BufferSize prediction (computed first from BufferLength 0). */
 static ULONG n_marshal(const fam *f, nctx *c, unsigned char *mem, const unsigned char *fmt, ULONG *bsz) {
     c->sm.BufferLength = 0;
-    f->bs(&c->sm, mem, fmt);
+    NTRY f->bs(&c->sm, mem, fmt); NEND;
+    t_check(n_code == 0, "ndrh.h", __LINE__, "BufferSize must not raise", "%s BufferSize raised %lu", f->name, (unsigned long)n_code);
     if (bsz) *bsz = c->sm.BufferLength;
     c->sm.Buffer = c->buf; c->sm.BufferStart = c->buf;
     NTRY f->ma(&c->sm, mem, fmt); NEND;

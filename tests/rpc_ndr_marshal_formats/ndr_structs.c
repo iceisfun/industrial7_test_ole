@@ -90,12 +90,12 @@ TEST(ndr_sstruct_memorysize_aligns_accumulator) {
 /* ---------------- conformant struct: struct { long n; [size_is(n)] long a[]; } ---------------- */
 /* adapted from Wine dlls/rpcrt4/tests/ndr_marshall.c (LGPL-2.1+) (format layout) */
 static const unsigned char f_cs[] = {
-    FC_CARRAY, 3, S16(4), FC_LONG, 0x00, S16(0xfffc), FC_LONG, FC_END,        /* 0..7 */
-    FC_CSTRUCT, 3, S16(4), S16(0xfff4), FC_LONG, FC_END,                      /* 8..: array desc at 0 = -12 from the offset field at 12 */
+    FC_CARRAY, 3, S16(4), FC_LONG, 0x00, S16(0xfffc), FC_LONG, FC_END,        /* 0..9 (4 byte correlation descriptor) */
+    FC_CSTRUCT, 3, S16(4), S16(0xfff2), FC_LONG, FC_END,                      /* 10..: array desc at 0; offset field at index 14 -> -14 */
 };
 TEST(ndr_cstruct_wire_layout) {
     fam f = FAM(NdrConformantStruct); if (!fam_ok(&f)) { t_skip("exports"); return; }
-    const unsigned char *fmt = f_cs + 8;
+    const unsigned char *fmt = f_cs + 10;
     struct { int n; int a[5]; } v = { 3, { 0xA0, 0xA1, 0xA2, 0, 0 } };
     nctx c; ULONG pred;
     nc_client(&c, fmt, 128); memset(c.buf, 0, 128);
@@ -108,7 +108,7 @@ TEST(ndr_cstruct_wire_layout) {
 }
 TEST(ndr_cstruct_zero_elements) {
     fam f = FAM(NdrConformantStruct); if (!fam_ok(&f)) { t_skip("exports"); return; }
-    const unsigned char *fmt = f_cs + 8;
+    const unsigned char *fmt = f_cs + 10;
     struct { int n; int a[1]; } v = { 0, { 0 } };
     nctx c; nc_client(&c, fmt, 64); memset(c.buf, 0, 64);
     ULONG used = n_marshal(&f, &c, (unsigned char *)&v, fmt, NULL);
@@ -117,7 +117,7 @@ TEST(ndr_cstruct_zero_elements) {
 }
 TEST(ndr_cstruct_unmarshal_and_memorysize) {
     fam f = FAM(NdrConformantStruct); if (!fam_ok(&f)) { t_skip("exports"); return; }
-    const unsigned char *fmt = f_cs + 8;
+    const unsigned char *fmt = f_cs + 10;
     unsigned w[] = { 3, 3, 0xB0, 0xB1, 0xB2 };
     nctx c; nc_rx(&c, fmt, w, sizeof w, 1);
     c.sm.MemorySize = 0;
@@ -128,7 +128,7 @@ TEST(ndr_cstruct_unmarshal_and_memorysize) {
     for (int client = 0; client < 2; client++) {
         nc_rx(&c, fmt, w, sizeof w, client);
         unsigned char *p = NULL; n_alloc_cnt = 0;
-        sa_um(&f, &c, &p, fmt, 0, __func__);
+        sa_um(&f, &c, &p, fmt, client, __func__);   /* client + NULL destination needs fMustAlloc */
         CHECKF(p != NULL, "client=%d", client);
         if (p) {
             int *m = (int *)p;
@@ -141,7 +141,7 @@ TEST(ndr_cstruct_unmarshal_and_memorysize) {
 }
 TEST(ndr_cstruct_unmarshal_conformance_exceeds_buffer_raises) {
     fam f = FAM(NdrConformantStruct); if (!fam_ok(&f)) { t_skip("exports"); return; }
-    const unsigned char *fmt = f_cs + 8;
+    const unsigned char *fmt = f_cs + 10;
     unsigned w[] = { 100, 100, 1, 2 };
     nctx c; nc_rx(&c, fmt, w, sizeof w, 1);
     unsigned char *p = NULL;
@@ -154,17 +154,15 @@ TEST(ndr_cstruct_unmarshal_conformance_exceeds_buffer_raises) {
 /* ---------------- conformant varying struct: struct { long len; [size_is(8), length_is(len)] char a[]; } ---------------- */
 static const unsigned char f_cvs[] = {
     FC_CVARRAY, 0, S16(1), FC_CONSTANT_CONFORMANCE, 0, S16(8), FC_LONG, 0, S16(0xfffc), FC_BYTE, FC_END,   /* 0..12 */
-    FC_CVSTRUCT, 3, S16(4), S16(0xfff0), FC_LONG, FC_END,                                                 /* 13..: offset field at 17 -> -17+... */
+    FC_CVSTRUCT, 3, S16(4), S16(0xffee), FC_LONG, FC_END,                                                 /* 14..: offset field at index 18 -> -18 */
 };
 TEST(ndr_cvstruct_wire_layout) {
     fam f = FAM(NdrConformantVaryingStruct); if (!fam_ok(&f)) { t_skip("exports"); return; }
-    /* array description starts at format 0; the offset field sits at index 16: 0 - 16 = -16 */
-    unsigned char fmt[32]; memcpy(fmt, f_cvs, sizeof f_cvs);
-    fmt[13 + 4] = 0xf0; fmt[13 + 5] = 0xff;   /* S16(-16) */
+    const unsigned char *fmt = f_cvs;
     struct { int len; unsigned char a[8]; } v = { 3, { 'x', 'y', 'z', 0, 0, 0, 0, 0 } };
     nctx c; ULONG pred;
-    nc_client(&c, fmt + 13, 128); memset(c.buf, 0, 128);
-    ULONG used = n_marshal(&f, &c, (unsigned char *)&v, fmt + 13, &pred);
+    nc_client(&c, fmt + 14, 128); memset(c.buf, 0, 128);
+    ULONG used = n_marshal(&f, &c, (unsigned char *)&v, fmt + 14, &pred);
     t_note("cvstruct used %lu pred %lu: %08x %08x %08x %08x %08x", used, pred, ((unsigned *)c.buf)[0], ((unsigned *)c.buf)[1], ((unsigned *)c.buf)[2], ((unsigned *)c.buf)[3], ((unsigned *)c.buf)[4]);
     CHECKF(pred >= used, "pred %lu < used %lu", pred, used);
     nc_done(&c);
