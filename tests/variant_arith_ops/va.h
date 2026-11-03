@@ -29,6 +29,7 @@ typedef struct { unsigned short vt; long long i; double d; const WCHAR *s; } vce
 #define C_R8(x)       {VT_R8,0,(double)(x),0}
 #define C_DATE(x)     {VT_DATE,0,(double)(x),0}
 #define C_CY(x)       {VT_CY,(long long)(x),0,0}
+#define C_DEC(scale,sign,hi,lo) {VT_DECIMAL,(long long)(unsigned long long)(lo),(double)((scale)+256*(sign)+65536.0*(hi)),0}
 #define C_BSTR(w)     {VT_BSTR,0,0,(w)}
 #define C_BSTRNULL    {VT_BSTR,0,0,0}
 #define R4_MAX FLT_MAX

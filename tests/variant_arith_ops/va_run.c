@@ -33,6 +33,9 @@ void va_make(VARIANT *v, const vcell *c)
     case VT_R8: V_R8(v) = c->d; break;
     case VT_DATE: V_DATE(v) = c->d; break;
     case VT_CY: V_CY(v).int64 = c->i; break;
+    case VT_DECIMAL: { double k = c->d; DECIMAL d; memset(&d, 0, sizeof(d));
+        d.scale = (BYTE)((unsigned long long)k & 0xff); d.sign = (BYTE)(((unsigned long long)k >> 8) & 0xff); d.Hi32 = (ULONG)((unsigned long long)k >> 16); d.Lo64 = (ULONGLONG)c->i;
+        V_DECIMAL(v) = d; V_VT(v) = VT_DECIMAL; break; }
     case VT_BSTR: V_BSTR(v) = c->s ? U(SysAllocString)(c->s) : NULL; break;
     case VT_EMPTY: case VT_NULL: break;
     default: V_I4(v) = (LONG)c->i; break;
