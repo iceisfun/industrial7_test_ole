@@ -342,7 +342,7 @@ static DWORD WINAPI inflight_thread(LPVOID p)
     SetEvent(f->done);
     return 0;
 }
-static void run_inflight(DWORD client_model, BOOL enable)
+static void run_inflight_mode(DWORD client_model, BOOL enable, int via_object)
 {
     CxSrv s; Inflight f; HANDLE th;
     HANDLE entered = cx_event(TRUE, FALSE), release = cx_event(TRUE, FALSE);
@@ -360,7 +360,25 @@ static void run_inflight(DWORD client_model, BOOL enable)
     reached = f.proxy_ok && WaitForSingleObject(entered, 8000) == WAIT_OBJECT_0;   /* the call is now inside the server method */
     CHECK(reached);
     if (reached) {
-        cancel_hr = U(CoCancelCall)(f.tid, 0);
+        if (via_object) {
+            ICancelMethodCalls *obj = NULL;
+            HRESULT gh = U(CoGetCancelObject)(f.tid, &CX_IID_ICancelMethodCalls, (void **)&obj);
+            if (enable) {
+                CXEQ_HR(gh, S_OK);
+                if (obj) {
+                    CXEQ_HR(ICancelMethodCalls_TestCancel(obj), CX_HR_CALLPENDING);   /* documented: not canceled yet */
+                    cancel_hr = ICancelMethodCalls_Cancel(obj, 0);
+                } else cancel_hr = gh;
+            } else {
+                CXEQ_HR(gh, CX_HR_CANCELDISABLED);
+                cancel_hr = gh;
+            }
+            if (obj) {
+                HRESULT after = E_UNEXPECTED;
+                if (enable) { WaitForSingleObject(f.returned, 6000); after = ICancelMethodCalls_TestCancel(obj); t_note("TestCancel on the cancel object after cancelling: 0x%08lx", (unsigned long)after); }
+                ICancelMethodCalls_Release(obj);
+            }
+        } else cancel_hr = U(CoCancelCall)(f.tid, 0);
         if (enable) {
             CXEQ_HR(cancel_hr, S_OK);
             /* the client returns without waiting for the server method, which is still blocked */
@@ -386,7 +404,27 @@ static void run_inflight(DWORD client_model, BOOL enable)
 out:
     CloseHandle(entered); CloseHandle(release);
 }
+static void run_inflight(DWORD client_model, BOOL enable) { run_inflight_mode(client_model, enable, 0); }
 TEST(ctxthr_cancel_inflight_call_from_mta_client)  { CX_WINE_SKIP(); REQUIRE(U(CoCancelCall)); run_inflight(CXM_MTA, TRUE); }
 TEST(ctxthr_cancel_inflight_call_from_sta_client)  { CX_WINE_SKIP(); REQUIRE(U(CoCancelCall)); run_inflight(CXM_STA, TRUE); }
 TEST(ctxthr_cancel_inflight_call_without_enable_mta) { CX_WINE_SKIP(); REQUIRE(U(CoCancelCall)); run_inflight(CXM_MTA, FALSE); }
 TEST(ctxthr_cancel_inflight_call_without_enable_sta) { CX_WINE_SKIP(); REQUIRE(U(CoCancelCall)); run_inflight(CXM_STA, FALSE); }
+TEST(ctxthr_cancel_inflight_via_cancel_object_mta_client) { CX_WINE_SKIP(); REQUIRE(U(CoGetCancelObject)); run_inflight_mode(CXM_MTA, TRUE, 1); }
+TEST(ctxthr_cancel_inflight_via_cancel_object_sta_client) { CX_WINE_SKIP(); REQUIRE(U(CoGetCancelObject)); run_inflight_mode(CXM_STA, TRUE, 1); }
+TEST(ctxthr_cancel_inflight_cancel_object_unavailable_without_enable) { CX_WINE_SKIP(); REQUIRE(U(CoGetCancelObject)); run_inflight_mode(CXM_MTA, FALSE, 1); }
+
+/* A thread that exists but has no call in flight has nothing to cancel. */
+TEST(ctxthr_cancel_idle_thread_has_no_cancel_object)
+{
+    CxPark idle[2]; void *got = (void *)0xdead; int i;
+    CX_WINE_SKIP();
+    REQUIRE(U(CoGetCancelObject)); REQUIRE(U(CoCancelCall));
+    for (i = 0; i < 2; i++) {
+        if (!cx_park_start(&idle[i], i ? CXM_MTA : CXM_STA)) { CHECK(!"park"); cx_park_stop(&idle[i]); continue; }
+        got = (void *)0xdead;
+        CXEQ_HR(U(CoGetCancelObject)(idle[i].tid, &CX_IID_ICancelMethodCalls, &got), CX_HR_NOCONTEXT);
+        CXEQ(got, 0xdead);
+        CXEQ_HR(U(CoCancelCall)(idle[i].tid, 0), CX_HR_NOCONTEXT);
+        cx_park_stop(&idle[i]);
+    }
+}

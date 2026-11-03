@@ -125,6 +125,9 @@ typedef struct CxCF {
     HRESULT lock_ret;
     int poll_cancel;                 /* while blocked, call CoTestCancel every 20 ms */
     LONG test_polls; HRESULT test_last;
+    int probe;                       /* record the COM state seen inside the method */
+    HRESULT p_apt_hr, p_tok_hr, p_lid_hr, p_ctx_unk_hr, p_ctx_cancel_hr, p_test_hr;
+    APTTYPE p_type; APTTYPEQUALIFIER p_qual; ULONG_PTR p_token; GUID p_lid; void *p_ctx_unk; DWORD p_tid;
 } CxCF;
 void cx_cf_init(CxCF *c);
 

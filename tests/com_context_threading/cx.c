@@ -148,6 +148,19 @@ static HRESULT WINAPI cf_Revert(IUnknown *i)
     CxCF *c = (CxCF *)i;
     InterlockedIncrement(&c->lock_calls);
     c->last_tid = GetCurrentThreadId();
+    if (c->probe) {
+        void *u = NULL, *cn = NULL;
+        c->p_tid = GetCurrentThreadId();
+        c->p_type = (APTTYPE)0x5a; c->p_qual = (APTTYPEQUALIFIER)0x5a;
+        c->p_apt_hr = U(CoGetApartmentType)(&c->p_type, &c->p_qual);
+        c->p_tok_hr = U(CoGetContextToken)(&c->p_token);
+        c->p_lid_hr = U(CoGetCurrentLogicalThreadId)(&c->p_lid);
+        c->p_ctx_unk_hr = U(CoGetCallContext)(&CX_IID_IUnknown, &u);
+        c->p_ctx_unk = u; if (u) IUnknown_Release((IUnknown *)u);
+        c->p_ctx_cancel_hr = U(CoGetCallContext)(&CX_IID_ICancelMethodCalls, &cn);
+        if (cn) IUnknown_Release((IUnknown *)cn);
+        c->p_test_hr = t_is_wine() ? E_NOTIMPL : U(CoTestCancel)();
+    }
     if (c->entered) SetEvent(c->entered);
     if (c->release) {
         if (c->poll_cancel) {
