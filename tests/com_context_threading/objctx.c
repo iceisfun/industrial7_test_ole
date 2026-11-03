@@ -599,8 +599,8 @@ static void w_coc_neg(void *p)
     CXEQ(out, 0);
     rel(cur);
 }
-TEST(ctxthr_create_in_context_invalid_context_sta) { REQUIRE(UN(CoCreateObjectInContext)); REQUIRE(U(CoGetObjectContext)); cx_run(CXM_STA, w_coc_neg, NULL); }
-TEST(ctxthr_create_in_context_invalid_context_mta) { REQUIRE(UN(CoCreateObjectInContext)); REQUIRE(U(CoGetObjectContext)); cx_run(CXM_MTA, w_coc_neg, NULL); }
+TEST(ctxthr_create_in_context_invalid_context_sta) { REQUIRE(UN(CoCreateObjectInContext)); REQUIRE(U(CoGetObjectContext)); if (t_is_wine()) { t_skip("aborting stub under Wine"); return; } cx_run(CXM_STA, w_coc_neg, NULL); }
+TEST(ctxthr_create_in_context_invalid_context_mta) { REQUIRE(UN(CoCreateObjectInContext)); REQUIRE(U(CoGetObjectContext)); if (t_is_wine()) { t_skip("aborting stub under Wine"); return; } cx_run(CXM_MTA, w_coc_neg, NULL); }
 
 static void w_coc_pos(void *p)
 {
@@ -615,7 +615,7 @@ static void w_coc_pos(void *p)
     else { CXNE(out, 0); rel(out); }
     rel(nta);
 }
-TEST(ctxthr_create_in_context_into_nta_observed) { REQUIRE(UN(CoCreateObjectInContext)); REQUIRE(U(CoGetDefaultContext)); cx_run(CXM_STA, w_coc_pos, NULL); }
+TEST(ctxthr_create_in_context_into_nta_observed) { REQUIRE(UN(CoCreateObjectInContext)); REQUIRE(U(CoGetDefaultContext)); if (t_is_wine()) { t_skip("aborting stub under Wine"); return; } cx_run(CXM_STA, w_coc_pos, NULL); }
 
 /* ================= service domains ================= */
 static void w_sd_args(void *p)
@@ -628,6 +628,7 @@ static void w_sd_args(void *p)
 TEST(ctxthr_service_domain_null_arguments)
 {
     REQUIRE(UN(CoPushServiceDomain)); REQUIRE(UN(CoPopServiceDomain));
+    if (t_is_wine()) { t_skip("CoPushServiceDomain is an aborting stub under Wine"); return; }
     cx_run(CXM_NONE, w_sd_args, NULL); cx_run(CXM_STA, w_sd_args, NULL); cx_run(CXM_MTA, w_sd_args, NULL);
 }
 static void w_sd_uninit(void *p)
@@ -636,4 +637,4 @@ static void w_sd_uninit(void *p)
     CXEQ_HR(UN(CoPushServiceDomain)(cx_obj_unk(&o)), CX_HR_NOTINIT);   /* requires an initialized apartment */
     CXEQ(o.ref, 1);
 }
-TEST(ctxthr_service_domain_push_requires_apartment) { REQUIRE(UN(CoPushServiceDomain)); cx_run(CXM_NONE, w_sd_uninit, NULL); }
+TEST(ctxthr_service_domain_push_requires_apartment) { REQUIRE(UN(CoPushServiceDomain)); if (t_is_wine()) { t_skip("aborting stub under Wine"); return; } cx_run(CXM_NONE, w_sd_uninit, NULL); }
