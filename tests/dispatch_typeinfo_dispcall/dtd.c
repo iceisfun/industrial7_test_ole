@@ -77,7 +77,29 @@ static HRESULT WINAPI Mock_Invoke(IDispatch *i, DISPID id, REFIID riid, LCID lci
     m->invoked++; m->last_dispid = id; m->last_flags = fl; m->last_cargs = dp->cArgs; m->last_cnamed = dp->cNamedArgs;
     m->last_lcid = lcid; m->last_riid = *riid;
     m->last_arg0_i4 = (dp->cArgs && V_VT(&dp->rgvarg[0]) == VT_I4) ? V_I4(&dp->rgvarg[0]) : -1;
+    m->last_ex = ex;
+    if (m->exc_mode) {
+        if (ex) {
+            memset(ex, 0, sizeof *ex);
+            ex->wCode = 0; ex->scode = (SCODE)0x80040201;
+            ex->bstrSource = bs_alloc(L"Mock.Source");
+            ex->bstrDescription = bs_alloc(L"mock failure");
+            ex->bstrHelpFile = NULL;
+            ex->dwHelpContext = 77;
+            ex->pfnDeferredFillIn = Mock_DeferredFillIn;
+        }
+        return DISP_E_EXCEPTION;
+    }
     if (res) { vinit(res); V_VT(res) = VT_I4; V_I4(res) = 777; }
+    return S_OK;
+}
+static LONG g_deferred_calls;
+HRESULT WINAPI Mock_DeferredFillIn(EXCEPINFO *ei)
+{
+    g_deferred_calls++;
+    ei->bstrHelpFile = bs_alloc(L"deferred.hlp");
+    ei->dwHelpContext = 1234;
+    ei->pfnDeferredFillIn = NULL;
     return S_OK;
 }
 static const IDispatchVtbl Mock_vtbl = { Mock_QI, Mock_AddRef, Mock_Release, Mock_GTIC, Mock_GTI, Mock_GIDN, Mock_Invoke };

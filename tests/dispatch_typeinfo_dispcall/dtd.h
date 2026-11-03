@@ -78,7 +78,11 @@ typedef struct Mock {
     DISPID last_dispid; WORD last_flags; UINT last_cargs, last_cnamed; LCID last_lcid;
     LONG last_arg0_i4; int invoked;
     GUID last_riid;
+    int exc_mode;      /* 1: Invoke fills *pexcepinfo (deferred) and returns DISP_E_EXCEPTION */
+    int deferred_calls;
+    EXCEPINFO *last_ex;
 } Mock;
+HRESULT WINAPI Mock_DeferredFillIn(EXCEPINFO *ei);
 void Mock_init(Mock *m);
 
 /* Interface data describing Demo; the INTERFACEDATA is static and lives forever. */
