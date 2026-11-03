@@ -12,6 +12,11 @@
 #include <oleauto.h>
 #include <ocidl.h>
 
+/* t.h's EXPECT_EQ evaluates its arguments twice; calls with side effects (Release, Get*) need single evaluation. */
+#undef EXPECT_EQ
+#define EXPECT_EQ(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
+    t_check(a_ == b_, __FILE__, __LINE__, #a " == " #b, "got 0x%llx want 0x%llx", (unsigned long long)a_, (unsigned long long)b_); } while (0)
+
 /* Nothing from ole32/oleaut32/uuid is linked: IIDs are local copies, and BSTR/VARIANT helpers go through GetProcAddress. */
 extern const GUID DI_IUnknown, DI_IDispatch, DI_ITypeInfo, DI_ITypeInfo2, DI_IErrorInfo, DI_ICreateErrorInfo,
                   DI_ISupportErrorInfo, DI_IMarshal, DI_NULL, DI_IClassFactory;
