@@ -134,7 +134,7 @@ static IEnumFORMATETCVtbl oe_vtbl = { oe_QI, oe_AddRef, oe_Release, oe_Next, oe_
 typedef struct {
     IDataObject i; LONG ref;
     FORMATETC f[O2D_MAX]; const char *payload[O2D_MAX]; int n;
-    LONG getdata, qgd, enumcalls, getdatahere, setdata, dadvise;
+    LONG getdata, qgd, enumcalls, getdatahere, setdata, dadvise, dunadvise;
     int enum_hr_override; HRESULT enum_hr;  /* make EnumFormatEtc fail */
     HRESULT getdata_hr;                     /* when nonzero, GetData fails with this */
 } O2Data;
@@ -177,8 +177,8 @@ static HRESULT STDMETHODCALLTYPE od_EnumFormatEtc(IDataObject *s, DWORD dir, IEn
     for (k = 0; k < d->n; k++) e->f[k] = d->f[k];
     *pp = &e->i; return S_OK;
 }
-static HRESULT STDMETHODCALLTYPE od_DAdvise(IDataObject *s, FORMATETC *f, DWORD a, IAdviseSink *k, DWORD *c) { InterlockedIncrement(&((O2Data *)s)->dadvise); if (c) *c = 0; return OLE_E_ADVISENOTSUPPORTED; }
-static HRESULT STDMETHODCALLTYPE od_DUnadvise(IDataObject *s, DWORD c) { return OLE_E_ADVISENOTSUPPORTED; }
+static HRESULT STDMETHODCALLTYPE od_DAdvise(IDataObject *s, FORMATETC *f, DWORD a, IAdviseSink *k, DWORD *c) { LONG n = InterlockedIncrement(&((O2Data *)s)->dadvise); if (c) *c = (DWORD)n; return S_OK; }
+static HRESULT STDMETHODCALLTYPE od_DUnadvise(IDataObject *s, DWORD c) { InterlockedIncrement(&((O2Data *)s)->dunadvise); return S_OK; }
 static HRESULT STDMETHODCALLTYPE od_EnumDAdvise(IDataObject *s, IEnumSTATDATA **pp) { *pp = NULL; return OLE_E_ADVISENOTSUPPORTED; }
 static IDataObjectVtbl od_vtbl = { od_QI, od_AddRef, od_Release, od_GetData, od_GetDataHere, od_QueryGetData,
     od_GetCanonicalFormatEtc, od_SetData, od_EnumFormatEtc, od_DAdvise, od_DUnadvise, od_EnumDAdvise };
