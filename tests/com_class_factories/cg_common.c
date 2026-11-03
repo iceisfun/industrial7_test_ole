@@ -26,7 +26,8 @@ static HRESULT WINAPI in_QI(IUnknown *i, REFIID riid, void **ppv) {
     else if (IsEqualGUID(riid, &cg_IID_IPersist) || IsEqualGUID(riid, &cg_IID_IPersistFile)) *ppv = &o->pf;
     else if (IsEqualGUID(riid, &cg_IID_IPersistStorage)) *ppv = &o->ps;
     else return E_NOINTERFACE;
-    in_AddRef(&o->inner); /* non-delegating AddRef on the inner count */
+    if (*ppv == (void *)&o->inner) in_AddRef(&o->inner);          /* non-delegating */
+    else ((IUnknown *)*ppv)->lpVtbl->AddRef((IUnknown *)*ppv);    /* other interfaces delegate to the outer unknown */
     return S_OK;
 }
 static ULONG WINAPI in_AddRef(IUnknown *i) { return InterlockedIncrement(&from_inner(i)->ref); }
