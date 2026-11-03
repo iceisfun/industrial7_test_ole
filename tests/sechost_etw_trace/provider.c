@@ -72,19 +72,15 @@ TEST(etw_prov_register_many_distinct) {
 /* ---- EventUnregister ---- */
 TEST(etw_prov_unregister_invalid) {
     __typeof__(&EventUnregister) u = ET(EventUnregister); REQUIRE(u);
-    ULONG e = u(0); CHECK(e != 0); t_note("EventUnregister(0) -> %lu", e);
-    e = u(1); CHECK(e != 0);
-    e = u(0x0001000000001000ULL); CHECK(e != 0);
+    /* ntdll EtwNotificationUnregister: generation (top 16 bits) == 0 or an odd handle -> ERROR_INVALID_HANDLE.
+     * Handles with a non-zero generation are dereferenced as pointers, so only these two are safe to probe. */
+    SET_ERR(0);
+    EXPECT_EQ(u(0), ERROR_INVALID_HANDLE); EXPECT_ERR(ERROR_INVALID_HANDLE);
+    SET_ERR(0);
+    EXPECT_EQ(u(1), ERROR_INVALID_HANDLE); EXPECT_ERR(ERROR_INVALID_HANDLE);
+    EXPECT_EQ(u(0xffffffffffffffffULL), ERROR_INVALID_HANDLE);
 }
-TEST(etw_prov_unregister_twice) {
-    __typeof__(&EventRegister) r = ET(EventRegister); __typeof__(&EventUnregister) u = ET(EventUnregister); REQUIRE(r); REQUIRE(u);
-    GUID g = prov_guid(6); REGHANDLE h = 0;
-    EXPECT_EQ(r(&g, NULL, NULL, &h), 0);
-    EXPECT_EQ(u(h), 0);
-    ULONG e = u(h);
-    t_note("second EventUnregister -> %lu", e);
-    CHECK(e != 0);
-}
+/* A second EventUnregister of a freed registration reads freed heap memory (generation check), so it is not tested. */
 
 /* ---- enabled queries on a registered but un-enabled provider ---- */
 TEST(etw_prov_enabled_queries_false) {
@@ -106,10 +102,10 @@ TEST(etw_prov_enabled_queries_invalid_handles) {
     EVENT_DESCRIPTOR d = desc(4, 0);
     EXPECT_EQ(en(0, &d), 0);
     EXPECT_EQ(en(1, &d), 0);
-    EXPECT_EQ(en(0x0001000000002000ULL, &d), 0);
     EXPECT_EQ(en(0, NULL), 0);
     EXPECT_EQ(pe(0, 0, 0), 0);
-    EXPECT_EQ(pe(0x0001000000002000ULL, 4, 1), 0);
+    EXPECT_EQ(pe(1, 4, 1), 0);
+    EXPECT_EQ(pe(0xffffffffffffffffULL, 4, 1), 0);   /* odd handle */
 }
 TEST(etw_prov_enabled_null_descriptor) {
     __typeof__(&EventRegister) r = ET(EventRegister); __typeof__(&EventUnregister) u = ET(EventUnregister); __typeof__(&EventEnabled) en = ET(EventEnabled);
@@ -124,7 +120,7 @@ TEST(etw_prov_writestring_invalid_handle) {
     __typeof__(&EventWriteString) w = ET(EventWriteString); REQUIRE(w);
     EXPECT_EQ(w(0, 4, 0, L"x"), ERROR_INVALID_HANDLE);
     EXPECT_EQ(w(1, 4, 0, L"x"), ERROR_INVALID_HANDLE);                       /* odd handle */
-    EXPECT_EQ(w(0x0001000000003000ULL, 4, 0, L"x"), ERROR_INVALID_HANDLE) ;  /* never issued */
+    EXPECT_EQ(w(0xffffffffffffffffULL, 4, 0, NULL), ERROR_INVALID_HANDLE);   /* handle check precedes the string check */
 }
 TEST(etw_prov_writestring_null_string) {
     __typeof__(&EventRegister) r = ET(EventRegister); __typeof__(&EventUnregister) u = ET(EventUnregister); __typeof__(&EventWriteString) w = ET(EventWriteString);
@@ -145,16 +141,6 @@ TEST(etw_prov_write_disabled_succeeds) {
     DWORD v = 0x12345678; EVENT_DATA_DESCRIPTOR dd; EventDataDescCreate(&dd, &v, sizeof v);
     EXPECT_EQ(w(h, &d, 1, &dd), 0);
     EXPECT_EQ(u(h), 0);
-}
-TEST(etw_prov_write_after_unregister) {
-    __typeof__(&EventRegister) r = ET(EventRegister); __typeof__(&EventUnregister) u = ET(EventUnregister); __typeof__(&EventWrite) w = ET(EventWrite);
-    __typeof__(&EventWriteString) ws = ET(EventWriteString); REQUIRE(r); REQUIRE(u); REQUIRE(w); REQUIRE(ws);
-    GUID g = prov_guid(11); REGHANDLE h = 0; EXPECT_EQ(r(&g, NULL, NULL, &h), 0);
-    EXPECT_EQ(u(h), 0);
-    CHECK(ws(h, 4, 0, L"gone") != 0);       /* stale handle: generation no longer matches */
-    EVENT_DESCRIPTOR d = desc(4, 1);
-    ULONG e = w(h, &d, 0, NULL);
-    t_note("EventWrite on unregistered handle -> %lu", e);
 }
 TEST(etw_prov_write_invalid_handle) {
     __typeof__(&EventWrite) w = ET(EventWrite); REQUIRE(w);
@@ -262,28 +248,52 @@ TEST(etw_activity_is_per_thread) {
     c(EVENT_ACTIVITY_CTRL_SET_ID, &saved);
 }
 
-/* ---- EventSetInformation ---- */
+/* ---- EventSetInformation (ntdll EtwEventSetInformation: class switch comes before any handle use) ---- */
+TEST(etw_prov_setinfo_unsupported_classes) {
+    __typeof__(&EventSetInformation) s = ET(EventSetInformation); REQUIRE(s);
+    char buf[16] = {0};
+    static const int cls[] = {1, 4, 5, 99, 0x7fff};
+    for (unsigned i = 0; i < sizeof cls / sizeof cls[0]; i++) {
+        ULONG e = s(0, (EVENT_INFO_CLASS)cls[i], buf, sizeof buf);
+        CHECKF(e == ERROR_NOT_SUPPORTED, "class %d got %lu", cls[i], e);
+    }
+}
+TEST(etw_prov_setinfo_class0_needs_zero_length) {
+    __typeof__(&EventSetInformation) s = ET(EventSetInformation); REQUIRE(s);
+    char buf[16] = {0};
+    EXPECT_EQ(s(0, (EVENT_INFO_CLASS)0, buf, 4), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(s(0, (EVENT_INFO_CLASS)0, NULL, 1), ERROR_INVALID_PARAMETER);
+}
+TEST(etw_prov_setinfo_traits_length_rules) {
+    __typeof__(&EventSetInformation) s = ET(EventSetInformation); REQUIRE(s);
+    char buf[16] = {0};
+    /* class 2 (provider traits): needs a buffer of 3..65535 bytes */
+    EXPECT_EQ(s(0, (EVENT_INFO_CLASS)2, NULL, 16), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(s(0, (EVENT_INFO_CLASS)2, buf, 0), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(s(0, (EVENT_INFO_CLASS)2, buf, 2), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(s(0, (EVENT_INFO_CLASS)2, buf, -1), ERROR_INVALID_PARAMETER);
+}
+TEST(etw_prov_setinfo_descriptor_type_arg_rules) {
+    __typeof__(&EventSetInformation) s = ET(EventSetInformation); REQUIRE(s);
+    char buf[16] = {0};
+    /* class 3 (use descriptor type): exactly one byte of non-NULL data */
+    EXPECT_EQ(s(0, (EVENT_INFO_CLASS)3, NULL, 1), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(s(0, (EVENT_INFO_CLASS)3, NULL, 0), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(s(0, (EVENT_INFO_CLASS)3, buf, 0), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(s(0, (EVENT_INFO_CLASS)3, buf, 2), ERROR_INVALID_PARAMETER);
+}
 TEST(etw_prov_setinfo_invalid_handle) {
     __typeof__(&EventSetInformation) s = ET(EventSetInformation); REQUIRE(s);
     char buf[16] = {0};
     ULONG e = s(0, (EVENT_INFO_CLASS)2, buf, sizeof buf);
-    CHECK(e != 0); t_note("EventSetInformation(handle 0) -> %lu", e);
+    CHECK(e != 0); t_note("EventSetInformation(handle 0, traits) -> %lu", e);
 }
-TEST(etw_prov_setinfo_registered_unknown_class) {
-    __typeof__(&EventRegister) r = ET(EventRegister); __typeof__(&EventUnregister) u = ET(EventUnregister);
-    __typeof__(&EventSetInformation) s = ET(EventSetInformation); REQUIRE(r); REQUIRE(u); REQUIRE(s);
-    GUID g = prov_guid(50); REGHANDLE h = 0; EXPECT_EQ(r(&g, NULL, NULL, &h), 0);
-    char buf[16] = {0};
-    ULONG e = s(h, (EVENT_INFO_CLASS)99, buf, sizeof buf);
-    CHECK(e != 0); t_note("EventSetInformation(unknown class) -> %lu", e);
-    u(h);
-}
-TEST(etw_prov_setinfo_descriptor_type) {
+TEST(etw_prov_setinfo_descriptor_type_registered) {
     __typeof__(&EventRegister) r = ET(EventRegister); __typeof__(&EventUnregister) u = ET(EventUnregister);
     __typeof__(&EventSetInformation) s = ET(EventSetInformation); REQUIRE(r); REQUIRE(u); REQUIRE(s);
     GUID g = prov_guid(51); REGHANDLE h = 0; EXPECT_EQ(r(&g, NULL, NULL, &h), 0);
-    /* EventProviderUseDescriptorType: opt in to ETW_EVENT_DESCRIPTOR_TYPE (Windows 10+). */
-    ULONG e = s(h, (EVENT_INFO_CLASS)3, NULL, 0);
-    t_note("EventSetInformation(UseDescriptorType, NULL) -> %lu", e);
-    u(h);
+    BYTE one = 1;
+    ULONG e = s(h, (EVENT_INFO_CLASS)3, &one, 1);
+    t_note("EventSetInformation(UseDescriptorType, 1 byte) -> %lu", e);
+    EXPECT_EQ(u(h), 0);
 }

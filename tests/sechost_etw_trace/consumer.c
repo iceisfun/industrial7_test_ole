@@ -58,7 +58,8 @@ TEST(etw_open_realtime_no_name) {
     lf.ProcessTraceMode = PROCESS_TRACE_MODE_REAL_TIME | PROCESS_TRACE_MODE_EVENT_RECORD;
     SET_ERR(0);
     TRACEHANDLE h = o(&lf);
-    t_note("OpenTraceW(real-time, LoggerName=NULL) -> %llx last error %lu", (unsigned long long)h, GetLastError());
+    /* sechost OpenTraceW: real-time mode without a LoggerName fails with ERROR_INVALID_NAME (0x7b) */
+    EXPECT_EQ(h, INVALID_PT); EXPECT_ERR(ERROR_INVALID_NAME);
     if (h != INVALID_PT) ET(CloseTrace)(h);
 }
 TEST(etw_open_realtime_nonexistent_session_lifecycle) {
@@ -195,16 +196,16 @@ TEST(etw_enumguids_list_size_protocol) {
     __typeof__(&EnumerateTraceGuidsEx) en = ET(EnumerateTraceGuidsEx); ETW_REQ(en);
     ULONG rl = 0; SET_ERR(0);
     ULONG r = en(TraceGuidQueryList, NULL, 0, NULL, 0, &rl);
-    CHECKF(r == ERROR_INSUFFICIENT_BUFFER || r == ERROR_ACCESS_DENIED || r == 0, "got %lu", r);
+    CHECKF(r == ERROR_INSUFFICIENT_BUFFER || r == ERROR_MORE_DATA || r == ERROR_ACCESS_DENIED || r == 0, "got %lu", r);
     t_note("QueryList size query -> %lu needed=%lu", r, rl);
-    if (r == ERROR_INSUFFICIENT_BUFFER) {
-        CHECK(rl >= 8);
+    if (r == ERROR_INSUFFICIENT_BUFFER || r == ERROR_MORE_DATA) {
+        CHECK(rl >= sizeof(GUID));
         BYTE *buf = (BYTE *)LocalAlloc(LPTR, rl + 4096);
         if (buf) {
             ULONG rl2 = 0;
             r = en(TraceGuidQueryList, NULL, 0, buf, rl + 4096, &rl2);
-            CHECKF(r == 0 || r == ERROR_INSUFFICIENT_BUFFER, "second call %lu", r);
-            if (r == 0) { PTRACE_GUID_INFO gi = (PTRACE_GUID_INFO)buf; t_note("registered provider GUIDs: %lu", gi->InstanceCount); CHECK(rl2 <= rl + 4096); }
+            CHECKF(r == 0 || r == ERROR_INSUFFICIENT_BUFFER || r == ERROR_MORE_DATA, "second call %lu", r);
+            if (r == 0) { t_note("QueryList returned %lu bytes (%lu GUIDs if an array of GUID)", rl2, rl2 / (ULONG)sizeof(GUID)); CHECK(rl2 <= rl + 4096); }
             LocalFree(buf);
         }
     }
@@ -238,14 +239,13 @@ TEST(etw_queryinfo_system_handle_class_small_buffer) {
     ULONG r = tq(0x10001, (TRACE_INFO_CLASS)4, buf, sizeof buf, &ret);
     t_note("TraceQueryInformation(class 4, 8-byte buffer) -> %lu ret=%lu", r, ret);
     EXPECT_EQ(ret, 0x20); /* required size is reported even when the buffer is too small */
-    CHECK(r != 0);
+    EXPECT_EQ(r, ERROR_BAD_LENGTH);
 }
 TEST(etw_queryinfo_unknown_class) {
     __typeof__(&TraceQueryInformation) tq = ET(TraceQueryInformation); ETW_REQ(tq);
     ULONG ret = 0; BYTE buf[64] = {0};
     ULONG r = tq(0x10001, (TRACE_INFO_CLASS)200, buf, sizeof buf, &ret);
-    CHECK(r != 0);
-    t_note("TraceQueryInformation(class 200) -> %lu", r);
+    EXPECT_EQ(r, ERROR_NOT_SUPPORTED);
 }
 
 /* ---- Trace handle helpers exported from advapi32 (forwarded to ntdll Etw*) ---- */
@@ -320,4 +320,110 @@ TEST(etw_regguids_a_variant_resolves) {
     ULONG e = r((WMIDPREQUEST)req_cb, NULL, &cg, 0, NULL, NULL, NULL, &h);
     EXPECT_EQ(e, 0);
     if (e == 0 && u) EXPECT_EQ(u(h), 0);
+}
+
+/* ---- GetTraceEnableFlags ---- */
+TEST(etw_getenableflags_handles) {
+    __typeof__(&GetTraceEnableFlags) g = ET(GetTraceEnableFlags); REQUIRE(g);
+    SET_ERR(0);
+    EXPECT_EQ(g(0), 0); EXPECT_ERR(ERROR_INVALID_HANDLE);
+    EXPECT_EQ(g(((ULONGLONG)0x12345678 << 32) | 0x0001), 0x12345678);   /* flags are bits 32..63 */
+    EXPECT_EQ(g(((ULONGLONG)0xdeadbeef << 32) | 0x0002), 0xdeadbeef);
+    SET_ERR(0);
+    EXPECT_EQ(g(((ULONGLONG)0xdeadbeef << 32) | 0x7777), 0); EXPECT_ERR(ERROR_INVALID_HANDLE);
+}
+TEST(etw_getenablelevel_any_logger_id) {
+    __typeof__(&GetTraceEnableLevel) g = ET(GetTraceEnableLevel); REQUIRE(g);
+    EXPECT_EQ(g(0x0004ffff), 4);   /* logger id 0xFFFF is accepted */
+}
+
+/* ---- TraceQueryInformation / TraceSetInformation: argument rules from sechost ---- */
+TEST(etw_queryinfo_class11_handle_zero) {
+    __typeof__(&TraceQueryInformation) tq = ET(TraceQueryInformation); ETW_REQ(tq);
+    ULONG ret = 0; BYTE buf[8]; memset(buf, 0xcc, sizeof buf);
+    EXPECT_EQ(tq(0, (TRACE_INFO_CLASS)0xb, buf, 4, &ret), ERROR_BAD_LENGTH); EXPECT_EQ(ret, 8);
+    EXPECT_EQ(tq(0, (TRACE_INFO_CLASS)0xb, buf, 8, &ret), 0);
+    EXPECT_EQ(*(ULONG *)buf, 1);
+    EXPECT_EQ(tq(1, (TRACE_INFO_CLASS)0xb, buf, 8, &ret), ERROR_INVALID_PARAMETER);
+}
+TEST(etw_queryinfo_class5_requires_handle_zero_and_size8) {
+    __typeof__(&TraceQueryInformation) tq = ET(TraceQueryInformation); ETW_REQ(tq);
+    ULONG ret = 0; BYTE buf[16] = {0};
+    EXPECT_EQ(tq(1, (TRACE_INFO_CLASS)5, buf, 8, &ret), ERROR_INVALID_PARAMETER);
+    ret = 0; EXPECT_EQ(tq(0, (TRACE_INFO_CLASS)5, buf, 4, &ret), ERROR_BAD_LENGTH); EXPECT_EQ(ret, 8);
+    EXPECT_EQ(tq(0, (TRACE_INFO_CLASS)5, buf, 16, &ret), ERROR_BAD_LENGTH);
+}
+TEST(etw_queryinfo_class17_version_info) {
+    __typeof__(&TraceQueryInformation) tq = ET(TraceQueryInformation); ETW_REQ(tq);
+    ULONG ret = 0; DWORD buf[2] = {0xcc, 0xcc};
+    EXPECT_EQ(tq(0, (TRACE_INFO_CLASS)0x11, NULL, 8, &ret), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(tq(0, (TRACE_INFO_CLASS)0x11, buf, 0, &ret), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(tq(0, (TRACE_INFO_CLASS)0x11, buf, 4, &ret), 0x5b6);
+    ret = 0; EXPECT_EQ(tq(0, (TRACE_INFO_CLASS)0x11, buf, 8, &ret), 0);
+    EXPECT_EQ(ret, 8);
+    EXPECT_EQ(buf[0], 5);          /* EtwTraceProcessingVersion */
+    t_note("class 0x11 second dword = 0x%lx", buf[1]);
+}
+TEST(etw_queryinfo_class22_arg_rules) {
+    __typeof__(&TraceQueryInformation) tq = ET(TraceQueryInformation); ETW_REQ(tq);
+    ULONG ret = 0; DWORD buf[4] = {0};
+    EXPECT_EQ(tq(0, (TRACE_INFO_CLASS)0x16, NULL, 4, &ret), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(tq(0, (TRACE_INFO_CLASS)0x16, buf, 3, &ret), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(tq(0, (TRACE_INFO_CLASS)0x16, buf, 8, &ret), ERROR_INVALID_PARAMETER);
+}
+TEST(etw_queryinfo_class15_requires_16_bytes) {
+    __typeof__(&TraceQueryInformation) tq = ET(TraceQueryInformation); ETW_REQ(tq);
+    ULONG ret = 0; DWORD buf[8] = {0};
+    EXPECT_EQ(tq(0x10001, (TRACE_INFO_CLASS)0xf, buf, 4, &ret), ERROR_BAD_LENGTH);
+    EXPECT_EQ(tq(0x10001, (TRACE_INFO_CLASS)0xf, buf, 32, &ret), ERROR_BAD_LENGTH);
+}
+TEST(etw_setinfo_stack_tracing_boundary) {
+    __typeof__(&TraceSetInformation) ts = ET(TraceSetInformation); ETW_REQ(ts);
+    /* 256 entries is the maximum: past the length check, a NULL buffer is the next failure */
+    EXPECT_EQ(ts(0, (TRACE_INFO_CLASS)3, NULL, 0x18 * 256), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(ts(0, (TRACE_INFO_CLASS)3, NULL, 0x18 * 257), 0x5b6);
+}
+
+/* ---- more EnumerateTraceGuidsEx class argument rules ---- */
+TEST(etw_enumguids_class13_arg_rules) {
+    __typeof__(&EnumerateTraceGuidsEx) en = ET(EnumerateTraceGuidsEx); ETW_REQ(en);
+    BYTE buf[64]; ULONG rl = 0; GUID g = test_guid(11);
+    SET_ERR(0);
+    EXPECT_EQ(en((TRACE_QUERY_INFO_CLASS)13, NULL, 0, buf, sizeof buf, &rl), ERROR_INVALID_PARAMETER); EXPECT_ERR(ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(en((TRACE_QUERY_INFO_CLASS)13, &g, 8, buf, sizeof buf, &rl), ERROR_INVALID_PARAMETER);
+}
+TEST(etw_enumguids_class19_arg_rules) {
+    __typeof__(&EnumerateTraceGuidsEx) en = ET(EnumerateTraceGuidsEx); ETW_REQ(en);
+    BYTE buf[16]; ULONG rl = 0;
+    EXPECT_EQ(en((TRACE_QUERY_INFO_CLASS)19, NULL, 0, NULL, 4, &rl), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(en((TRACE_QUERY_INFO_CLASS)19, NULL, 0, buf, 3, &rl), ERROR_INVALID_PARAMETER);
+}
+TEST(etw_enumguids_class20_rejected) {
+    __typeof__(&EnumerateTraceGuidsEx) en = ET(EnumerateTraceGuidsEx); ETW_REQ(en);
+    BYTE buf[16]; ULONG rl = 0;
+    EXPECT_EQ((int)en((TRACE_QUERY_INFO_CLASS)0x14, NULL, 0, buf, sizeof buf, &rl), ERROR_INVALID_PARAMETER);
+}
+
+/* ---- more EnableTraceEx2 argument rules ---- */
+TEST(etw_enable_params_v2_controlflags) {
+    __typeof__(&EnableTraceEx2) en = ET(EnableTraceEx2); ETW_REQ(en);
+    GUID g = test_guid(12);
+    ENABLE_TRACE_PARAMETERS ep; memset(&ep, 0, sizeof ep);
+    ep.Version = ENABLE_TRACE_PARAMETERS_VERSION_2; ep.ControlFlags = 2;
+    EXPECT_EQ(en(0x10001, &g, EVENT_CONTROL_CODE_ENABLE_PROVIDER, 4, 0, 0, 0, &ep), ERROR_INVALID_PARAMETER);
+}
+TEST(etw_enable_invalid_handle_values) {
+    __typeof__(&EnableTraceEx2) en = ET(EnableTraceEx2); ETW_REQ(en);
+    GUID g = test_guid(13);
+    EXPECT_EQ(en((TRACEHANDLE)-1, &g, EVENT_CONTROL_CODE_DISABLE_PROVIDER, 0, 0, 0, 0, NULL), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(en(0, &g, EVENT_CONTROL_CODE_CAPTURE_STATE, 0, 0, 0, 0, NULL), ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(en(0, NULL, 99, 0, 0, 0, 0, NULL), ERROR_INVALID_PARAMETER);
+}
+TEST(etw_enable_private_flag_rejects_properties) {
+    __typeof__(&EnableTraceEx2) en = ET(EnableTraceEx2); ETW_REQ(en);
+    GUID g = test_guid(14);
+    ENABLE_TRACE_PARAMETERS ep; memset(&ep, 0, sizeof ep); ep.Version = ENABLE_TRACE_PARAMETERS_VERSION;
+    /* handle bit 24 (0x1000000) selects the private-logger path; EnableProperty 0x20 / 0x100 are rejected there */
+    ep.EnableProperty = 0x20;  EXPECT_EQ(en(0x01000008, &g, EVENT_CONTROL_CODE_ENABLE_PROVIDER, 4, 0, 0, 0, &ep), ERROR_INVALID_PARAMETER);
+    ep.EnableProperty = 0x100; EXPECT_EQ(en(0x01000008, &g, EVENT_CONTROL_CODE_ENABLE_PROVIDER, 4, 0, 0, 0, &ep), ERROR_INVALID_PARAMETER);
 }
