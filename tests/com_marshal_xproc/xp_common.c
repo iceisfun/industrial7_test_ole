@@ -85,6 +85,7 @@ static HRESULT WINAPI o_create(IClassFactory *f, IUnknown *outer, REFIID riid, v
     InterlockedExchange(&o->lastCreateOuterNull, outer == NULL);
     if (ppv) *ppv = NULL;
     if (o->hook) o->hook(o, XP_HOOK_CREATE, 0);
+    if (riid->Data1 == 0xC0DE5000 && riid->Data2 == 0x7E57) { HRESULT enc; memcpy(&enc, riid->Data4, 4); return enc; }  /* IID that encodes the HRESULT to return */
     if (IsEqualGUID(riid, &XP_IID_IXpBogus2)) return o->probeHr;
     if (o->createHr != S_OK) return o->createHr;
     if (!ppv) return E_POINTER;
@@ -385,4 +386,11 @@ BOOL xp_report_get(DWORD parentpid, const char *key, unsigned long long *val)
         if (p == buf || p[-1] == '\n') { *val = strtoull(p + strlen(pat), NULL, 16); found = TRUE; }
     }
     return found;
+}
+
+GUID xp_hr_iid(HRESULT hr)
+{
+    GUID g = { 0xC0DE5000, 0x7E57, 0x4A11, { 0, 0, 0, 0, 0xA5, 0xA5, 0xA5, 0xA5 } };
+    memcpy(g.Data4, &hr, 4);
+    return g;
 }

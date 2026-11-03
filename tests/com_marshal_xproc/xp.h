@@ -163,6 +163,8 @@ typedef struct XpFx {
 BOOL xp_fx_setup(XpFx *f, DWORD hostModel, DWORD mshl);
 /* releases the proxy (if any), stops the host, then drops the test's own object reference */
 void xp_fx_teardown(XpFx *f);
+/* An IID that tells XpObj::CreateInstance to return exactly `hr` (works across processes). */
+GUID xp_hr_iid(HRESULT hr);
 #define XT(n) TEST(com_marshal_xproc_##n)
 
 /* child-side report file: the child appends "key=hex" lines (in the parent's tmpdir), the parent reads them */
