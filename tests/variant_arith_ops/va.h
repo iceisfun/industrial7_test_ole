@@ -55,6 +55,7 @@ typedef struct { unsigned short vt; long long i; double d; const WCHAR *s; } vce
 #define DATE_MIN -657434
 #define VARIANT_TRUE_ ((VARIANT_BOOL)-1)
 
+#define HR_TYPEERR ((HRESULT)0x7fff0001L) /* expect DISP_E_TYPEMISMATCH or DISP_E_BADVARTYPE */
 typedef struct { int wl; int n; vcell l, r, e; long hr; } vrow;
 typedef struct { int wl; vcell l, r; long res[4]; } vcmprow;
 
@@ -86,4 +87,10 @@ void va_run_cmp(const vcmprow *rows, size_t n);
 /* compare helpers: l,r are plain variant makers */
 HRESULT va_cmp(const vcell *l, const vcell *r, LCID lcid, ULONG flags, unsigned lflag, unsigned rflag);
 #define LCID_US MAKELCID(MAKELANGID(LANG_ENGLISH, SUBLANG_ENGLISH_US), SORT_DEFAULT)
+
+/* one-shot check macros: B = binary, BC = binary in both operand orders, N1 = unary, RND = VarRound */
+#define B(op,L,R,HR,E)  do { vcell l_ = L, r_ = R, e_ = E; va_check_bin(__LINE__, op, &l_, &r_, HR, &e_); } while (0)
+#define BC(op,L,R,HR,E) do { vcell l_ = L, r_ = R, e_ = E; va_check_bin(__LINE__, op, &l_, &r_, HR, &e_); va_check_bin(__LINE__, op, &r_, &l_, HR, &e_); } while (0)
+#define N1(op,L,HR,E)   do { vcell l_ = L, e_ = E; va_check_un(__LINE__, op, &l_, 0, HR, &e_); } while (0)
+#define RND(L,ND,HR,E)  do { vcell l_ = L, e_ = E; va_check_un(__LINE__, VA_ROUND, &l_, ND, HR, &e_); } while (0)
 #endif

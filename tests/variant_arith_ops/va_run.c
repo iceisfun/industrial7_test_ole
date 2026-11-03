@@ -151,8 +151,8 @@ void va_check_bin(int wl, int op, const vcell *lc, const vcell *rc, HRESULT hr, 
     memset(&res, 0, sizeof(res));
     V_VT(&res) = 15; V_I4(&res) = 0;
     got = va_bin(op, &l, &r, &res);
-    CHECKF(got == hr, "%s(%s,%s) [wine:%d] hr 0x%lx want 0x%lx", va_opname(op), va_describe(&l0, b1, 64), va_describe(&r0, b2, 64), wl, (long)got, (long)hr);
-    if (got == hr) {
+    CHECKF(got == hr || (hr == HR_TYPEERR && (got == DISP_E_TYPEMISMATCH || got == DISP_E_BADVARTYPE)), "%s(%s,%s) [wine:%d] hr 0x%lx want 0x%lx", va_opname(op), va_describe(&l0, b1, 64), va_describe(&r0, b2, 64), wl, (long)got, (long)hr);
+    if (got == hr || hr == HR_TYPEERR) {
         if (hr == S_OK)
             CHECKF(va_equal_cell(&res, ec), "%s(%s,%s) [wine:%d] result %s want vt %s", va_opname(op), b1, b2, wl, va_describe(&res, b3, 64), va_vtname(ec->vt));
         else
@@ -173,8 +173,8 @@ void va_check_un(int wl, int op, const vcell *lc, int nd, HRESULT hr, const vcel
     memset(&res, 0, sizeof(res));
     V_VT(&res) = 15; V_I4(&res) = 0;
     got = va_un(op, &l, nd, &res);
-    CHECKF(got == hr, "%s(%s) [wine:%d] hr 0x%lx want 0x%lx", va_opname(op), va_describe(&l0, b1, 64), wl, (long)got, (long)hr);
-    if (got == hr) {
+    CHECKF(got == hr || (hr == HR_TYPEERR && (got == DISP_E_TYPEMISMATCH || got == DISP_E_BADVARTYPE)), "%s(%s) [wine:%d] hr 0x%lx want 0x%lx", va_opname(op), va_describe(&l0, b1, 64), wl, (long)got, (long)hr);
+    if (got == hr || hr == HR_TYPEERR) {
         if (hr == S_OK)
             CHECKF(va_equal_cell(&res, ec), "%s(%s) [wine:%d] result %s want vt %s", va_opname(op), b1, wl, va_describe(&res, b3, 64), va_vtname(ec->vt));
         else
