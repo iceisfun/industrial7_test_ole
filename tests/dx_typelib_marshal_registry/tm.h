@@ -49,6 +49,7 @@ TMG(TM_IID_MiniXu2, 0x0b1d003b);
 TMG(TM_IID_MiniXu3, 0x0b1d003c);
 TMG(TM_IID_MiniXu4, 0x0b1d003d);
 static const GUID TM_IID_ISupportErrorInfo = {0xDF0B3D60, 0x548F, 0x101B, {0x8E, 0x65, 0x08, 0x00, 0x2B, 0x2B, 0xD1, 0x19}};
+static const GUID TM_IID_NULL = {0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0}};
 static const GUID TM_CLSID_PSOAInterface = {0x00020424, 0, 0, {0xC0, 0, 0, 0, 0, 0, 0, 0x46}};
 static const GUID TM_CLSID_PSDispatch    = {0x00020420, 0, 0, {0xC0, 0, 0, 0, 0, 0, 0, 0x46}};
 static const GUID TM_CLSID_PSEnumVariant = {0x00020421, 0, 0, {0xC0, 0, 0, 0, 0, 0, 0, 0x46}};
@@ -249,6 +250,10 @@ BOOL tm_is_proxy_call(IOletCustom *c);  /* ApartmentInfo reports a different thr
 #define SafeArrayGetVartype(...) (U(SafeArrayGetVartype)(__VA_ARGS__))
 #define SafeArrayCreate(...) (U(SafeArrayCreate)(__VA_ARGS__))
 #define VariantChangeType(...) (U(VariantChangeType)(__VA_ARGS__))
+#define GetErrorInfo(...) (U(GetErrorInfo)(__VA_ARGS__))
+#define SetErrorInfo(...) (U(SetErrorInfo)(__VA_ARGS__))
+#define CreateErrorInfo(...) (U(CreateErrorInfo)(__VA_ARGS__))
+#define VariantTimeToSystemTime(...) (U(VariantTimeToSystemTime)(__VA_ARGS__))
 #define SysStringByteLen(...) (U(SysStringByteLen)(__VA_ARGS__))
 #define SysAllocStringByteLen(...) (U(SysAllocStringByteLen)(__VA_ARGS__))
 
