@@ -112,7 +112,7 @@ TEST(mbasic_args_marshal_requires_com_init_or_implicit) {
 /* ---------------- CoGetMarshalSizeMax ---------------- */
 
 TEST(mbasic_args_getsize_invalid) {
-    REQUIRE(U(CoGetMarshalSizeMax)); mb_obj_reset(1); MB_INIT_STA();
+    REQUIRE(U(CoGetMarshalSizeMax)); if (t_is_wine()) { t_skip("wine crashes on invalid args"); return; } mb_obj_reset(1); MB_INIT_STA();
     ULONG sz = 0x1234;
     EQ(U(CoGetMarshalSizeMax)(NULL, &IID_IUnknown, MB_UNK(0), MSHCTX_INPROC, NULL, MSHLFLAGS_NORMAL), MB_E_INVALIDARG);
     EQ(U(CoGetMarshalSizeMax)(&sz, &IID_IUnknown, NULL, MSHCTX_INPROC, NULL, MSHLFLAGS_NORMAL), MB_E_INVALIDARG);
