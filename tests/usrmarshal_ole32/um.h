@@ -67,6 +67,7 @@ DWORD um_x_mar(void *fn, ULONG *fl, unsigned char *b, void *obj, unsigned char *
 DWORD um_x_free(void *fn, ULONG *fl, void *obj);
 #define um_x_unm um_x_mar
 
+#define RD_U32(b, o) (*(ULONG *)((b) + (o)))
 #define NEED(x) if (!(x)) { t_note("missing export: " #x); continue; }
 #define UM_ALIGN(x, a) (((x) + (a) - 1) & ~((ULONG)(a) - 1))
 #define UM_FN(name) ((void *)t_proc(name))
