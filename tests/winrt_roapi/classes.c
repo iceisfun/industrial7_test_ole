@@ -55,7 +55,7 @@ static int runtime_class_is(void *o, const WCHAR *want) {
     ro_hs_free(n);
     return ok;
 }
-#define NEED_RO() do { REQUIRE(U(RoGetActivationFactory)); REQUIRE(U(RoActivateInstance)); REQUIRE(U(RoInitialize)); \
+#define NEED_RO() do { RO_WINE_UNIMPL("in-box WinRT classes"); REQUIRE(U(RoGetActivationFactory)); REQUIRE(U(RoActivateInstance)); REQUIRE(U(RoInitialize)); \
     REQUIRE(U(RoUninitialize)); REQUIRE(U(WindowsCreateString)); REQUIRE(U(CoTaskMemFree)); } while (0)
 /* initialize an apartment model for the duration of the (thread-isolated) test */
 #define INIT_MTA() RO_EQ(U(RoInitialize)(RO_INIT_MULTITHREADED), S_OK)
@@ -347,7 +347,6 @@ RO_TEST(winrt_roapi_class_propertyvalue_int32) {
     CHECKF(FAILED(hr), "GetUInt8(-5) succeeded"); t_note("GetUInt8(-5) = %08lx", (unsigned long)hr);
     HSTRING s = NULL; hr = ((s_out_hs)SLOT(pv, 19))(pv, &s);
     CHECKF(FAILED(hr), "GetString on Int32"); t_note("GetString(Int32) = %08lx", (unsigned long)hr); ro_hs_free(s);
-    t_note("boxed Int32 runtime class: %ls", (HSTRING)0 ? L"" : L"see below");
     HSTRING cn = NULL; ((s_getname)SLOT(o, 4))(o, &cn); t_note("boxed Int32 GetRuntimeClassName = %ls", cn ? ro_hs_buf(cn, NULL) : L"(null)"); ro_hs_free(cn);
     RO_RELEASE(*(IUnknown **)&pv); RO_RELEASE(*(IUnknown **)&o); RO_RELEASE(*(IUnknown **)&f);
     U(RoUninitialize)();
