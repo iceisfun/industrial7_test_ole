@@ -251,7 +251,7 @@ TEST(o2hdl_handler_null_out_parameters) {
 TEST(o2hdl_handler_moniker_roundtrip_rules) {
     IOleObject *o; IMoniker *mk = NULL, *got = NULL; HRESULT hr;
     O2_BEGIN;
-    REQUIRE(U(OleCreateDefaultHandler)); O2_BEGIN; REQUIRE(U(CreateItemMoniker));
+    REQUIRE(U(OleCreateDefaultHandler)); REQUIRE(U(CreateItemMoniker));
     EQ(mk_handler(&O2_CLSID_A, &o), S_OK);
     if (!o) { O2_END(); return; }
     EQ(U(CreateItemMoniker)(L"!", L"olet_handler", &mk), S_OK);
@@ -262,7 +262,6 @@ TEST(o2hdl_handler_moniker_roundtrip_rules) {
     EQ(got, NULL);
     IMoniker_Release(mk);
     IOleObject_Release(o);
-    O2_END();
     O2_END();
 }
 TEST(o2hdl_handler_close_and_runnable) {
@@ -397,6 +396,7 @@ TEST(o2hdl_handler_persiststorage) {
     IOleObject_Close(o, OLECLOSE_NOSAVE);
     IOleObject_Release(o);
     IStorage_Release(stg);
+    O2_END();
 }
 
 /* ---- handler objects are bound to their creating thread -------------------------------------- */
@@ -409,7 +409,6 @@ static void th_wrong_thread(void *p) {
     a->r[3] = IOleObject_GetUserType(a->o, USERCLASSTYPE_FULL, &s);
     a->r[4] = IOleObject_GetMiscStatus(a->o, DVASPECT_CONTENT, &st);
     a->r[5] = IOleObject_Unadvise(a->o, 1);
-    O2_END();
 }
 TEST(o2hdl_handler_rejects_other_threads) {
     thr_arg a; IOleObject *o; int i;

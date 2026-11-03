@@ -105,7 +105,9 @@ static int o2_run_thread(void (*fn)(void *), void *arg, DWORD ms) {
 
 /* OleInitialize/OleUninitialize bracket for tests that need an STA with OLE. */
 #define O2_BEGIN do { REQUIRE(U(OleInitialize)); REQUIRE(U(OleUninitialize)); \
-    HRESULT ih_ = U(OleInitialize)(NULL); EQ(ih_, S_OK); } while (0)
+    HRESULT ih_ = U(OleInitialize)(NULL); \
+    while (ih_ == S_FALSE) { t_note("draining an OLE initialisation leaked by an earlier test"); U(OleUninitialize)(); U(OleUninitialize)(); ih_ = U(OleInitialize)(NULL); } \
+    EQ(ih_, S_OK); } while (0)
 #define O2_END() U(OleUninitialize)()
 
 /* ---- IEnumFORMATETC over a static list ------------------------------------------------------ */
