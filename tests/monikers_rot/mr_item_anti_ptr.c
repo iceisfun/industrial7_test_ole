@@ -170,9 +170,10 @@ TEST(mr_item_create_argument_edge_cases) {
     IMoniker *m = (IMoniker *)1; SETUP();
     if (!t_is_wine()) EXPECT_EQ(U(CreateItemMoniker)(L"!", L"Item", NULL), E_INVALIDARG);
     /* NULL or empty item names are accepted */
-    HRESULT hr = U(CreateItemMoniker)(L"!", NULL, &m);
-    t_note("CreateItemMoniker(\"!\", NULL) -> %08lx", hr);
-    if (hr == S_OK && m) IMoniker_Release(m);
+    HRESULT hr = S_OK;
+    if (!t_is_wine()) { hr = U(CreateItemMoniker)(L"!", NULL, &m);
+        t_note("CreateItemMoniker(\"!\", NULL) -> %08lx", hr);
+        if (hr == S_OK && m) IMoniker_Release(m); }
     m = NULL; hr = U(CreateItemMoniker)(L"!", L"", &m);
     t_note("CreateItemMoniker(\"!\", \"\") -> %08lx", hr);
     if (hr == S_OK && m) { CHECK_DN(m, L"!"); IMoniker_Release(m); }

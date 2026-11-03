@@ -51,6 +51,7 @@ MR_GUID(mr_CLS_StdFont, 0x0be35203, 0x8f91, 0x11ce, 0x9d, 0xe3, 0x00, 0xaa, 0x00
 #define EXPECT_NE(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
     t_check(a_ != b_, __FILE__, __LINE__, #a " != " #b, "got 0x%llx", (unsigned long long)a_); } while (0)
 
+static const GUID mr_GUID_NULL = {0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0}};
 static int mr_guid_eq(const GUID *a, const GUID *b) { return !memcmp(a, b, sizeof(GUID)); }
 
 /* ---- required entry points ------------------------------------------------ */
