@@ -15,7 +15,7 @@ static int call_add(RPC_BINDING_HANDLE h, int a, int b, DWORD *exc) {
 TEST(ncalrpc_life_useprotseqep_w) {
     WCHAR ep[64];
     REQUIRE(U(RpcServerUseProtseqEpW));
-    rx_server_reset(); rx_ep(ep, 64);
+    rx_server_reset(); rx_ep_unique(ep, 64);
     EQ(U(RpcServerUseProtseqEpW)((RPC_WSTR)L"ncalrpc", RPC_C_PROTSEQ_MAX_REQS_DEFAULT, (RPC_WSTR)ep, NULL), RPC_S_OK);
 }
 TEST(ncalrpc_life_useprotseqep_a) {
@@ -27,7 +27,7 @@ TEST(ncalrpc_life_useprotseqep_a) {
 TEST(ncalrpc_life_useprotseqep_case_insensitive_protseq) {
     WCHAR ep[64];
     REQUIRE(U(RpcServerUseProtseqEpW));
-    rx_ep(ep, 64);
+    rx_ep_unique(ep, 64);
     /* protocol sequence names are matched without regard to case */
     EQ(U(RpcServerUseProtseqEpW)((RPC_WSTR)L"NCALRPC", RPC_C_PROTSEQ_MAX_REQS_DEFAULT, (RPC_WSTR)ep, NULL), RPC_S_OK);
 }
@@ -36,7 +36,7 @@ TEST(ncalrpc_life_useprotseqep_case_insensitive_protseq) {
 TEST(ncalrpc_life_useprotseqep_invalid_protseq) {
     WCHAR ep[64];
     REQUIRE(U(RpcServerUseProtseqEpW));
-    rx_ep(ep, 64);
+    rx_ep_unique(ep, 64);
     EQ(U(RpcServerUseProtseqEpW)((RPC_WSTR)L"olet_not_a_protseq", 10, (RPC_WSTR)ep, NULL), RPC_S_PROTSEQ_NOT_SUPPORTED);
     EQ(U(RpcServerUseProtseqEpW)((RPC_WSTR)L"", 10, (RPC_WSTR)ep, NULL), RPC_S_PROTSEQ_NOT_SUPPORTED);
     EQ(U(RpcServerUseProtseqEpW)((RPC_WSTR)L"ncadg_ip_udp", 10, (RPC_WSTR)ep, NULL), RPC_S_PROTSEQ_NOT_SUPPORTED);
@@ -52,7 +52,7 @@ TEST(ncalrpc_life_useprotseqep_unsupported_protseqs) {
     WCHAR ep[64]; unsigned i;
     REQUIRE(U(RpcServerUseProtseqEpW));
     for (i = 0; i < sizeof names / sizeof *names; i++) {
-        RPC_STATUS st; rx_ep(ep, 64);
+        RPC_STATUS st; rx_ep_unique(ep, 64);
         st = U(RpcServerUseProtseqEpW)((RPC_WSTR)names[i], 10, (RPC_WSTR)ep, NULL);
         if (wcsncmp(names[i], L"ncacn_", 6)) EQ(st, RPC_S_PROTSEQ_NOT_SUPPORTED);   /* decomp-verified */
         else CHECK(st == RPC_S_PROTSEQ_NOT_SUPPORTED || st == RPC_S_INVALID_RPC_PROTSEQ || st == RPC_S_OK);
@@ -81,15 +81,16 @@ TEST(ncalrpc_life_useprotseq_dynamic_endpoint) {
 TEST(ncalrpc_life_useprotseqep_same_endpoint_twice) {
     WCHAR ep[64]; RPC_STATUS s1, s2;
     REQUIRE(U(RpcServerUseProtseqEpW));
-    rx_server_reset(); rx_ep(ep, 64);
-    s1 = rx_use_ep(ep); s2 = rx_use_ep(ep);
+    rx_server_reset(); rx_ep_unique(ep, 64);
+    s1 = U(RpcServerUseProtseqEpW)((RPC_WSTR)L"ncalrpc", RPC_C_PROTSEQ_MAX_REQS_DEFAULT, (RPC_WSTR)ep, NULL);
+    s2 = U(RpcServerUseProtseqEpW)((RPC_WSTR)L"ncalrpc", RPC_C_PROTSEQ_MAX_REQS_DEFAULT, (RPC_WSTR)ep, NULL);
     EQ(s1, RPC_S_OK);
     EQ(s2, RPC_S_DUPLICATE_ENDPOINT);   /* decomp: SameEndpointAndProtocolSequence hit -> 0x6cc when not an "ok if registered" caller */
 }
 TEST(ncalrpc_life_useprotseqep_duplicate_across_processes) {
     WCHAR ep[64]; PROCESS_INFORMATION pi; HANDLE h; DWORD code = 0xdead;
     REQUIRE(U(RpcServerUseProtseqEpW));
-    rx_server_reset(); rx_ep(ep, 64);
+    rx_server_reset(); rx_ep_unique(ep, 64);
     EQ(rx_use_ep(ep), RPC_S_OK);
     /* the child tries to take the same endpoint name and exits with the status */
     h = rx_spawn_server(ep, "plain", &pi);
@@ -667,7 +668,7 @@ TEST(ncalrpc_life_useprotseqif_with_endpoint_table) {
     REQUIRE(U(RpcServerUseProtseqIfA));
     if (t_is_wine()) { t_skip("unimplemented in wine"); return; }
     rx_server_reset(); rx_raw_uuid(&u, 0x31); rx_raw_init(&r, &u, 1, 0);
-    rx_ep(epw, 64); WideCharToMultiByte(CP_ACP, 0, epw, -1, epa, sizeof epa, NULL, NULL);
+    rx_ep_unique(epw, 64); WideCharToMultiByte(CP_ACP, 0, epw, -1, epa, sizeof epa, NULL, NULL);
     pe[0].RpcProtocolSequence = (unsigned char *)"ncalrpc"; pe[0].Endpoint = (unsigned char *)epa;
     r.si.RpcProtseqEndpointCount = 1; r.si.RpcProtseqEndpoint = pe;
     st = U(RpcServerUseProtseqIfA)((RPC_CSTR)"ncalrpc", 10, (RPC_IF_HANDLE)&r.si, NULL);
@@ -684,7 +685,7 @@ TEST(ncalrpc_life_useallprotseqsif_with_endpoint_table) {
     REQUIRE(U(RpcServerUseAllProtseqsIf));
     if (t_is_wine()) { t_skip("UseAllProtseqsIf unimplemented in wine"); return; }
     rx_server_reset(); rx_raw_uuid(&u, 0x32); rx_raw_init(&r, &u, 1, 0);
-    rx_ep(epw, 64); WideCharToMultiByte(CP_ACP, 0, epw, -1, epa, sizeof epa, NULL, NULL);
+    rx_ep_unique(epw, 64); WideCharToMultiByte(CP_ACP, 0, epw, -1, epa, sizeof epa, NULL, NULL);
     pe[0].RpcProtocolSequence = (unsigned char *)"ncalrpc"; pe[0].Endpoint = (unsigned char *)epa;
     r.si.RpcProtseqEndpointCount = 1; r.si.RpcProtseqEndpoint = pe;
     st = U(RpcServerUseAllProtseqsIf)(10, (RPC_IF_HANDLE)&r.si, NULL);

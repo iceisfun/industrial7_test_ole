@@ -4,12 +4,23 @@
 
 /* ------------------------------------------------------------------ unique names */
 static volatile LONG g_epn;
+/* Endpoints cannot be released once a protocol sequence is registered, so names are recycled from a pool of
+ * RX_EP_POOL (a runtime may limit the number of live endpoints); rx_use_ep tolerates a repeated registration
+ * of a name this process itself registered earlier. */
+#define RX_EP_POOL 40
 void rx_ep(WCHAR *buf, size_t cch) {
     LONG n = InterlockedIncrement(&g_epn);
-    wsprintfW(buf, L"olet_%lu_%ld", GetCurrentProcessId(), n);
+    wsprintfW(buf, L"olet_%lu_%ld", GetCurrentProcessId(), (n - 1) % RX_EP_POOL + 1);
     (void)cch;
 }
-void rx_epa(char *buf, size_t cb) { WCHAR w[64]; rx_ep(w, 64); WideCharToMultiByte(CP_ACP, 0, w, -1, buf, (int)cb, NULL, NULL); }
+static volatile LONG g_epu;
+void rx_ep_unique(WCHAR *buf, size_t cch) {      /* never recycled: for tests that call UseProtseq* themselves, and for child servers */
+    LONG n = InterlockedIncrement(&g_epu);
+    wsprintfW(buf, L"olet_%lu_u%ld", GetCurrentProcessId(), n);
+    (void)cch;
+}
+static WCHAR g_reg[RX_EP_POOL * 2][64]; static int g_nreg;
+void rx_epa(char *buf, size_t cb) { WCHAR w[64]; rx_ep_unique(w, 64); WideCharToMultiByte(CP_ACP, 0, w, -1, buf, (int)cb, NULL, NULL); }
 
 /* ------------------------------------------------------------------ server routines for xif */
 volatile LONG rx_calls, rx_rundowns, rx_ctx_closes;
@@ -115,7 +126,7 @@ static DWORD WINAPI ndr_thread(void *p) {
     return 0;
 }
 static CRITICAL_SECTION g_ndr_cs; static int g_ndr_cs_init;
-DWORD rx_ndr_h(RPC_BINDING_HANDLE h, unsigned proc, ULONG_PTR a0, ULONG_PTR a1, ULONG_PTR a2, ULONG_PTR a3, LONG_PTR *ret) {
+static DWORD ndr_once(RPC_BINDING_HANDLE h, unsigned proc, ULONG_PTR a0, ULONG_PTR a1, ULONG_PTR a2, ULONG_PTR a3, LONG_PTR *ret) {
     ndr_job j; HANDLE th; DWORD w, ec = 0, res;
     if (!g_ndr_cs_init) { InitializeCriticalSection(&g_ndr_cs); g_ndr_cs_init = 1; SetUnhandledExceptionFilter(rx_uef); }
     memset(&j, 0, sizeof j); j.proc = proc; j.a[0] = a0; j.a[1] = a1; j.a[2] = a2; j.a[3] = a3; j.h = h;
@@ -128,6 +139,13 @@ DWORD rx_ndr_h(RPC_BINDING_HANDLE h, unsigned proc, ULONG_PTR a0, ULONG_PTR a1, 
     if (ec == 0xE0C0DE01) res = g_uef_code ? g_uef_code : 0xFFFFFFF1u; else res = 0;
     if (ret) *ret = j.ret;
     return res;
+}
+/* An emulator that does not transparently re-establish a cached connection to a restarted server reports
+ * RPC_S_CALL_FAILED_DNE for the first call on a recycled endpoint name; retry there (no-op on Windows). */
+DWORD rx_ndr_h(RPC_BINDING_HANDLE h, unsigned proc, ULONG_PTR a0, ULONG_PTR a1, ULONG_PTR a2, ULONG_PTR a3, LONG_PTR *ret) {
+    DWORD e = ndr_once(h, proc, a0, a1, a2, a3, ret);
+    if (t_is_wine() && e == RPC_S_CALL_FAILED_DNE) e = ndr_once(h, proc, a0, a1, a2, a3, ret);
+    return e;
 }
 DWORD rx_ndr(unsigned proc, ULONG_PTR a0, ULONG_PTR a1, ULONG_PTR a2, ULONG_PTR a3, LONG_PTR *ret) {
     return rx_ndr_h(NULL, proc, a0, a1, a2, a3, ret);
@@ -250,7 +268,7 @@ void rx_raw_init(rx_raw *r, const UUID *id, unsigned short major, unsigned short
     r->ci.TransferSyntax = rx_ndr_syntax;
 }
 
-RPC_STATUS rx_raw_call_obj(RPC_BINDING_HANDLE h, const rx_raw *r, unsigned proc, const void *in, ULONG inlen,
+static RPC_STATUS raw_once(RPC_BINDING_HANDLE h, const rx_raw *r, unsigned proc, const void *in, ULONG inlen,
                            void *out, ULONG outcap, ULONG *outlen, ULONG rpcflags) {
     RPC_MESSAGE m; RPC_STATUS st;
     memset(&m, 0, sizeof m);
@@ -268,6 +286,12 @@ RPC_STATUS rx_raw_call_obj(RPC_BINDING_HANDLE h, const rx_raw *r, unsigned proc,
     U(I_RpcFreeBuffer)(&m);
     return RPC_S_OK;
 }
+RPC_STATUS rx_raw_call_obj(RPC_BINDING_HANDLE h, const rx_raw *r, unsigned proc, const void *in, ULONG inlen,
+                           void *out, ULONG outcap, ULONG *outlen, ULONG rpcflags) {
+    RPC_STATUS st = raw_once(h, r, proc, in, inlen, out, outcap, outlen, rpcflags);
+    if (t_is_wine() && st == RPC_S_CALL_FAILED_DNE) st = raw_once(h, r, proc, in, inlen, out, outcap, outlen, rpcflags);
+    return st;
+}
 RPC_STATUS rx_raw_call(RPC_BINDING_HANDLE h, const rx_raw *r, unsigned proc, const void *in, ULONG inlen,
                        void *out, ULONG outcap, ULONG *outlen) {
     return rx_raw_call_obj(h, r, proc, in, inlen, out, outcap, outlen, 0);
@@ -275,7 +299,11 @@ RPC_STATUS rx_raw_call(RPC_BINDING_HANDLE h, const rx_raw *r, unsigned proc, con
 
 /* ------------------------------------------------------------------ server / binding control */
 RPC_STATUS rx_use_ep(const WCHAR *ep) {
-    return U(RpcServerUseProtseqEpW)((RPC_WSTR)L"ncalrpc", RPC_C_PROTSEQ_MAX_REQS_DEFAULT, (RPC_WSTR)ep, NULL);
+    int i; RPC_STATUS st;
+    st = U(RpcServerUseProtseqEpW)((RPC_WSTR)L"ncalrpc", RPC_C_PROTSEQ_MAX_REQS_DEFAULT, (RPC_WSTR)ep, NULL);
+    for (i = 0; i < g_nreg; i++) if (!lstrcmpW(g_reg[i], ep)) { if (st == RPC_S_DUPLICATE_ENDPOINT) st = RPC_S_OK; return st; }
+    if (st == RPC_S_OK && g_nreg < RX_EP_POOL * 2) lstrcpynW(g_reg[g_nreg++], ep, 64);
+    return st;
 }
 RPC_BINDING_HANDLE rx_bind_obj(const WCHAR *ep, const UUID *obj) {
     RPC_WSTR sb = NULL, ostr = NULL; RPC_BINDING_HANDLE h = NULL;
@@ -308,12 +336,23 @@ void rx_server_reset(void) {
         rx_join(th, 10000);
     }
 }
+typedef struct { RPC_IF_HANDLE ifs; UUID *mgr; } unreg_job;
+static DWORD WINAPI unreg_thread(void *p) { unreg_job *j = p; return U(RpcServerUnregisterIf)(j->ifs, j->mgr, 1); }
 void rx_server_down(RPC_IF_HANDLE ifs, UUID *mgrtype) {
     HANDLE th;
+    static unreg_job jobs[64]; static LONG nj;
     U(RpcMgmtStopServerListening)(NULL);
     th = rx_thread(wait_thread, NULL);
     rx_join(th, 10000);
-    if (ifs) U(RpcServerUnregisterIf)(ifs, mgrtype, 1);
+    if (ifs) {
+        unreg_job *j = &jobs[InterlockedIncrement(&nj) & 63];
+        j->ifs = ifs; j->mgr = mgrtype;
+        th = rx_thread(unreg_thread, j);
+        if (!rx_join(th, 10000)) {                  /* bounded: a call that never completes must not hang the run */
+            t_note("RpcServerUnregisterIf(wait) did not return within 10 s");
+            U(RpcServerUnregisterIf)(ifs, mgrtype, 0);
+        }
+    }
 }
 RPC_STATUS rx_serve_ex(RPC_IF_HANDLE ifs, const WCHAR *ep, UUID *mgrtype, void *mgrepv, unsigned flags,
                        unsigned maxcalls, RPC_IF_CALLBACK_FN *cb) {

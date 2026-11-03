@@ -50,7 +50,8 @@ UDECL(RPC_STATUS, RpcServerRegisterIf3, (RPC_IF_HANDLE, UUID *, RPC_MGR_EPV *, u
 
 /* ---- unique naming ---- */
 void rx_ep(WCHAR *buf, size_t cch);            /* L"olet_<pid>_<n>" fresh endpoint name */
-void rx_epa(char *buf, size_t cb);
+void rx_ep_unique(WCHAR *buf, size_t cch);     /* fresh, never recycled */
+void rx_epa(char *buf, size_t cb);             /* unique, narrow */
 
 /* ---- NDR "xif" interface ---- */
 extern RPC_IF_HANDLE rx_xif_s_ifspec;          /* &RPC_SERVER_INTERFACE */

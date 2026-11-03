@@ -6,7 +6,7 @@ typedef struct { WCHAR ep[64]; HANDLE proc; PROCESS_INFORMATION pi; RPC_BINDING_
 
 static int cs_start(child_srv *c, const char *mode) {
     memset(c, 0, sizeof *c);
-    rx_ep(c->ep, 64);
+    rx_ep_unique(c->ep, 64);
     c->proc = rx_spawn_server(c->ep, mode, &c->pi);
     if (!c->proc) return 0;
     c->up = rx_wait_server_ready(c->ep, 10000);
