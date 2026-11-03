@@ -12,13 +12,15 @@ static const stype g_st[] = {
 #define NST ((int)(sizeof g_st / sizeof g_st[0]))
 
 static const unsigned char pat[8] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x7a };  /* top bit clear: valid enum16 */
+/* enum16 lives in a 4 byte C enum: its upper half must be zero or marshalling raises RPC_X_ENUM_VALUE_OUT_OF_RANGE */
+static void mkmem(unsigned char *mem, unsigned char fc) { memcpy(mem, pat, 8); if (fc == FC_ENUM16) mem[2] = mem[3] = 0; }
 static ULONG_PTR al(ULONG_PTR p, unsigned a) { return (p + a - 1) & ~(ULONG_PTR)(a - 1); }
 
 TEST(ndr_simple_marshal_aligned_start) {
     REQUIRE(U(NdrSimpleTypeMarshall)); REQUIRE(U(NdrClientInitializeNew));
     for (int i = 0; i < NST; i++) {
         nctx c; nc_client(&c, NULL, 32);
-        unsigned char mem[8]; memcpy(mem, pat, 8);
+        unsigned char mem[8]; mkmem(mem, g_st[i].fc);
         U(NdrSimpleTypeMarshall)(&c.sm, mem, g_st[i].fc);
         CHECKF(nc_used(&c) == g_st[i].size, "%s used %lu", g_st[i].name, nc_used(&c));
         CHECKF(!memcmp(c.buf, pat, g_st[i].size), "%s bytes", g_st[i].name);
@@ -30,7 +32,7 @@ TEST(ndr_simple_marshal_alignment_offsets) {
     REQUIRE(U(NdrSimpleTypeMarshall)); REQUIRE(U(NdrClientInitializeNew));
     for (int i = 0; i < NST; i++) for (int off = 0; off < 8; off++) {
         nctx c; nc_client(&c, NULL, 64);
-        unsigned char mem[8]; memcpy(mem, pat, 8);
+        unsigned char mem[8]; mkmem(mem, g_st[i].fc);
         c.sm.Buffer = c.buf + off;
         U(NdrSimpleTypeMarshall)(&c.sm, mem, g_st[i].fc);
         ULONG_PTR start = al((ULONG_PTR)c.buf + off, g_st[i].align);
@@ -90,7 +92,7 @@ TEST(ndr_simple_unmarshal_values) {
     REQUIRE(U(NdrSimpleTypeUnmarshall)); REQUIRE(U(NdrClientInitializeNew));
     for (int i = 0; i < NST; i++) {
         nctx c; nc_rx(&c, NULL, pat, 8, 1);
-        unsigned char out[8]; memset(out, 0xEE, 8);
+        unsigned char out[16]; memset(out, 0xEE, 16);
         U(NdrSimpleTypeUnmarshall)(&c.sm, out, g_st[i].fc);
         CHECKF(nc_used(&c) == g_st[i].size, "%s used %lu", g_st[i].name, nc_used(&c));
         CHECKF(!memcmp(out, pat, g_st[i].size), "%s value", g_st[i].name);
@@ -235,12 +237,14 @@ TEST(ndr_simple_roundtrip_all_types_all_offsets) {
     REQUIRE(U(NdrSimpleTypeMarshall)); REQUIRE(U(NdrSimpleTypeUnmarshall)); REQUIRE(U(NdrClientInitializeNew));
     for (int i = 0; i < NST; i++) for (int off = 0; off < 8; off++) {
         nctx c; nc_client(&c, NULL, 64);
-        unsigned char mem[8], out[8] = { 0 }; memcpy(mem, pat, 8);
+        unsigned char mem[8], out[8] = { 0 }; mkmem(mem, g_st[i].fc);
         c.sm.Buffer = c.buf + off;
-        U(NdrSimpleTypeMarshall)(&c.sm, mem, g_st[i].fc);
+        NTRY U(NdrSimpleTypeMarshall)(&c.sm, mem, g_st[i].fc); NEND;
+        CHECKF(n_code == 0, "%s off %d marshal raised %lu", g_st[i].name, off, (unsigned long)n_code);
         ULONG_PTR end = (ULONG_PTR)c.sm.Buffer;
         c.sm.Buffer = c.buf + off;
-        U(NdrSimpleTypeUnmarshall)(&c.sm, out, g_st[i].fc);
+        NTRY U(NdrSimpleTypeUnmarshall)(&c.sm, out, g_st[i].fc); NEND;
+        CHECKF(n_code == 0, "%s off %d unmarshal raised %lu", g_st[i].name, off, (unsigned long)n_code);
         CHECKF((ULONG_PTR)c.sm.Buffer == end, "%s off %d symmetric advance", g_st[i].name, off);
         CHECKF(!memcmp(out, mem, g_st[i].size), "%s off %d roundtrip", g_st[i].name, off);
         nc_done(&c);

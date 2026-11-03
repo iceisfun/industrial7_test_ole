@@ -10,7 +10,7 @@ static const pst g_pt[] = {
     { FC_ENUM16, 2, 2, "enum16", 4 }, { FC_ENUM32, 4, 4, "enum32", 0 }, { FC_ERROR_STATUS_T, 4, 4, "error_status_t", 0 },
 };
 #define NPT ((int)(sizeof g_pt / sizeof g_pt[0]))
-static const unsigned char vpat[8] = { 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x6b };
+static const unsigned char vpat[8] = { 0x11, 0x22, 0x00, 0x00, 0x55, 0x66, 0x77, 0x6b };   /* enum16 needs a zero upper half */
 static const unsigned char kinds[] = { FC_RP, FC_UP, FC_OP };
 static const char *kname[] = { "rp", "up", "op" };
 
