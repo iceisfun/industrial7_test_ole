@@ -144,7 +144,7 @@ static DWORD ndr_once(RPC_BINDING_HANDLE h, unsigned proc, ULONG_PTR a0, ULONG_P
  * RPC_S_CALL_FAILED_DNE for the first call on a recycled endpoint name; retry there (no-op on Windows). */
 DWORD rx_ndr_h(RPC_BINDING_HANDLE h, unsigned proc, ULONG_PTR a0, ULONG_PTR a1, ULONG_PTR a2, ULONG_PTR a3, LONG_PTR *ret) {
     DWORD e = ndr_once(h, proc, a0, a1, a2, a3, ret);
-    if (t_is_wine() && e == RPC_S_CALL_FAILED_DNE) e = ndr_once(h, proc, a0, a1, a2, a3, ret);
+    for (int k = 0; k < 3 && t_is_wine() && e == RPC_S_CALL_FAILED_DNE; k++) e = ndr_once(h, proc, a0, a1, a2, a3, ret);
     return e;
 }
 DWORD rx_ndr(unsigned proc, ULONG_PTR a0, ULONG_PTR a1, ULONG_PTR a2, ULONG_PTR a3, LONG_PTR *ret) {
@@ -289,7 +289,7 @@ static RPC_STATUS raw_once(RPC_BINDING_HANDLE h, const rx_raw *r, unsigned proc,
 RPC_STATUS rx_raw_call_obj(RPC_BINDING_HANDLE h, const rx_raw *r, unsigned proc, const void *in, ULONG inlen,
                            void *out, ULONG outcap, ULONG *outlen, ULONG rpcflags) {
     RPC_STATUS st = raw_once(h, r, proc, in, inlen, out, outcap, outlen, rpcflags);
-    if (t_is_wine() && st == RPC_S_CALL_FAILED_DNE) st = raw_once(h, r, proc, in, inlen, out, outcap, outlen, rpcflags);
+    for (int k = 0; k < 3 && t_is_wine() && st == RPC_S_CALL_FAILED_DNE; k++) st = raw_once(h, r, proc, in, inlen, out, outcap, outlen, rpcflags);
     return st;
 }
 RPC_STATUS rx_raw_call(RPC_BINDING_HANDLE h, const rx_raw *r, unsigned proc, const void *in, ULONG inlen,
