@@ -95,12 +95,34 @@ TEST(gap3_lsa_retrieve_private_data_odd_key_length) {
     REQUIRE(U(LsaRetrievePrivateData)); REQUIRE(U(LsaOpenPolicy)); REQUIRE(U(LsaClose)); REQUIRE(U(LsaFreeMemory));
     odd_key_case(0);
 }
-TEST(gap3_lsa_closed_handle_is_not_null_handle) {
+TEST(gap3_lsa_close_rejects_handles_without_the_private_tag) {
     WSKIP();
-    /* after LsaClose the handle value is stale: only NULL gets the local INVALID_HANDLE answer, so just record it */
+    REQUIRE(U(LsaClose));
+    /* decomp: LsaClose accepts only a non-NULL pointer whose first dword is 0x554d4954 ("TIMU"), else STATUS_INVALID_HANDLE */
+    EXPECT_EQ(U(LsaClose)(NULL), ST_INVALID_HANDLE);
+    static const DWORD tags[] = { 0, 1, 0x554d4955, 0x554d4953, 0x54494d55, 0xffffffffu };
+    for (unsigned i = 0; i < sizeof tags / sizeof tags[0]; i++) {
+        DWORD blob[16]; memset(blob, 0, sizeof blob); blob[0] = tags[i];
+        NTSTATUS st = U(LsaClose)((LSA_HANDLE)blob);
+        CHECKF(st == ST_INVALID_HANDLE, "tag 0x%lx -> 0x%lx", (unsigned long)tags[i], (unsigned long)st);
+    }
+}
+TEST(gap3_lsa_openclose_roundtrip_and_second_close) {
+    WSKIP();
     REQUIRE(U(LsaOpenPolicy)); REQUIRE(U(LsaClose));
     LSA_HANDLE h = NULL;
     if (!open_lookup(&h)) { t_skip("cannot open the policy"); return; }
+    CHECK(h != NULL);
     EXPECT_EQ(U(LsaClose)(h), 0);
-    EXPECT_EQ(U(LsaClose)(NULL), ST_INVALID_HANDLE);
+}
+TEST(gap3_lsa_openpolicy_clears_rootdirectory_and_handle_first) {
+    WSKIP();
+    REQUIRE(U(LsaOpenPolicy)); REQUIRE(U(LsaClose));
+    LSA_OBJECT_ATTRIBUTES oa; memset(&oa, 0, sizeof oa); oa.Length = sizeof oa;
+    oa.RootDirectory = (HANDLE)(ULONG_PTR)0x1234;
+    LSA_HANDLE h = (LSA_HANDLE)(ULONG_PTR)0x77;
+    NTSTATUS st = U(LsaOpenPolicy)(NULL, &oa, POLICY_LOOKUP_NAMES, &h);
+    CHECK(oa.RootDirectory == NULL);              /* decomp: RootDirectory is zeroed up front */
+    if (st) { CHECK(h == NULL); t_note("LsaOpenPolicy -> 0x%lx", (unsigned long)st); }
+    else { CHECK(h != NULL && h != (LSA_HANDLE)(ULONG_PTR)0x77); U(LsaClose)(h); }
 }
