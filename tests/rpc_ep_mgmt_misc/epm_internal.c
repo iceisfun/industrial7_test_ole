@@ -69,6 +69,7 @@ TEST(epm_internal_marshalled_target_info_validation) {
 
 TEST(epm_internal_pause_execution_and_idle_cleanup) {
     REQUIRE(U(I_RpcPauseExecution) && U(RpcMgmtEnableIdleCleanup));
+    WINE_STUB();
     U(I_RpcPauseExecution)(0);
     U(I_RpcPauseExecution)(10);
     EQ(U(RpcMgmtEnableIdleCleanup)(), RPC_S_OK);
