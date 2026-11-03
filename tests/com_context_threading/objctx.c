@@ -88,7 +88,7 @@ static void w_goc_identity(void *p)
     CXEQ(q, cb); rel(q); q = NULL;                 /* same interface asked from another interface: same pointer */
     CXEQ_HR(IUnknown_QueryInterface((IUnknown *)obj, &CX_IID_IComThreadingInfo, &q), S_OK);
     CXEQ(q, info); rel(q); q = NULL;
-    CXEQ_HR(IUnknown_QueryInterface((IUnknown *)obj, &CX_IID_Bogus, &q), S_OK + 0 == 0 ? CX_HR_NOINTERFACE : CX_HR_NOINTERFACE);
+    CXEQ_HR(IUnknown_QueryInterface((IUnknown *)obj, &CX_IID_Bogus, &q), CX_HR_NOINTERFACE);
     CXEQ(q, 0);
     rel(unk); rel(obj); rel(ctx); rel(cb); rel(info);
 }
@@ -251,7 +251,8 @@ TEST(ctxthr_threadinginfo_object_reports_calling_thread)
     CXEQ_HR(s.apt_hr, S_OK); CXEQ(s.apt, APTTYPE_MTA);        /* the *calling* thread's apartment, not the owner's */
     CXEQ_HR(s.thd_hr, S_OK); CXEQ(s.thd, THDTYPE_BLOCKMESSAGES);
     CXEQ_HR(s.set_hr, S_OK); CXEQ_HR(s.get_hr, S_OK);
-    CHECK(IsEqualGUID(&s.seen, &sta.lid) == 0);               /* did not read the owner thread's id */
+    { GUID mine = CX_EXTENT_OLET; CHECK(IsEqualGUID(&s.seen, &mine)); }   /* the id read back is the calling thread's, not the owner's */
+    CHECK(!IsEqualGUID(&s.seen, &sta.lid));
     /* the parked STA's own id is untouched: read it back through its object from a third thread */
     memset(&s, 0, sizeof s); s.ti = sta.info;
     cx_run(CXM_STA, w_cti_other_thread, &s);

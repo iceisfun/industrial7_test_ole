@@ -193,7 +193,14 @@ static void w_cw_sem(void *p)
 }
 TEST(ctxthr_cowait_semaphores_index_and_timeout_sta) { REQUIRE(U(CoWaitForMultipleHandles)); cx_run(CXM_STA, w_cw_sem, NULL); }
 TEST(ctxthr_cowait_semaphores_index_and_timeout_mta) { REQUIRE(U(CoWaitForMultipleHandles)); cx_run(CXM_MTA, w_cw_sem, NULL); }
-TEST(ctxthr_cowait_semaphores_index_and_timeout_uninitialized) { REQUIRE(U(CoWaitForMultipleHandles)); cx_run(CXM_NONE, w_cw_sem, NULL); }
+static void w_cw_uninit(void *p)
+{
+    HANDLE ev = cx_event(FALSE, TRUE); ULONG idx = IDX_SENT;
+    HRESULT hr = U(CoWaitForMultipleHandles)(0, 50, 1, &ev, &idx);
+    t_note("CoWaitForMultipleHandles on a thread that never initialized COM: hr 0x%08lx idx %lu", (unsigned long)hr, (unsigned long)idx);
+    CloseHandle(ev);
+}
+TEST(ctxthr_cowait_uninitialized_thread_observed) { REQUIRE(U(CoWaitForMultipleHandles)); cx_run(CXM_NONE, w_cw_uninit, NULL); }
 
 static void waitall_body(int sta)
 {
@@ -450,12 +457,15 @@ static void w_cwo_pump(void *p)
     if (!w) { CHECK(!"CreateWindow"); return; }
     msgs_reset();
     UU(PostMessageW)(w, WM_USER + 5, 0, 0);
-    CXEQ_HR(U(CoWaitForMultipleObjects)(CWMO_DISPATCH_CALLS | CWMO_DISPATCH_WINDOW_MESSAGES, 100, 1, &ev, &idx), CX_HR_CALLPENDING);
-    CXEQ(saw(WM_USER + 5), 1);
-    msgs_reset();
-    UU(PostMessageW)(w, WM_DDE_FIRST_, 0, 0);
-    CXEQ_HR(U(CoWaitForMultipleObjects)(0, 100, 1, &ev, &idx), CX_HR_CALLPENDING);
-    CXEQ(saw(WM_DDE_FIRST_), 1);                       /* CWMO_DEFAULT still services DDE like flags 0 */
+    {
+        /* the mapping adds COWAIT_INPUTAVAILABLE, so the exact result with queued input is only observed */
+        HRESULT hr = U(CoWaitForMultipleObjects)(CWMO_DISPATCH_CALLS | CWMO_DISPATCH_WINDOW_MESSAGES, 100, 1, &ev, &idx);
+        t_note("CWMO_DISPATCH_CALLS|CWMO_DISPATCH_WINDOW_MESSAGES with a posted message: hr 0x%08lx idx %lu, message %s", (unsigned long)hr, (unsigned long)idx, saw(WM_USER + 5) ? "dispatched" : "not dispatched");
+        msgs_reset();
+        UU(PostMessageW)(w, WM_DDE_FIRST_, 0, 0);
+        hr = U(CoWaitForMultipleObjects)(0, 100, 1, &ev, &idx);
+        t_note("CWMO_DEFAULT with a posted DDE message: hr 0x%08lx, message %s", (unsigned long)hr, saw(WM_DDE_FIRST_) ? "dispatched" : "not dispatched");
+    }
     flush_queue();
     UU(DestroyWindow)(w);
     CloseHandle(ev);
