@@ -136,12 +136,13 @@ typedef struct {
     FORMATETC f[O2D_MAX]; const char *payload[O2D_MAX]; int n;
     LONG getdata, qgd, enumcalls, getdatahere, setdata, dadvise, dunadvise;
     int enum_hr_override; HRESULT enum_hr;  /* make EnumFormatEtc fail */
+    int ignore_aspect;                      /* GetData/QueryGetData accept any aspect and lindex */
     HRESULT getdata_hr;                     /* when nonzero, GetData fails with this */
 } O2Data;
 static int od_find(O2Data *d, const FORMATETC *f) {
     int k;
     for (k = 0; k < d->n; k++)
-        if (d->f[k].cfFormat == f->cfFormat && (d->f[k].tymed & f->tymed) && (d->f[k].dwAspect & f->dwAspect)) return k;
+        if (d->f[k].cfFormat == f->cfFormat && (d->f[k].tymed & f->tymed) && (d->ignore_aspect || (d->f[k].dwAspect & f->dwAspect))) return k;
     return -1;
 }
 static HRESULT STDMETHODCALLTYPE od_QI(IDataObject *s, REFIID r, void **pp) {

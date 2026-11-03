@@ -554,6 +554,7 @@ TEST(o2create_olecreate_draw_rejects_explicit_format) {
     O2_END();
 }
 TEST(o2create_olecreateex_parameter_matrix) {
+    if (t_is_wine()) { t_skip("OleCreateEx is an unimplemented stub in this emulator"); return; }
     FORMATETC f; DWORD adv[2] = { 0, 0 }, con[2]; O2Sink sink; IStorage *stg; O2Site site;
     typedef struct { DWORD flags, render, cfmt; int adv, fmt, sink, conn; HRESULT hr; const char *what; } cs;
     static const cs c[] = {
@@ -594,6 +595,7 @@ TEST(o2create_olecreateex_parameter_matrix) {
     O2_END();
 }
 TEST(o2create_olecreateex_advf_bits) {
+    if (t_is_wine()) { t_skip("OleCreateEx is an unimplemented stub in this emulator"); return; }
     FORMATETC f; DWORD adv; IStorage *stg; void *p; HRESULT hr;
     O2_BEGIN;
     REQUIRE(U(OleCreateEx));
