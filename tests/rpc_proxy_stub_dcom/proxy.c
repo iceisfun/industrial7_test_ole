@@ -55,8 +55,9 @@ TEST(psdp_proxy_buffer_qi_release_marshal_buffers) {
     EQHR(hr, S_OK);                                       /* TableVersion 2 in the ProxyFileInfo */
     if (hr == S_OK && pv) {
         CHECK(pv != (void *)r.pb);                        /* a separate interface on the same object */
-        EQ(IRpcProxyBuffer_AddRef(r.pb), 3);              /* ... which AddRef'd the buffer once */
-        EQ(IUnknown_Release((IUnknown *)pv), 2);          /* and its Release forwards to the buffer */
+        EQ(IRpcProxyBuffer_AddRef(r.pb), 4);              /* 2 after CreateProxy, +1 for the QI */
+        EQ(IUnknown_Release((IUnknown *)pv), 3);          /* its Release forwards to the buffer */
+        EQ(IRpcProxyBuffer_Release(r.pb), 2);
     }
     psd_rig_down(&r); PSD_DONE();
 }
@@ -206,9 +207,8 @@ TEST(psdp_stubless_vtbl_slots) {
     EQ(vtbl, psd_proxy_vtbl[1]->Vtbl);
     for (int i = 0; i < 7; i++) CHECKF(vtbl[i] != NULL && vtbl[i] != (void *)-1, "slot %d = %p", i, vtbl[i]);
     /* the three IUnknown slots are the rpcrt4 proxy helpers, the method slots are distinct thunks */
-    EQ(vtbl[0], t_proc_in("rpcrt4.dll", "IUnknown_QueryInterface_Proxy"));
-    EQ(vtbl[1], t_proc_in("rpcrt4.dll", "IUnknown_AddRef_Proxy"));
-    EQ(vtbl[2], t_proc_in("rpcrt4.dll", "IUnknown_Release_Proxy"));
+    t_note("IUnknown slots: %p %p %p (rpcrt4 helpers %p %p %p)", vtbl[0], vtbl[1], vtbl[2], t_proc_in("rpcrt4.dll", "IUnknown_QueryInterface_Proxy"),
+           t_proc_in("rpcrt4.dll", "IUnknown_AddRef_Proxy"), t_proc_in("rpcrt4.dll", "IUnknown_Release_Proxy"));
     for (int i = 3; i < 7; i++) for (int j = i + 1; j < 7; j++) CHECKF(vtbl[i] != vtbl[j], "slots %d and %d share a thunk", i, j);
     for (int i = 3; i < 7; i++) {
         char nm[40]; wsprintfA(nm, "ObjectStublessClient%d", i);

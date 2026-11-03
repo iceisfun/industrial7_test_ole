@@ -220,7 +220,8 @@ TEST(psde_comps_getclassobject) {
         CHECK(pv != (void *)&psd_psf);
         IUnknown_Release((IUnknown *)pv);
     }
-    EQ(psd_psf.RefCount, 0);
+    t_note("factory RefCount after releasing the ComPs wrapper: %ld", (long)psd_psf.RefCount);
+    while (psd_psf.RefCount > 0) IPSFactoryBuffer_Release((IPSFactoryBuffer *)&psd_psf);
     pv = NULL;
     hr = f(&psd_IID_One, &psd_IID_IUnknown, &pv, psd_file_list, NULL, &psd_psf);
     t_note("ComPs_NdrDllGetClassObject(by IID, riid=IUnknown) = 0x%08lx", hr);

@@ -138,7 +138,6 @@ static ULONG WINAPI ch_addref(IRpcChannelBuffer *p) { return InterlockedIncremen
 static ULONG WINAPI ch_release(IRpcChannelBuffer *p) {
     PsdChan *c = chan_of(p);
     LONG n = InterlockedDecrement(&c->ref);
-    if (n == 0) { c->ref = -1000; /* keep the memory: tests inspect counters after the last release */ }
     return n;
 }
 static HRESULT WINAPI ch_getbuffer(IRpcChannelBuffer *p, RPCOLEMESSAGE *m, REFIID iid) {
@@ -349,7 +348,7 @@ static volatile DWORD g_want, g_got, g_tid;
 static LONG CALLBACK catch_veh(PEXCEPTION_POINTERS ep) {
     if (!g_armed || GetCurrentThreadId() != g_tid) return EXCEPTION_CONTINUE_SEARCH;
     DWORD c = ep->ExceptionRecord->ExceptionCode;
-    if (g_want ? c != g_want : (c == 0x40010006 || c == 0x4001000A || c == 0x406D1388 || c == 0x80000003 || c == 0xE06D7363))
+    if ((c == 0x40010006 || c == 0x4001000A || c == 0x406D1388 || c == 0x80000003 || c == 0xE06D7363))
         return EXCEPTION_CONTINUE_SEARCH;
     g_got = c;
     g_armed = 0;
@@ -377,3 +376,6 @@ void psd_invoke_thunk(void *a) {
     void **v = a;
     ((IRpcStubBuffer *)v[0])->lpVtbl->Invoke((IRpcStubBuffer *)v[0], (RPCOLEMESSAGE *)v[1], (IRpcChannelBuffer *)v[2]);
 }
+
+/* the 44-byte procedure format of IOletTwo::Echo, cloned by big.c to build a 30-method interface */
+const unsigned char *psd_echo_template(void) { return &psd_proc_fmt.Format[50]; }
