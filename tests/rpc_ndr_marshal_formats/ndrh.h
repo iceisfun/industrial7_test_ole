@@ -123,7 +123,25 @@ static ULONG n_marshal(const fam *f, nctx *c, unsigned char *mem, const unsigned
     f->bs(&c->sm, mem, fmt);
     if (bsz) *bsz = c->sm.BufferLength;
     c->sm.Buffer = c->buf; c->sm.BufferStart = c->buf;
-    f->ma(&c->sm, mem, fmt);
+    NTRY f->ma(&c->sm, mem, fmt); NEND;
+    t_check(n_code == 0, "ndrh.h", __LINE__, "Marshall must not raise", "%s Marshall raised %lu", f->name, (unsigned long)n_code);
     return nc_used(c);
+}
+/* Exception-safe wrappers: a raised RPC exception becomes a CHECK failure (and returns 0/NULL) instead of killing the run. */
+static ULONG sa_ms(const fam *f, nctx *c, const unsigned char *fmt, const char *tag) {
+    volatile ULONG r = 0;
+    NTRY r = f->ms(&c->sm, fmt); NEND;
+    t_check(n_code == 0, "ndrh.h", __LINE__, "MemorySize must not raise", "%s: %s MemorySize raised %lu", tag, f->name, (unsigned long)n_code);
+    return r;
+}
+static unsigned char *sa_um(const fam *f, nctx *c, unsigned char **pp, const unsigned char *fmt, int must, const char *tag) {
+    unsigned char *volatile r = NULL;
+    NTRY r = f->um(&c->sm, pp, fmt, (unsigned char)must); NEND;
+    t_check(n_code == 0, "ndrh.h", __LINE__, "Unmarshall must not raise", "%s: %s Unmarshall raised %lu", tag, f->name, (unsigned long)n_code);
+    return r;
+}
+static void sa_ma(const fam *f, nctx *c, unsigned char *mem, const unsigned char *fmt, const char *tag) {
+    NTRY f->ma(&c->sm, mem, fmt); NEND;
+    t_check(n_code == 0, "ndrh.h", __LINE__, "Marshall must not raise", "%s: %s Marshall raised %lu", tag, f->name, (unsigned long)n_code);
 }
 #endif
