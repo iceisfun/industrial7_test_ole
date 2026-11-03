@@ -337,8 +337,9 @@ TEST(ncalrpc_sec_server_from_client) {
     RUP(f, 0x9a, 1, 0);
     EQ(rx_raw_call(f.h, &f.r, 12, NULL, 0, &r, sizeof r, &n), RPC_S_OK);
     EQ(r.st, RPC_S_OK);
-    wsprintfW(want, L"ncalrpc:[%s]", f.ep);
-    CHECK(!lstrcmpiW(r.s, want));
+    (void)want;
+    /* documented: a *partially bound* server binding handle (the endpoint is not filled in) */
+    CHECK(!wcsncmp(r.s, L"ncalrpc:", 8));
     t_note("RpcBindingServerFromClient -> %ls", r.s);
     raw_down(&f);
 }
