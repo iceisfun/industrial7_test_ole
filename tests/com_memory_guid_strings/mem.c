@@ -178,10 +178,12 @@ TEST(mem_task_cross_module_free) {
     FREE("combase.dll")(a);
     FREE("ole32.dll")(b);
 }
-static DWORD WINAPI th_alloc(LPVOID p) { void **out = p; *out = ALLOC("ole32.dll")(500); if (*out) fill(*out, 500, 77); return 0; }
+static alloc_fn g_th_alloc;
+static DWORD WINAPI th_alloc(LPVOID p) { void **out = p; *out = g_th_alloc(500); if (*out) fill(*out, 500, 77); return 0; }
 TEST(mem_task_free_on_other_thread) {
     REQUIRE(ALLOC("ole32.dll"));
     void *blk = NULL;
+    g_th_alloc = ALLOC("ole32.dll");
     HANDLE h = CreateThread(NULL, 0, th_alloc, &blk, 0, NULL);
     CHECK(h != NULL); if (!h) return;
     CHECK(WaitForSingleObject(h, 5000) == WAIT_OBJECT_0);
