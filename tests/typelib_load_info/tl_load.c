@@ -1,8 +1,6 @@
 /* LoadTypeLib / LoadTypeLibEx / LoadRegTypeLib / QueryPathOfRegTypeLib / UnRegisterTypeLib (read paths). */
 #include "tl.h"
 
-/* check that is only enforced on genuine Windows (Wine registry/impl differs; decomp is the authority) */
-#define WCHECK(c) do { if (!t_is_wine()) CHECK(c); } while (0)
 #define SENTINEL ((ITypeLib *)(ULONG_PTR)0x1badf00d)
 
 static void w_from_tmp(const char *leaf, WCHAR *out, int cap)
@@ -35,13 +33,13 @@ TEST(tlli_loadex_null_file)
     HRESULT (WINAPI *f)(LPCOLESTR, REGKIND, ITypeLib **) = UIN("oleaut32.dll", LoadTypeLibEx);
     REQUIRE(f);
     ITypeLib *tl = SENTINEL;
-    EXPECT_EQ(f(NULL, REGKIND_NONE, &tl), E_INVALIDARG);
+    TEQ(f(NULL, REGKIND_NONE, &tl), E_INVALIDARG);
     CHECK(tl == SENTINEL);                       /* out param is untouched on argument failure */
     tl = SENTINEL;
-    EXPECT_EQ(f(NULL, REGKIND_DEFAULT, &tl), E_INVALIDARG);
+    TEQ(f(NULL, REGKIND_DEFAULT, &tl), E_INVALIDARG);
     CHECK(tl == SENTINEL);
     tl = SENTINEL;
-    EXPECT_EQ(f(NULL, REGKIND_REGISTER, &tl), E_INVALIDARG);
+    TEQ(f(NULL, REGKIND_REGISTER, &tl), E_INVALIDARG);
     CHECK(tl == SENTINEL);
 }
 
@@ -50,9 +48,9 @@ TEST(tlli_loadex_null_out)
     HRESULT (WINAPI *f)(LPCOLESTR, REGKIND, ITypeLib **) = UIN("oleaut32.dll", LoadTypeLibEx);
     REQUIRE(f);
     WCHAR p[MAX_PATH]; tl_sysfile(p, MAX_PATH, L"stdole2.tlb");
-    EXPECT_EQ(f(p, REGKIND_NONE, NULL), E_INVALIDARG);
-    EXPECT_EQ(f(NULL, REGKIND_NONE, NULL), E_INVALIDARG);
-    EXPECT_EQ(f(L"", REGKIND_NONE, NULL), E_INVALIDARG);
+    TEQ(f(p, REGKIND_NONE, NULL), E_INVALIDARG);
+    TEQ(f(NULL, REGKIND_NONE, NULL), E_INVALIDARG);
+    TEQ(f(L"", REGKIND_NONE, NULL), E_INVALIDARG);
 }
 
 TEST(tlli_load_null_args)
@@ -60,10 +58,10 @@ TEST(tlli_load_null_args)
     HRESULT (WINAPI *f)(LPCOLESTR, ITypeLib **) = UIN("oleaut32.dll", LoadTypeLib);
     REQUIRE(f);
     ITypeLib *tl = SENTINEL;
-    EXPECT_EQ(f(NULL, NULL), E_INVALIDARG);
-    EXPECT_EQ(f(NULL, &tl), E_INVALIDARG);
+    TEQ(f(NULL, NULL), E_INVALIDARG);
+    TEQ(f(NULL, &tl), E_INVALIDARG);
     CHECK(tl == SENTINEL);
-    EXPECT_EQ(f(L"stdole2.tlb", NULL), E_INVALIDARG);
+    TEQ(f(L"stdole2.tlb", NULL), E_INVALIDARG);
 }
 
 TEST(tlli_loadex_bad_regkind)
@@ -117,11 +115,11 @@ TEST(tlli_loadex_empty_string)
     for (int i = 0; i < 3; i++) {
         ITypeLib *tl = SENTINEL;
         WCHECK(f(L"", k[i], &tl) == STG_E_FILENOTFOUND);
-        CHECK(tl == NULL);
+        WCHECK(tl == NULL);
     }
     ITypeLib *tl = SENTINEL;
     HRESULT (WINAPI *g)(LPCOLESTR, ITypeLib **) = UIN("oleaut32.dll", LoadTypeLib);
-    if (g) { WCHECK(g(L"", &tl) == STG_E_FILENOTFOUND); CHECK(tl == NULL); }
+    if (g) { WCHECK(g(L"", &tl) == STG_E_FILENOTFOUND); WCHECK(tl == NULL); }
 }
 
 TEST(tlli_loadex_missing_absolute)
@@ -288,10 +286,10 @@ TEST(tlli_stdole2_absolute_all_regkinds_none)
     WCHAR p[MAX_PATH]; tl_sysfile(p, MAX_PATH, L"stdole2.tlb");
     if (GetFileAttributesW(p) == INVALID_FILE_ATTRIBUTES) { t_note("no stdole2.tlb in system dir"); }
     HRESULT hr = tl_open_file(p, &tl);
-    EXPECT_EQ(hr, S_OK);
+    TEQ(hr, S_OK);
     CHECK(tl != NULL);
     if (tl) {
-        EXPECT_EQ(ITypeLib_Release(tl) < 100, 1);
+        TEQ(ITypeLib_Release(tl) < 100, 1);
     }
 }
 
@@ -301,7 +299,7 @@ TEST(tlli_stdole2_filename_only)
     REQUIRE(f);
     ITypeLib *tl = NULL;
     HRESULT hr = f(L"stdole2.tlb", &tl);         /* found through the search path (System32) */
-    EXPECT_EQ(hr, S_OK);
+    TEQ(hr, S_OK);
     CHECK(tl != NULL);
     if (tl) {
         TLIBATTR *a = NULL;
@@ -317,12 +315,12 @@ TEST(tlli_stdole2_case_insensitive_name)
     REQUIRE(f);
     ITypeLib *tl = NULL;
     HRESULT hr = f(L"STDOLE2.TLB", &tl);
-    EXPECT_EQ(hr, S_OK);
+    TEQ(hr, S_OK);
     if (tl) ITypeLib_Release(tl);
     WCHAR p[MAX_PATH]; tl_sysfile(p, MAX_PATH, L"STDOLE2.tlb");
     tl = NULL;
     hr = f(p, &tl);
-    EXPECT_EQ(hr, S_OK);
+    TEQ(hr, S_OK);
     if (tl) ITypeLib_Release(tl);
 }
 
@@ -330,11 +328,11 @@ TEST(tlli_stdole2_repeated_loads)
 {
     ITypeLib *a = NULL, *b = NULL;
     WCHAR p[MAX_PATH]; tl_sysfile(p, MAX_PATH, L"stdole2.tlb");
-    EXPECT_EQ(tl_open_file(p, &a), S_OK);
-    EXPECT_EQ(tl_open_file(p, &b), S_OK);
+    TEQ(tl_open_file(p, &a), S_OK);
+    TEQ(tl_open_file(p, &b), S_OK);
     REQUIRE(a && b);
     t_note("two loads of same absolute path: same object = %d", a == b);
-    EXPECT_EQ(ITypeLib_GetTypeInfoCount(a), ITypeLib_GetTypeInfoCount(b));
+    TEQ(ITypeLib_GetTypeInfoCount(a), ITypeLib_GetTypeInfoCount(b));
     /* lifetime: releasing one leaves the other usable */
     ITypeLib_Release(a);
     TLIBATTR *at = NULL;
@@ -350,10 +348,10 @@ TEST(tlli_stdole2_loadtypelib_default_is_readonly_for_registered)
     REQUIRE(f);
     WCHAR p[MAX_PATH]; tl_sysfile(p, MAX_PATH, L"stdole2.tlb");
     ITypeLib *a = NULL, *b = NULL;
-    EXPECT_EQ(f(p, &a), S_OK);
-    EXPECT_EQ(tl_open_file(p, &b), S_OK);
+    TEQ(f(p, &a), S_OK);
+    TEQ(tl_open_file(p, &b), S_OK);
     REQUIRE(a && b);
-    EXPECT_EQ(ITypeLib_GetTypeInfoCount(a), ITypeLib_GetTypeInfoCount(b));
+    TEQ(ITypeLib_GetTypeInfoCount(a), ITypeLib_GetTypeInfoCount(b));
     TLIBATTR *x = NULL, *y = NULL;
     CHECK(SUCCEEDED(ITypeLib_GetLibAttr(a, &x)) && SUCCEEDED(ITypeLib_GetLibAttr(b, &y)));
     if (x && y) {
@@ -394,7 +392,7 @@ TEST(tlli_queryreg_stdole)
     REQUIRE(f);
     BSTR path = (BSTR)SENTINEL;
     HRESULT hr = f(&TL_LIBID_StdOle, 2, 0, 0, &path);
-    EXPECT_EQ(hr, S_OK);
+    TEQ(hr, S_OK);
     if (hr == S_OK) {
         CHECK(path != NULL && path != (BSTR)SENTINEL);
         if (path && path != (BSTR)SENTINEL) {
@@ -408,7 +406,7 @@ TEST(tlli_queryreg_stdole)
     }
     path = (BSTR)SENTINEL;
     hr = f(&TL_LIBID_StdOle, 0xffff, 0xffff, 0, &path);     /* "any version": highest registered */
-    EXPECT_EQ(hr, S_OK);
+    TEQ(hr, S_OK);
     if (hr == S_OK && path && path != (BSTR)SENTINEL) tl_freebstr(path);
     path = (BSTR)SENTINEL;
     hr = f(&TL_LIBID_StdOle, 2, 0, 0x409, &path);           /* neutral registration serves en-US */
@@ -421,7 +419,7 @@ TEST(tlli_queryreg_null_out)
     HRESULT (WINAPI *f)(const GUID *, USHORT, USHORT, LCID, LPBSTR) = UIN("oleaut32.dll", QueryPathOfRegTypeLib);
     REQUIRE(f);
     if (t_is_wine()) { t_skip("wine dereferences NULL"); return; }
-    EXPECT_EQ(f(&TL_LIBID_StdOle, 2, 0, 0, NULL), E_INVALIDARG);
+    TEQ(f(&TL_LIBID_StdOle, 2, 0, 0, NULL), E_INVALIDARG);
 }
 
 TEST(tlli_queryreg_unregistered)
@@ -429,10 +427,10 @@ TEST(tlli_queryreg_unregistered)
     HRESULT (WINAPI *f)(const GUID *, USHORT, USHORT, LCID, LPBSTR) = UIN("oleaut32.dll", QueryPathOfRegTypeLib);
     REQUIRE(f);
     BSTR path = (BSTR)SENTINEL;
-    EXPECT_EQ(f(&TL_GUID_NONE, 1, 0, 0, &path), TYPE_E_LIBNOTREGISTERED);
+    TEQ(f(&TL_GUID_NONE, 1, 0, 0, &path), TYPE_E_LIBNOTREGISTERED);
     WCHECK(path == NULL);                          /* decomp: *lpbstrPathName = 0 before the lookup */
     path = (BSTR)SENTINEL;
-    EXPECT_EQ(f(&TL_GUID_NONE, 0xffff, 0xffff, 0, &path), TYPE_E_LIBNOTREGISTERED);
+    TEQ(f(&TL_GUID_NONE, 0xffff, 0xffff, 0, &path), TYPE_E_LIBNOTREGISTERED);
     WCHECK(path == NULL);
 }
 
@@ -495,7 +493,7 @@ TEST(tlli_loadreg_unregistered)
     REQUIRE(f);
     ITypeLib *tl = SENTINEL;
     HRESULT hr = f(&TL_GUID_NONE, 1, 0, 0, &tl);
-    EXPECT_EQ(hr, TYPE_E_LIBNOTREGISTERED);
+    TEQ(hr, TYPE_E_LIBNOTREGISTERED);
     CHECK(tl == NULL);                            /* set to NULL up front by LoadRegTypeLib_WithSyskind */
 }
 
@@ -532,7 +530,7 @@ TEST(tlli_unregister_unregistered)
     HRESULT (WINAPI *f)(const GUID *, WORD, WORD, LCID, SYSKIND) = UIN("oleaut32.dll", UnRegisterTypeLib);
     REQUIRE(f);
     if (t_is_wine()) { t_skip("wine returns E_INVALIDARG"); return; }
-    EXPECT_EQ(f(&TL_GUID_NONE, 1, 0, 0, SYS_WIN64), TYPE_E_REGISTRYACCESS);
-    EXPECT_EQ(f(&TL_GUID_NONE, 1, 0, 0, SYS_WIN32), TYPE_E_REGISTRYACCESS);
-    EXPECT_EQ(f(&TL_GUID_NONE, 7, 3, 0x409, SYS_WIN64), TYPE_E_REGISTRYACCESS);
+    TEQ(f(&TL_GUID_NONE, 1, 0, 0, SYS_WIN64), TYPE_E_REGISTRYACCESS);
+    TEQ(f(&TL_GUID_NONE, 1, 0, 0, SYS_WIN32), TYPE_E_REGISTRYACCESS);
+    TEQ(f(&TL_GUID_NONE, 7, 3, 0x409, SYS_WIN64), TYPE_E_REGISTRYACCESS);
 }

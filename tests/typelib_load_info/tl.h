@@ -87,5 +87,18 @@ static inline ITypeInfo *tl_get_named(ITypeLib *tl, const WCHAR *name)
     return ti;
 }
 
+/* single-evaluation equality check (t.h EXPECT_EQ evaluates its arguments twice) */
+#define TEQ(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
+    t_check(a_ == b_, __FILE__, __LINE__, #a " == " #b, "got 0x%llx want 0x%llx", (unsigned long long)a_, (unsigned long long)b_); } while (0)
+#define WCHECK(c) do { if (!t_is_wine()) CHECK(c); } while (0)
+
+static inline void tl_vclear(VARIANT *v)
+{
+    HRESULT (WINAPI *p)(VARIANTARG *) = (void *)t_proc_in("oleaut32.dll", "VariantClear");
+    if (p) p(v);
+}
+#define VariantInit(v) memset((v), 0, sizeof(VARIANT))
+#define VariantClear(v) tl_vclear(v)
+
 #define TL_REQUIRE_STDOLE(tl) do { (tl) = tl_open_stdole(); if (!(tl)) { t_skip("stdole2.tlb cannot be loaded here"); return; } } while (0)
 #endif
