@@ -161,6 +161,7 @@ static HRESULT WINAPI ch_sendreceive(IRpcChannelBuffer *p, RPCOLEMESSAGE *m, ULO
     c->n_sendrecv++;
     c->req_len = m->cbBuffer;
     memcpy(c->req, m->Buffer, m->cbBuffer < PSD_LOG ? m->cbBuffer : PSD_LOG);
+    if (status) *status = c->status;
     if (FAILED(c->hr_sendrecv)) return c->hr_sendrecv;
     if (!c->stub) return E_UNEXPECTED;
     RPCOLEMESSAGE sm = *m;
@@ -368,4 +369,9 @@ int psd_catch(psd_fn fn, void *arg, DWORD *code) {
     }
     if (code) *code = g_got;
     return 1;
+}
+
+void psd_invoke_thunk(void *a) {
+    void **v = a;
+    ((IRpcStubBuffer *)v[0])->lpVtbl->Invoke((IRpcStubBuffer *)v[0], (RPCOLEMESSAGE *)v[1], (IRpcChannelBuffer *)v[2]);
 }

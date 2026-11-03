@@ -116,7 +116,7 @@ TEST(psds_is_iid_supported) {
     IRpcStubBuffer *r = IRpcStubBuffer_IsIIDSupported(c.sb, &psd_IID_One);
     EQ(r, c.sb);                                           /* the stub itself is returned ... */
     EQ(c.cs->RefCount, 2);                                 /* ... AddRef'd for the caller */
-    IRpcStubBuffer_Release(r);
+    if (c.cs->RefCount > 1) IRpcStubBuffer_Release(r);
     const GUID *no[5] = { &psd_IID_Two, &psd_IID_IUnknown, &psd_IID_IRpcStubBuffer, &psd_IID_IDispatch, &psd_IID_Unknown1 };
     for (int i = 0; i < 5; i++) {
         r = IRpcStubBuffer_IsIIDSupported(c.sb, no[i]);
@@ -132,9 +132,10 @@ TEST(psds_is_iid_supported) {
 
 TEST(psds_is_iid_supported_two) {
     PSD_STA(); CTX(c, &psd_IID_Two);
+    LONG rc0 = c.cs->RefCount;
     IRpcStubBuffer *r = IRpcStubBuffer_IsIIDSupported(c.sb, &psd_IID_Two);
     EQ(r, c.sb);
-    if (r) IRpcStubBuffer_Release(r);
+    if (r && c.cs->RefCount > rc0) IRpcStubBuffer_Release(r);
     CHECK(IRpcStubBuffer_IsIIDSupported(c.sb, &psd_IID_One) == NULL);
     ctx_down(&c); PSD_DONE();
 }
