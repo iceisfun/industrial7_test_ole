@@ -24,7 +24,7 @@ extern const GUID psd_IID_IUnknown, psd_IID_IClassFactory, psd_IID_IPSFactoryBuf
     psd_IID_IRpcStubBuffer, psd_IID_IRpcChannelBuffer, psd_IID_IDispatch, psd_IID_ITypeInfo, psd_IID_ICallFactory,
     psd_IID_IMarshal, psd_IID_IStream, psd_IID_IReleaseMarshalBuffers, psd_IID_IRpcChannelBuffer2,
     psd_IID_IRpcChannelBuffer3, psd_IID_IMultiQI, psd_IID_IClientSecurity, psd_IID_IStdIdentity;
-extern const GUID psd_IID_One, psd_IID_Two, psd_CLSID_PSF, psd_IID_Unknown1, psd_CLSID_Bogus;
+extern const GUID psd_IID_One, psd_IID_Two, psd_CLSID_PSF, psd_IID_Unknown1, psd_IID_Unknown2, psd_CLSID_Bogus;
 
 /* ---- the two test interfaces (C vtables) ----------------------------------------- */
 typedef struct IOletOne IOletOne;
@@ -71,6 +71,8 @@ typedef struct PsdMock {
     int qi_self;              /* success: *ppv = this (AddRef'd); otherwise *ppv = qi_out untouched/no AddRef */
     void *qi_out;
     GUID last_iid;
+    int only;                 /* when set, QueryInterface answers only IUnknown and only_iid */
+    GUID only_iid;
 } PsdMock;
 PsdMock *psd_mock_new(void);                      /* ref 1, QI succeeds with itself */
 void psd_mock_free(PsdMock *m);
