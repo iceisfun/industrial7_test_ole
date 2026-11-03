@@ -56,6 +56,9 @@ CXG(CX_EXTENT_OLET, 0x6f1a0c02, 0x3e5b, 0x4d27, 0x9a,0x10,0x4c,0x77,0x0b,0x2e,0x
 
 #define UU(name) UIN("user32.dll", name)
 static const GUID CX_GUID_NULL = { 0, 0, 0, { 0, 0, 0, 0, 0, 0, 0, 0 } };
+UDECL(HRESULT, CoCreateObjectInContext, (IUnknown *punk, IUnknown *ctx, REFIID riid, void **ppv));
+UDECL(HRESULT, CoPushServiceDomain, (IUnknown *ctx));
+UDECL(HRESULT, CoPopServiceDomain, (IUnknown **ctx));
 #define CXM_NONE  0xFFFFFFFFu   /* thread does not call CoInitializeEx */
 #define CXM_STA   COINIT_APARTMENTTHREADED
 #define CXM_MTA   COINIT_MULTITHREADED
@@ -146,6 +149,8 @@ typedef struct CxPark {
     int type, qual;
     ULONG_PTR token;
     GUID lid;
+    void *cb, *info, *objctx;   /* AddRef'd IContextCallback / IComThreadingInfo / IObjContext of the thread's context */
+    HRESULT cb_hr, info_hr, obj_hr;
 } CxPark;
 int  cx_park_start(CxPark *p, DWORD model);   /* returns 1 when the thread is up and COM init succeeded (or CXM_NONE) */
 void cx_park_stop(CxPark *p);

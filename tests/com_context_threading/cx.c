@@ -236,10 +236,17 @@ static DWORD WINAPI park_thread(LPVOID q)
         p->apt_hr = U(CoGetApartmentType)(&t, &ql); p->type = t; p->qual = ql;
         p->token = 0; p->tok_hr = U(CoGetContextToken)(&p->token);
         memset(&p->lid, 0, sizeof p->lid); p->lid_hr = U(CoGetCurrentLogicalThreadId)(&p->lid);
+        p->cb_hr = U(CoGetObjectContext)(&CX_IID_IContextCallback, &p->cb);
+        p->info_hr = U(CoGetObjectContext)(&CX_IID_IComThreadingInfo, &p->info);
+        p->obj_hr = U(CoGetObjectContext)(&CX_IID_IObjContext, &p->objctx);
     }
     SetEvent(p->ready);
     if (!CX_FAILED(p->init_hr)) {
         if (p->model == CXM_STA) cx_pump_until(p->stop, 60000); else WaitForSingleObject(p->stop, 60000);
+        if (p->cb) IUnknown_Release((IUnknown *)p->cb);
+        if (p->info) IUnknown_Release((IUnknown *)p->info);
+        if (p->objctx) IUnknown_Release((IUnknown *)p->objctx);
+        p->cb = p->info = p->objctx = NULL;
         if (p->model != CXM_NONE) cx_uninit();
     }
     return 0;
