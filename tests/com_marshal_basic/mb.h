@@ -100,6 +100,7 @@ ULONGLONG mb_size(IStream *s);
 BYTE *mb_dump(IStream *s, ULONG *len);                     /* malloc'd copy of stream contents (caller free) */
 
 /* ---- OBJREF parsing from raw bytes ---------------------------------------------- */
+static const GUID MB_ZERO = {0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0}};
 #define MB_OBJREF_SIG 0x574f454d
 typedef struct MBObjRef {
     ULONG signature, flags;
