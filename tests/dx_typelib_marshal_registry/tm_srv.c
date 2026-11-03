@@ -78,17 +78,17 @@ static ULONG TM_CALL c_release(IOletCustom *i)
     return r;
 }
 static HRESULT TM_CALL c_AddLong(IOletCustom *i, LONG a, LONG b, LONG *r) { note_call(); *r = a + b; return S_OK; }
-static HRESULT TM_CALL c_ScalarsIn(IOletCustom *i, BYTE b, SHORT s, LONG l, LONGLONG h, FLOAT f, DOUBLE d, VARIANT_BOOL vb, CY cy, DATE dt)
+static HRESULT TM_CALL c_ScalarsIn(IOletCustom *i, BYTE b, SHORT s, LONG l, LONGLONG h, FLOAT f, DOUBLE d, VARIANT_BOOL vb, DATE dt)
 {
     note_call();
-    g_last.b = b; g_last.s = s; g_last.l = l; g_last.h = h; g_last.f = f; g_last.d = d; g_last.vb = vb; g_last.cy = cy; g_last.dt = dt;
+    g_last.b = b; g_last.s = s; g_last.l = l; g_last.h = h; g_last.f = f; g_last.d = d; g_last.vb = vb; g_last.dt = dt;
     return S_OK;
 }
-static HRESULT TM_CALL c_ScalarsOut(IOletCustom *i, BYTE *b, SHORT *s, LONG *l, LONGLONG *h, FLOAT *f, DOUBLE *d, VARIANT_BOOL *vb, CY *cy, DATE *dt)
+static HRESULT TM_CALL c_ScalarsOut(IOletCustom *i, BYTE *b, SHORT *s, LONG *l, LONGLONG *h, FLOAT *f, DOUBLE *d, VARIANT_BOOL *vb, DATE *dt)
 {
     note_call();
     *b = 0xAB; *s = -1234; *l = 0x12345678; *h = 0x1122334455667788LL; *f = 1.5f; *d = -2.25; *vb = VARIANT_TRUE;
-    cy->int64 = 123456789; *dt = 36526.5;
+    *dt = 36526.5;
     return S_OK;
 }
 static HRESULT TM_CALL c_EchoBstr(IOletCustom *i, BSTR in, BSTR *out)
@@ -240,10 +240,11 @@ static HRESULT TM_CALL c_LongPtrs(IOletCustom *i, LONG *in, LONG *out, LONG *ino
     *out = *in + 1; *inout += 100; *in = 999;
     return S_OK;
 }
+static HRESULT TM_CALL c_CurrencyEcho(IOletCustom *i, CY c, CY *r) { note_call(); g_last.cy = c; r->int64 = c.int64 + 10000; return S_OK; }
 static const struct IOletCustomVtbl custom_vtbl = {
     c_qi, c_addref, c_release, c_AddLong, c_ScalarsIn, c_ScalarsOut, c_EchoBstr, c_BstrOut, c_BstrInOut, c_EchoVariant,
     c_VariantInOut, c_SumArray, c_MakeArray, c_EchoBstrArray, c_GetSink, c_PutSink, c_EchoUnk, c_EchoPoint, c_SwapPoint,
-    c_EchoMix, c_EchoColor, c_ReturnHr, c_FailWithOut, c_RaiseError, c_Callback, c_ApartmentInfo, c_LongPtrs };
+    c_EchoMix, c_EchoColor, c_ReturnHr, c_FailWithOut, c_RaiseError, c_Callback, c_ApartmentInfo, c_LongPtrs, c_CurrencyEcho };
 
 static HRESULT TM_CALL sei_qi(ISupportErrorInfo *i, REFIID riid, void **pp)
 {

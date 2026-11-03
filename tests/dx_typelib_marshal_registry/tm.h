@@ -84,8 +84,8 @@ struct IOletCustomVtbl {
     ULONG (TM_CALL *AddRef)(IOletCustom *);
     ULONG (TM_CALL *Release)(IOletCustom *);
     HRESULT (TM_CALL *AddLong)(IOletCustom *, LONG a, LONG b, LONG *r);
-    HRESULT (TM_CALL *ScalarsIn)(IOletCustom *, BYTE b, SHORT s, LONG l, LONGLONG h, FLOAT f, DOUBLE d, VARIANT_BOOL vb, CY cy, DATE dt);
-    HRESULT (TM_CALL *ScalarsOut)(IOletCustom *, BYTE *b, SHORT *s, LONG *l, LONGLONG *h, FLOAT *f, DOUBLE *d, VARIANT_BOOL *vb, CY *cy, DATE *dt);
+    HRESULT (TM_CALL *ScalarsIn)(IOletCustom *, BYTE b, SHORT s, LONG l, LONGLONG h, FLOAT f, DOUBLE d, VARIANT_BOOL vb, DATE dt);
+    HRESULT (TM_CALL *ScalarsOut)(IOletCustom *, BYTE *b, SHORT *s, LONG *l, LONGLONG *h, FLOAT *f, DOUBLE *d, VARIANT_BOOL *vb, DATE *dt);
     HRESULT (TM_CALL *EchoBstr)(IOletCustom *, BSTR in, BSTR *out);
     HRESULT (TM_CALL *BstrOut)(IOletCustom *, BSTR *out);
     HRESULT (TM_CALL *BstrInOut)(IOletCustom *, BSTR *io);
@@ -107,12 +107,13 @@ struct IOletCustomVtbl {
     HRESULT (TM_CALL *Callback)(IOletCustom *, IOletSink *sink, LONG n, LONG *total);
     HRESULT (TM_CALL *ApartmentInfo)(IOletCustom *, LONG *tid, LONG *pid, LONG *apttype);
     HRESULT (TM_CALL *LongPtrs)(IOletCustom *, LONG *in, LONG *out, LONG *inout);
+    HRESULT (TM_CALL *CurrencyEcho)(IOletCustom *, CY c, CY *r);
 };
 struct IOletCustom { const struct IOletCustomVtbl *lpVtbl; };
 enum { OC_FIRST = 3, OC_AddLong = 3, OC_ScalarsIn, OC_ScalarsOut, OC_EchoBstr, OC_BstrOut, OC_BstrInOut, OC_EchoVariant,
        OC_VariantInOut, OC_SumArray, OC_MakeArray, OC_EchoBstrArray, OC_GetSink, OC_PutSink, OC_EchoUnk, OC_EchoPoint,
        OC_SwapPoint, OC_EchoMix, OC_EchoColor, OC_ReturnHr, OC_FailWithOut, OC_RaiseError, OC_Callback, OC_ApartmentInfo,
-       OC_LongPtrs, OC_COUNT };
+       OC_LongPtrs, OC_CurrencyEcho, OC_COUNT };
 
 typedef struct IOletDual IOletDual;
 struct IOletDualVtbl {
@@ -248,6 +249,7 @@ BOOL tm_is_proxy_call(IOletCustom *c);  /* ApartmentInfo reports a different thr
 #define SafeArrayGetVartype(...) (U(SafeArrayGetVartype)(__VA_ARGS__))
 #define SafeArrayCreate(...) (U(SafeArrayCreate)(__VA_ARGS__))
 #define VariantChangeType(...) (U(VariantChangeType)(__VA_ARGS__))
+#define SysStringByteLen(...) (U(SysStringByteLen)(__VA_ARGS__))
 #define SysAllocStringByteLen(...) (U(SysAllocStringByteLen)(__VA_ARGS__))
 
 /* misc */

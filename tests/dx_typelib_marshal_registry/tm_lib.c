@@ -160,8 +160,8 @@ static const FN fn_sink[] = {
 };
 static const FN fn_custom[] = {
     { "AddLong", 1, INVOKE_FUNC, 0, "a:in:i4 b:in:i4 r:out,ret:i4*" },
-    { "ScalarsIn", 2, INVOKE_FUNC, 0, "b:in:ui1 s:in:i2 l:in:i4 h:in:i8 f:in:r4 d:in:r8 vb:in:bool cy:in:cy dt:in:date" },
-    { "ScalarsOut", 3, INVOKE_FUNC, 0, "b:out:ui1* s:out:i2* l:out:i4* h:out:i8* f:out:r4* d:out:r8* vb:out:bool* cy:out:cy* dt:out:date*" },
+    { "ScalarsIn", 2, INVOKE_FUNC, 0, "b:in:ui1 s:in:i2 l:in:i4 h:in:i8 f:in:r4 d:in:r8 vb:in:bool dt:in:date" },
+    { "ScalarsOut", 3, INVOKE_FUNC, 0, "b:out:ui1* s:out:i2* l:out:i4* h:out:i8* f:out:r4* d:out:r8* vb:out:bool* dt:out:date*" },
     { "EchoBstr", 4, INVOKE_FUNC, 0, "s:in:bstr r:out,ret:bstr*" },
     { "BstrOut", 5, INVOKE_FUNC, 0, "s:out:bstr*" },
     { "BstrInOut", 6, INVOKE_FUNC, 0, "s:in,out:bstr*" },
@@ -183,6 +183,7 @@ static const FN fn_custom[] = {
     { "Callback", 22, INVOKE_FUNC, 0, "sink:in:ref.IOletSink* n:in:i4 total:out,ret:i4*" },
     { "ApartmentInfo", 23, INVOKE_FUNC, 0, "tid:out:i4* pid:out:i4* apt:out:i4*" },
     { "LongPtrs", 24, INVOKE_FUNC, 0, "in:in:i4* out:out:i4* inout:in,out:i4*" },
+    { "CurrencyEcho", 25, INVOKE_FUNC, 0, "c:in:cy r:out,ret:cy*" },
 };
 static const FN fn_dual[] = {
     { "Add", 1, INVOKE_FUNC, 0, "a:in:i4 b:in:i4 r:out,ret:i4*" },

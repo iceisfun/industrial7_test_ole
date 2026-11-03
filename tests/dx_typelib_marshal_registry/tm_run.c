@@ -95,3 +95,10 @@ BOOL tm_is_proxy_call(IOletCustom *c)
     HRESULT hr = c->lpVtbl->ApartmentInfo(c, &tid, &pid, &apt);
     return SUCCEEDED(hr) && (DWORD)tid != GetCurrentThreadId();
 }
+
+void tm_leakcheck(void)
+{
+    int i;
+    for (i = 0; i < 100 && tm_live_objects() != 0; i++) Sleep(20);
+    CHECKF(tm_live_objects() == 0, "server objects still alive after the run: %ld", (long)tm_live_objects());
+}
