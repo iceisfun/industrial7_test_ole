@@ -295,6 +295,20 @@ RPC_STATUS rx_serve(RPC_IF_HANDLE ifs, const WCHAR *ep, UUID *mgrtype, void *mgr
     return rx_serve_ex(ifs, ep, mgrtype, mgrepv, 0, RPC_C_LISTEN_MAX_CALLS_DEFAULT, NULL);
 }
 
+int rx_fx_up(rx_fx *f) {
+    memset(f, 0, sizeof *f);
+    rx_ep(f->ep, 64);
+    if (rx_serve(rx_xif_s_ifspec, f->ep, NULL, NULL) != RPC_S_OK) return 0;
+    f->h = rx_bind(f->ep);
+    return f->h != NULL;
+}
+void rx_fx_down(rx_fx *f) { rx_unbind(f->h); f->h = NULL; rx_server_down(rx_xif_s_ifspec, NULL); }
+DWORD rx_add(RPC_BINDING_HANDLE h, int a, int b, int *r) {
+    LONG_PTR v = 0; DWORD e = rx_ndr_h(h, RX_ADD, (ULONG_PTR)(LONG_PTR)a, (ULONG_PTR)(LONG_PTR)b, 0, 0, &v);
+    if (r) *r = (int)v;
+    return e;
+}
+
 /* ------------------------------------------------------------------ child-process server */
 HANDLE rx_spawn_server(const WCHAR *ep, const char *mode, PROCESS_INFORMATION *pi) {
     char args[256], epa[128];

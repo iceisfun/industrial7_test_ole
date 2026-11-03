@@ -106,6 +106,13 @@ void rx_server_down(RPC_IF_HANDLE ifs, UUID *mgrtype);  /* stop, wait, unregiste
 void rx_server_reset(void);                             /* stop listening if a previous test left it on */
 int rx_listening(void);                                 /* RpcMgmtIsServerListening(NULL)==OK */
 
+/* one-call fixture: fresh endpoint, xif registered and listening, client binding */
+typedef struct { WCHAR ep[64]; RPC_BINDING_HANDLE h; } rx_fx;
+int rx_fx_up(rx_fx *f);                         /* 1 on success */
+void rx_fx_down(rx_fx *f);
+/* shorthand for NDR client calls with the fixture binding */
+DWORD rx_add(RPC_BINDING_HANDLE h, int a, int b, int *r);
+
 /* run fn on a thread and wait <= ms; returns TRUE if it finished */
 HANDLE rx_thread(LPTHREAD_START_ROUTINE fn, void *arg);
 BOOL rx_join(HANDLE th, DWORD ms);
