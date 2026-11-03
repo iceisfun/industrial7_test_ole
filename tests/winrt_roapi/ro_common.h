@@ -10,6 +10,7 @@
 
 #define RO_GUID(n, a,b,c,d0,d1,d2,d3,d4,d5,d6,d7) \
     static const GUID n = { a, b, c, { d0,d1,d2,d3,d4,d5,d6,d7 } }
+RO_GUID(RIID_NULLG, 0,0,0,0,0,0,0,0,0,0,0);
 RO_GUID(RIID_IUnknown,           0x00000000,0x0000,0x0000,0xC0,0,0,0,0,0,0,0x46);
 RO_GUID(RIID_IInspectable,       0xAF86E2E0,0xB12D,0x4C6A,0x9C,0x5A,0xD7,0xAA,0x65,0x10,0x1E,0x90);
 RO_GUID(RIID_IActivationFactory, 0x00000035,0x0000,0x0000,0xC0,0,0,0,0,0,0,0x46);
