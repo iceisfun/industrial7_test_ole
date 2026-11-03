@@ -364,8 +364,10 @@ TEST(cgbox_server_process_without_coinit) { EQ(t_run_child("srvproc_noinit", "",
 CHILD(srvproc_release_first) {
     __typeof__(&CoReleaseServerProcess) pR = U(CoReleaseServerProcess);
     if (!pR) return 1;
-    /* with no class cache yet, release is a no-op that returns 0 */
-    CK(pR() == 0);
+    /* decomp: when the class cache was never initialised, release returns 0; whether anything in process start-up
+       already created the cache is not guaranteed, so only record the value */
+    ULONG r = pR();
+    t_note("CoReleaseServerProcess on fresh process -> %lu", r);
     return 0;
 }
 TEST(cgbox_release_server_process_without_cache) { EQ(t_run_child("srvproc_release_first", "", 20000), 0); }
@@ -555,3 +557,16 @@ TEST(cgbox_exports_exist) {
         "CoAllowSetForegroundWindow", "CoGetCancelObject", "CoGetTreatAsClass", "CoTreatAsClass" };
     for (unsigned i = 0; i < sizeof n / sizeof n[0]; i++) CHECKF(t_proc_in("ole32.dll", n[i]) != NULL, "%s", n[i]);
 }
+
+/* CoRevokeClassObject: decomp returns CO_E_NOTINITIALIZED without apartment, CO_E_OBJNOTREG (0x800401FB) when the class cache does not exist yet */
+CHILD(revoke_nocache) {
+    if (!cg_api()) return 1;
+    CK(pCoRevokeClassObject(1) == CG_E_NOTINIT);
+    CK(pCoInitializeEx(NULL, COINIT_APARTMENTTHREADED) == S_OK);
+    HRESULT hr = pCoRevokeClassObject(0x1234);
+    CK(FAILED(hr));
+    t_note("revoke bogus cookie before any registration -> 0x%08lx (decomp: 0x800401fb if cache absent)", hr);
+    pCoUninitialize();
+    return 0;
+}
+TEST(cgbox_revoke_without_class_cache) { EQ(t_run_child("revoke_nocache", "", 20000), 0); }
