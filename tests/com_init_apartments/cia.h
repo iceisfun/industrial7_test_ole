@@ -37,6 +37,7 @@
 #define CIA_COINIT_NOOLE1DDE 0x4
 #define CIA_COINIT_SPEED 0x8
 
+static const GUID CIA_GUID_NULL = {0,0,0,{0,0,0,0,0,0,0,0}};
 static const GUID CIA_IID_IUnknown        = {0x00000000,0,0,{0xC0,0,0,0,0,0,0,0x46}};
 static const GUID CIA_IID_IInitializeSpy  = {0x00000034,0,0,{0xC0,0,0,0,0,0,0,0x46}};
 static const GUID CIA_IID_IObjContext     = {0x000001c6,0,0,{0xC0,0,0,0,0,0,0,0x46}};
