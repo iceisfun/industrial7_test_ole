@@ -146,3 +146,19 @@ TEST(psdx_parallel_rigs) {
     for (int i = 0; i < N; i++) { CloseHandle(th[i]); CHECKF(par[i].did_run && par[i].bad == 0, "thread %d did_run=%d bad=%ld", i, par[i].did_run, par[i].bad); }
     EQ(psd_psf.RefCount, 0);                                 /* all stubs/proxies/factory references returned */
 }
+
+/* NdrExtpProxyInitialize (combase decomp) masks ProcNum with 0xffff7fff after NdrClientInitializeNew */
+TEST(psdx_proxy_initialize_clears_valid_bit) {
+    PSD_STA(); RIGC(r, &psd_IID_One);
+    static const unsigned t[] = { 0x8003, 0x8000, 0xffff, 0x8020 };
+    for (unsigned i = 0; i < sizeof t / sizeof *t; i++) {
+        RPC_MESSAGE msg; MIDL_STUB_MESSAGE sm;
+        memset(&msg, 0, sizeof msg); memset(&sm, 0, sizeof sm);
+        UIN("rpcrt4.dll", NdrProxyInitialize)(r.iface, &msg, &sm, &psd_stub_desc, t[i]);
+        unsigned want = t[i] & 0x7fff;
+        if (t_is_wine() && msg.ProcNum != want) t_note("wine keeps bit 0x8000 for 0x%x", t[i]);
+        else CHECKF(msg.ProcNum == want, "ProcNum in 0x%x -> 0x%lx, want 0x%x", t[i], (ULONG)msg.ProcNum, want);
+        UIN("rpcrt4.dll", NdrProxyFreeBuffer)(r.iface, &sm);
+    }
+    psd_rig_down(&r); PSD_DONE();
+}
