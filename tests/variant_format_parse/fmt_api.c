@@ -120,8 +120,8 @@ TEST(vfp_formatnumber_byref_without_base_type)
     BSTR str = NULL;
     REQUIRE(U(VarFormatNumber)); REQUIRE(U(VarFormatCurrency));
     VariantInit(&v); V_VT(&v) = VT_BYREF;
-    EXPECT_EQ(U(VarFormatNumber)(&v, 2, 0, 0, 0, 0, &str), 0x80020008);
-    EXPECT_EQ(U(VarFormatCurrency)(&v, 2, 0, 0, 0, 0, &str), 0x80020008);
+    EXPECT_EQ(U(VarFormatNumber)(&v, 2, 0, 0, 0, 0, &str), ((HRESULT)0x80020008));
+    EXPECT_EQ(U(VarFormatCurrency)(&v, 2, 0, 0, 0, 0, &str), ((HRESULT)0x80020008));
     CHECK(str == NULL);
 }
 TEST(vfp_formatnumber_text_is_type_mismatch)
