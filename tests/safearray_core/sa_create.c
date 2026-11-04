@@ -541,7 +541,15 @@ TEST(sa_create_default_iid)
     pu = pCreateEx(VT_UNKNOWN, 1, &b, NULL); pd = pCreateVectorEx(VT_DISPATCH, 0, 2, NULL);
     CHECK(pu && pd);
     if (pu) { EQHR(pGetIID(pu, &g), S_OK); CHECK(IsEqualGUID(&g, &SA_IID_IUnknown)); pDestroy(pu); }
-    if (pd) { EQHR(pGetIID(pd, &g), S_OK); CHECK(IsEqualGUID(&g, &SA_IID_IDispatch)); pDestroy(pd); }
+    /* Windows: the vector variant does not install a default IID for a NULL pvExtra;
+       FADF_HAVEIID is set and the stored IID stays GUID_NULL. */
+    if (pd) {
+        EQ(pd->fFeatures & FADF_HAVEIID, FADF_HAVEIID);
+        EQHR(pGetIID(pd, &g), S_OK);
+        GUID zero; memset(&zero, 0, sizeof zero);
+        CHECK(IsEqualGUID(&g, &zero));
+        pDestroy(pd);
+    }
 }
 
 TEST(sa_create_ex_custom_iid)
