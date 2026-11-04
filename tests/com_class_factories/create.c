@@ -525,12 +525,10 @@ TEST(cgstg_unregistered_override) {
 TEST(cgstg_null_storage) {
     STA();
     CoGetInstanceFromIStorage_pfn p = UN(CoGetInstanceFromIStorage); REQUIRE(p);
-    CGFactory f; DWORD cookie; REG(f, cg_TC0, CLSCTX_INPROC_SERVER);
-    MULTI_QI q = { &cg_IID_IUnknown, NULL, E_NOTIMPL };
-    HRESULT hr = p(NULL, (CLSID *)&cg_TC0, NULL, CLSCTX_INPROC_SERVER, NULL, 1, &q);
-    t_note("CoGetInstanceFromIStorage(pstg=NULL) -> 0x%08lx (q.hr 0x%08lx, creates=%ld)", hr, q.hr, f.creates);
-    if (SUCCEEDED(hr)) cg_release(q.pItf);
-    UNREG(); UNINIT();
+    /* Win10 22H2: CoGetInstanceFromIStorage(pstg=NULL) dereferences the NULL storage and faults with an access
+     * violation (no E_INVALIDARG validation); the call is therefore not made. */
+    t_note("CoGetInstanceFromIStorage(pstg=NULL) faults with an access violation on Win10 22H2; not called");
+    UNINIT();
 }
 TEST(cgstg_storage_without_class) {
     STA();
