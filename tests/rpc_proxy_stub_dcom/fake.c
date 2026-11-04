@@ -234,7 +234,7 @@ TEST(psda_async_invoke_validation) {
 TEST(psda_dcom_async_helpers_resolve) {
     HMODULE r = t_module("rpcrt4.dll");
     static const char *const n[] = { "NdrDcomAsyncClientCall", "NdrDcomAsyncStubCall", "NdrAsyncClientCall", "NdrAsyncServerCall",
-        "NdrpCreateProxy", "NdrpCreateStub", "NdrStubInitializePartial", "NdrServerInitializePartial" };
+        "NdrpCreateProxy", "NdrpCreateStub", "NdrServerInitializePartial" };   /* NdrStubInitializePartial is not an rpcrt4 export on Win10 */
     for (unsigned i = 0; i < sizeof n / sizeof *n; i++) {
         FARPROC p = GetProcAddress(r, n[i]);
         if (t_is_wine() && !p) { t_note("wine lacks rpcrt4!%s", n[i]); continue; }

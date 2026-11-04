@@ -258,7 +258,9 @@ TEST(psdn_proxy_call_maps_errors) {
         { S_OK, (HRESULT)0x80010104, 0x6ba, (HRESULT)0x800706ba },
         { S_OK, (HRESULT)0x80010104, 0x80040155, (HRESULT)0x80040155 },    /* an HRESULT status is passed on unchanged */
     };
+    int nfail_sr = 0;
     for (unsigned i = 0; i < sizeof t / sizeof *t; i++) {
+        if (t[i].hr_getbuf == S_OK && FAILED(t[i].hr_sr)) nfail_sr++;
         r.chan->hr_getbuf = t[i].hr_getbuf; r.chan->hr_sendrecv = t[i].hr_sr; r.chan->status = t[i].status;
         out = 1234;
         HRESULT hr = p->lpVtbl->Add(p, 1, 2, &out);
@@ -268,7 +270,10 @@ TEST(psdn_proxy_call_maps_errors) {
     EQ(r.srv->n_add, 0);                                     /* the server never ran */
     EQHR(p->lpVtbl->Add(p, 1, 2, &out), S_OK);
     EQ(out, 3);
-    EQ(r.chan->live_buffers, 0);                             /* failed calls leaked no channel buffer */
+    /* Win10: a failed GetBuffer allocates nothing, but after a failed SendReceive the proxy does not call FreeBuffer
+     * (one buffer per such call stays with the channel); a real channel frees it itself */
+    EQ(r.chan->live_buffers, nfail_sr);
+    EQ(r.chan->n_freebuf, 1);                                /* only the final successful call frees its buffer */
     psd_rig_down(&r); PSD_DONE();
 }
 

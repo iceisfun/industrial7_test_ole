@@ -37,7 +37,8 @@ static int ti_build(TiCtx *c, int kind, int oleautomation) {
     GUID iunk = {0,0,0,{0xC0,0,0,0,0,0,0,0x46}};
     if (ITypeLib_GetTypeInfoOfGuid(so, &iunk, &unk) != S_OK) { ITypeLib_Release(so); return 0; }
     ICreateTypeLib2 *ctl = NULL;
-    if (p_CreateTypeLib2(SYS_WIN64, path, &ctl) != S_OK) { ITypeInfo_Release(unk); ITypeLib_Release(so); return 0; }
+    HRESULT hr0 = p_CreateTypeLib2(SYS_WIN64, path, &ctl);
+    if (hr0 != S_OK) { t_note("CreateTypeLib2 hr=0x%lx", hr0); ITypeInfo_Release(unk); ITypeLib_Release(so); return 0; }
     ICreateTypeInfo *cti = NULL;
     HRESULT hr = ICreateTypeLib2_CreateTypeInfo(ctl, kind == 1 ? L"IPsdOne" : L"IPsdTwo", TKIND_INTERFACE, &cti);
     int ok = hr == S_OK;
@@ -71,7 +72,8 @@ static int ti_build(TiCtx *c, int kind, int oleautomation) {
         ok = ok && ICreateTypeInfo_LayOut(cti) == S_OK;
         ICreateTypeInfo_Release(cti);
     }
-    if (ok) ok = ICreateTypeLib2_SaveAllChanges(ctl) == S_OK;
+    if (!ok) t_note("typeinfo build step failed, hr=0x%lx", hr);
+    if (ok) { hr = ICreateTypeLib2_SaveAllChanges(ctl); ok = hr == S_OK; if (!ok) t_note("SaveAllChanges hr=0x%lx", hr); }
     ICreateTypeLib2_Release(ctl);
     ITypeInfo_Release(unk); ITypeLib_Release(so);
     if (!ok) return 0;
