@@ -67,16 +67,16 @@ TEST(gap0_audit_free_is_credfree) {
 
 TEST(gap0_audit_free_null_and_heap) {
     NEED(AuditFree);
-    EXPECT_EQ(pAuditFree(NULL), NULL);
+    { HLOCAL r0 = pAuditFree(NULL); EXPECT_EQ(r0, NULL); }
     for (int sz = 1; sz <= 4096; sz *= 4) {
         void *p = LocalAlloc(LPTR, sz);
         CHECK(p != NULL);
-        if (p) EXPECT_EQ(pAuditFree(p), NULL);   /* LocalFree success returns NULL */
+        if (p) { HLOCAL r1 = pAuditFree(p); EXPECT_EQ(r1, NULL); }   /* LocalFree success returns NULL */
     }
     /* LocalAlloc(LMEM_MOVEABLE) handle freed through AuditFree too (it is LocalFree) */
     HLOCAL h = LocalAlloc(LMEM_MOVEABLE, 32);
     CHECK(h != NULL);
-    if (h) EXPECT_EQ(pAuditFree(h), NULL);
+    if (h) { HLOCAL r2 = pAuditFree(h); EXPECT_EQ(r2, NULL); }
 }
 
 /* ---- parameter validation: every case is rejected before RPC with ERROR_INVALID_PARAMETER ---- */
@@ -137,18 +137,27 @@ TEST(gap0_audit_global_sacl_null_name) {
 
 TEST(gap0_audit_set_security_bad_descriptor) {
     NEED(AuditSetSecurity);
+    /* Windows 10: a token without SeSecurityPrivilege (restricted-admin std mode) is refused with
+       ERROR_PRIVILEGE_NOT_HELD before the descriptor is looked at; with it the descriptor checks give 87. */
+    int haspriv = g_enable_priv("SeSecurityPrivilege") ? 1 : 0;
+    DWORD want = haspriv ? ERROR_INVALID_PARAMETER : ERROR_PRIVILEGE_NOT_HELD;
+    if (!haspriv) t_note("no SeSecurityPrivilege on this token: expecting ERROR_PRIVILEGE_NOT_HELD");
     SECURITY_DESCRIPTOR sd;
     CHECK(InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION));
     /* unknown revision: RtlMakeSelfRelativeSD fails with something other than STATUS_BUFFER_TOO_SMALL -> 87 */
     ((BYTE *)&sd)[0] = 7;
-    SET_ERR(SENT_ERR); EXPECT_EQ(pAuditSetSecurity(SACL_SECURITY_INFORMATION, &sd), FALSE); EXPECT_ERR(ERROR_INVALID_PARAMETER);
+    SET_ERR(SENT_ERR); EXPECT_EQ(pAuditSetSecurity(SACL_SECURITY_INFORMATION, &sd), FALSE); EXPECT_ERR(want);
     ((BYTE *)&sd)[0] = 0;
-    SET_ERR(SENT_ERR); EXPECT_EQ(pAuditSetSecurity(DACL_SECURITY_INFORMATION, &sd), FALSE); EXPECT_ERR(ERROR_INVALID_PARAMETER);
-    /* an already self-relative descriptor is rejected by RtlMakeSelfRelativeSD (STATUS_BAD_DESCRIPTOR_FORMAT) */
+    SET_ERR(SENT_ERR); EXPECT_EQ(pAuditSetSecurity(DACL_SECURITY_INFORMATION, &sd), FALSE); EXPECT_ERR(want);
+    /* an already self-relative descriptor: Windows 10 accepts it (returns TRUE, an empty SACL, no visible effect);
+       without the privilege it is refused like the others */
     CHECK(InitializeSecurityDescriptor(&sd, SECURITY_DESCRIPTOR_REVISION));
     BYTE rel[256]; DWORD len = sizeof rel;
     CHECK(MakeSelfRelativeSD(&sd, rel, &len));
-    SET_ERR(SENT_ERR); EXPECT_EQ(pAuditSetSecurity(SACL_SECURITY_INFORMATION, rel), FALSE); EXPECT_ERR(ERROR_INVALID_PARAMETER);
+    SET_ERR(SENT_ERR);
+    BOOLEAN r = pAuditSetSecurity(SACL_SECURITY_INFORMATION, rel);
+    if (haspriv) { t_note("self-relative descriptor accepted on Windows 10 (r=%d)", r); }
+    else { EXPECT_EQ(r, FALSE); EXPECT_ERR(want); }
 }
 
 /* ---- RPC-backed read paths ---- */
@@ -169,7 +178,7 @@ TEST(gap0_audit_enum_categories) {
     for (int i = 0; i < NCATS; i++) CHECKF(has_guid(arr, cnt, cats[i].g), "category %d (%s) missing", i, cats[i].en);
     for (ULONG i = 0; i < cnt; i++) for (ULONG j = i + 1; j < cnt; j++) CHECK(!IsEqualGUID(&arr[i], &arr[j]));   /* unique */
     EXPECT_EQ(LocalSize(arr), cnt * sizeof(GUID));          /* LocalAlloc(LPTR, count*16) */
-    EXPECT_EQ(pAuditFree(arr), NULL);
+    { HLOCAL r3 = pAuditFree(arr); EXPECT_EQ(r3, NULL); }
 }
 
 TEST(gap0_audit_enum_categories_repeatable) {
