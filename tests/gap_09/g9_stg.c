@@ -169,10 +169,11 @@ TEST(gap9_stgmedium_size_gdi_palette_composes_with_hpalette_size)
     void *fs = sfn("Size"), *ps = UM_FNIN("ole32.dll", "HPALETTE_UserSize");
     HPALETTE (WINAPI *cp)(const LOGPALETTE *) = (void *)t_proc_in("gdi32.dll", "CreatePalette");
     BOOL (WINAPI *del)(HGDIOBJ) = (void *)t_proc_in("gdi32.dll", "DeleteObject");
-    LOGPALETTE lp = { 0x300, 2, { { 1, 2, 3, 0 }, { 4, 5, 6, 0 } } };
+    struct { WORD ver, n; PALETTEENTRY e[2]; } lpb = { 0x300, 2, { { 1, 2, 3, 0 }, { 4, 5, 6, 0 } } };
+    const LOGPALETTE *lp = (const LOGPALETTE *)&lpb;
     HPALETTE hp; ULONG ctx, off;
     REQUIRE(fs); REQUIRE(ps); REQUIRE(cp); REQUIRE(del);
-    hp = cp(&lp);
+    hp = cp(lp);
     REQUIRE(hp);
     for (ctx = 0; ctx <= C_CONT; ctx++)
         for (off = 0; off < 10; off += 3) {
@@ -635,10 +636,11 @@ TEST(gap9_stgmedium_unmarshal_gdi_palette_roundtrip)
     BOOL (WINAPI *del)(HGDIOBJ) = (void *)t_proc_in("gdi32.dll", "DeleteObject");
     DWORD (WINAPI *gtype)(HGDIOBJ) = (void *)t_proc_in("gdi32.dll", "GetObjectType");
     UINT (WINAPI *gpe)(HPALETTE, UINT, UINT, LPPALETTEENTRY) = (void *)t_proc_in("gdi32.dll", "GetPaletteEntries");
-    LOGPALETTE lp = { 0x300, 3, { { 1, 2, 3, 0 }, { 4, 5, 6, 0 }, { 7, 8, 9, 0 } } };
+    struct { WORD ver, n; PALETTEENTRY e[3]; } lpb = { 0x300, 3, { { 1, 2, 3, 0 }, { 4, 5, 6, 0 }, { 7, 8, 9, 0 } } };
+    const LOGPALETTE *lp = (const LOGPALETTE *)&lpb;
     HPALETTE hp; ULONG ctx;
     REQUIRE(fs); REQUIRE(fm); REQUIRE(fu); REQUIRE(ff); REQUIRE(cp); REQUIRE(del); REQUIRE(gtype); REQUIRE(gpe);
-    hp = cp(&lp);
+    hp = cp(lp);
     REQUIRE(hp);
     for (ctx = C_LOCAL; ctx <= C_DIFFM; ctx += 2) {
         UMC c; STGMEDIUM m, o; ULONG sz; unsigned char *b, *e, *e2; PALETTEENTRY pe[3];
@@ -653,9 +655,12 @@ TEST(gap9_stgmedium_unmarshal_gdi_palette_roundtrip)
         CHECKF(o.tymed == TY_GDI && o.hBitmap && gtype(o.hBitmap) == OBJ_PAL, "palette comes back as a palette");
         if (o.hBitmap) {
             memset(pe, 0, sizeof pe);
-            CHECK(gpe((HPALETTE)o.hBitmap, 0, 3, pe) == 3 && pe[2].peBlue == 9 && pe[0].peRed == 1);
+            { UINT n = gpe((HPALETTE)o.hBitmap, 0, 3, pe);
+              CHECKF(n == 3 && pe[2].peBlue == 9 && pe[0].peRed == 1, "n=%u e0=%u,%u,%u,%u e1=%u,%u,%u,%u e2=%u,%u,%u,%u", n,
+                     pe[0].peRed, pe[0].peGreen, pe[0].peBlue, pe[0].peFlags, pe[1].peRed, pe[1].peGreen, pe[1].peBlue, pe[1].peFlags,
+                     pe[2].peRed, pe[2].peGreen, pe[2].peBlue, pe[2].peFlags); }
             um_init(&c, NULL, 0, ctx); XEQ(um_x_free(ff, UMF(&c), &o), 0);
-            CHECK(gtype(o.hBitmap) == 0);
+            CHECKF(!del(o.hBitmap), "UserFree deleted the palette (second DeleteObject fails; GetObjectType still reports it on Win10)");
         }
         um_buf_free(b);
     }
