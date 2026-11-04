@@ -11,6 +11,9 @@ static RPC_STATUS set_auth_qos(RPC_BINDING_HANDLE h, unsigned level, unsigned sv
     q.IdentityTracking = RPC_C_QOS_IDENTITY_STATIC; q.ImpersonationType = imp;
     return U(RpcBindingSetAuthInfoExW)(h, NULL, level, svc, NULL, RPC_C_AUTHZ_NONE, &q);
 }
+/* Windows local RPC always authenticates the client and raises any requested level to packet privacy, both in what
+ * RpcBindingInqAuthInfo reports and in what the server sees. */
+#define LRPC_LVL RPC_C_AUTHN_LEVEL_PKT_PRIVACY
 static void need_winnt_server(void) { U(RpcServerRegisterAuthInfoW)(NULL, RPC_C_AUTHN_WINNT, NULL, NULL); }
 
 /* ---- RpcServerRegisterAuthInfo / RpcServerInqDefaultPrincName ------------ */
@@ -86,7 +89,7 @@ TEST(ncalrpc_sec_client_set_inq_roundtrip) {
         unsigned long lvl = 99, svc = 99, authz = 99; RPC_WSTR sn = (RPC_WSTR)(ULONG_PTR)1; RPC_AUTH_IDENTITY_HANDLE id = NULL;
         EQ(set_auth(f.h, lv[k], RPC_C_AUTHN_WINNT), RPC_S_OK);
         EQ(U(RpcBindingInqAuthInfoW)(f.h, &sn, &lvl, &svc, &id, &authz), RPC_S_OK);
-        EQ(lvl, lv[k]); EQ(svc, RPC_C_AUTHN_WINNT); EQ(authz, RPC_C_AUTHZ_NONE);
+        EQ(lvl, LRPC_LVL); EQ(svc, RPC_C_AUTHN_WINNT); EQ(authz, RPC_C_AUTHZ_NONE);   /* every level reads back as 6 on ncalrpc */
         if (sn && sn != (RPC_WSTR)(ULONG_PTR)1) U(RpcStringFreeW)(&sn);
     }
     raw_down(&f);
@@ -97,7 +100,7 @@ TEST(ncalrpc_sec_client_default_level_is_mapped) {
     EQ(set_auth(f.h, RPC_C_AUTHN_LEVEL_DEFAULT, RPC_C_AUTHN_WINNT), RPC_S_OK);
     EQ(U(RpcBindingInqAuthInfoW)(f.h, NULL, &lvl, &svc, NULL, &authz), RPC_S_OK);
     t_note("authn level DEFAULT(0) stored as %lu", lvl);
-    CHECK(lvl >= RPC_C_AUTHN_LEVEL_NONE && lvl <= RPC_C_AUTHN_LEVEL_PKT_PRIVACY);
+    EQ(lvl, LRPC_LVL);
     raw_down(&f);
 }
 TEST(ncalrpc_sec_client_invalid_level_and_service) {
@@ -122,7 +125,7 @@ TEST(ncalrpc_sec_client_set_auth_a_and_w_equivalent) {
     RUP(f, 0x84, 1, 0);
     EQ(U(RpcBindingSetAuthInfoA)(f.h, NULL, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY, RPC_C_AUTHN_WINNT, NULL, RPC_C_AUTHZ_NONE), RPC_S_OK);
     EQ(U(RpcBindingInqAuthInfoA)(f.h, NULL, &lvl, &svc, NULL, &authz), RPC_S_OK);
-    EQ(lvl, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY); EQ(svc, RPC_C_AUTHN_WINNT); EQ(authz, RPC_C_AUTHZ_NONE);
+    EQ(lvl, LRPC_LVL); EQ(svc, RPC_C_AUTHN_WINNT); EQ(authz, RPC_C_AUTHZ_NONE);
     raw_down(&f);
 }
 TEST(ncalrpc_sec_client_qos_v1_roundtrip) {
@@ -136,14 +139,19 @@ TEST(ncalrpc_sec_client_qos_v1_roundtrip) {
         in.IdentityTracking = RPC_C_QOS_IDENTITY_DYNAMIC; in.ImpersonationType = imps[k];
         st = U(RpcBindingSetAuthInfoExW)(f.h, NULL, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY, RPC_C_AUTHN_WINNT, NULL, RPC_C_AUTHZ_NONE, &in);
         t_note("SetAuthInfoEx(imp=%u, MUTUAL_AUTH, DYNAMIC) -> %lu", imps[k], (unsigned long)st);
-        if (st != RPC_S_OK) continue;
+        if (st != RPC_S_OK) {                     /* ncalrpc refuses this combination: read back a plain static-tracking setting */
+            in.Capabilities = RPC_C_QOS_CAPABILITIES_DEFAULT; in.IdentityTracking = RPC_C_QOS_IDENTITY_STATIC;
+            st = U(RpcBindingSetAuthInfoExW)(f.h, NULL, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY, RPC_C_AUTHN_WINNT, NULL, RPC_C_AUTHZ_NONE, &in);
+            t_note("SetAuthInfoEx(imp=%u, DEFAULT, STATIC) -> %lu", imps[k], (unsigned long)st);
+            if (st != RPC_S_OK) continue;
+        }
         out.Version = RPC_C_SECURITY_QOS_VERSION;
         st = U(RpcBindingInqAuthInfoExW)(f.h, NULL, &lvl, &svc, NULL, &authz, RPC_C_SECURITY_QOS_VERSION, &out);
         EQ(st, RPC_S_OK);
-        EQ(lvl, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY); EQ(svc, RPC_C_AUTHN_WINNT);
+        EQ(lvl, LRPC_LVL); EQ(svc, RPC_C_AUTHN_WINNT);
         EQ(out.Version, RPC_C_SECURITY_QOS_VERSION);
         EQ(out.ImpersonationType, imps[k]);
-        EQ(out.IdentityTracking, RPC_C_QOS_IDENTITY_DYNAMIC);
+        EQ(out.IdentityTracking, in.IdentityTracking);
         t_note("QOS capabilities read back as 0x%lx (set 0x%x)", (unsigned long)out.Capabilities, RPC_C_QOS_CAPABILITIES_MUTUAL_AUTH);
     }
     raw_down(&f);
@@ -160,7 +168,9 @@ TEST(ncalrpc_sec_client_qos_v2_none_type) {
         memset(&out, 0, sizeof out); out.Version = 2;
         st = U(RpcBindingInqAuthInfoExW)(f.h, NULL, &lvl, &svc, NULL, &authz, 2, (RPC_SECURITY_QOS *)&out);
         t_note("InqAuthInfoEx with QOS version 2 -> %lu (Version=%lu)", (unsigned long)st, (unsigned long)out.Version);
-        CHECK(st == RPC_S_OK);
+        EQ(st, RPC_S_INVALID_ARG);                        /* the inquiry only understands QOS version 1 */
+        st = U(RpcBindingInqAuthInfoExW)(f.h, NULL, &lvl, &svc, NULL, &authz, 1, (RPC_SECURITY_QOS *)&out);
+        EQ(st, RPC_S_OK);
         EQ(lvl, RPC_C_AUTHN_LEVEL_PKT_PRIVACY);
     }
     raw_down(&f);
@@ -183,10 +193,10 @@ TEST(ncalrpc_sec_client_auth_info_copied_with_binding) {
     EQ(set_auth(f.h, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY, RPC_C_AUTHN_WINNT), RPC_S_OK);
     EQ(U(RpcBindingCopy)(f.h, &c), RPC_S_OK);
     EQ(U(RpcBindingInqAuthInfoW)(c, NULL, &lvl, &svc, NULL, &authz), RPC_S_OK);
-    EQ(lvl, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY); EQ(svc, RPC_C_AUTHN_WINNT);
+    EQ(lvl, LRPC_LVL); EQ(svc, RPC_C_AUTHN_WINNT);
     EQ(set_auth(c, RPC_C_AUTHN_LEVEL_CONNECT, RPC_C_AUTHN_WINNT), RPC_S_OK);    /* changing the copy leaves the original */
     EQ(U(RpcBindingInqAuthInfoW)(f.h, NULL, &lvl, NULL, NULL, NULL), RPC_S_OK);
-    EQ(lvl, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY);
+    EQ(lvl, LRPC_LVL);
     rx_unbind(c);
     raw_down(&f);
 }
@@ -215,15 +225,14 @@ TEST(ncalrpc_sec_server_sees_authn_level_and_service) {
         EQ(set_auth(f.h, lv[k], RPC_C_AUTHN_WINNT), RPC_S_OK);
         EQ(rx_raw_call(f.h, &f.r, 3, NULL, 0, r, sizeof r, &n), RPC_S_OK);
         EQ(r[5], RPC_S_OK); EQ(r[3], RPC_C_AUTHN_WINNT);
-        if (lv[k] == RPC_C_AUTHN_LEVEL_CONNECT) { CHECK(r[1] >= lv[k]); t_note("CONNECT seen by server as %lu", r[1]); }
-        else EQ(r[1], lv[k]);
+        EQ(r[1], LRPC_LVL);                        /* the server sees packet privacy whatever the client asked for */
     }
     for (k = 0; k < sizeof lv_loose / sizeof *lv_loose; k++) {
         EQ(set_auth(f.h, lv_loose[k], RPC_C_AUTHN_WINNT), RPC_S_OK);
         EQ(rx_raw_call(f.h, &f.r, 3, NULL, 0, r, sizeof r, &n), RPC_S_OK);
         EQ(r[5], RPC_S_OK);
         t_note("client level %u is seen by the server as %lu", lv_loose[k], r[1]);
-        CHECK(r[1] >= lv_loose[k]);
+        EQ(r[1], LRPC_LVL);
     }
     raw_down(&f);
 }
@@ -235,6 +244,7 @@ TEST(ncalrpc_sec_server_call_attributes_unauthenticated) {
     EQ(r[5], RPC_S_OK);
     EQ(r[0], GetCurrentProcessId());               /* ClientPID: the caller is this process */
     EQ(r[2], 1);                                   /* RpcCallClientLocality: rcclLocal */
+    EQ(r[1], LRPC_LVL); EQ(r[3], RPC_C_AUTHN_WINNT);   /* a local client is always authenticated (NTLM, privacy) */
     EQ(r[6], 3);                                   /* RPC_PROTSEQ_LRPC */
     EQ(r[4], 3);                                   /* OpNum */
     t_note("unauthenticated call: AuthenticationLevel=%lu AuthenticationService=%lu NullSession=%lu KernelMode=%lu CallStatus=%lu CallType=%lu",
@@ -266,8 +276,8 @@ TEST(ncalrpc_sec_call_attributes_version_checks) {
     for (k = 0; k < sizeof vers / sizeof *vers; k++) {
         q[0] = vers[k]; q[1] = 0;
         EQ(rx_raw_call(f.h, &f.r, 11, q, 8, &r, sizeof r, &n), RPC_S_OK);
-        if (vers[k] == 1 || vers[k] == 2) EQ(r.st, RPC_S_OK);
-        else CHECK(r.st != RPC_S_OK);
+        if (vers[k] >= 1 && vers[k] <= 3) EQ(r.st, RPC_S_OK);     /* Windows 10 knows the Version 3 layout too */
+        else EQ(r.st, RPC_S_INVALID_ARG);
         t_note("InqCallAttributes with Version=%lu -> %lu", vers[k], r.st);
     }
     raw_down(&f);
@@ -287,7 +297,7 @@ TEST(ncalrpc_sec_authclient_in_call) {
     RUP(f, 0x95, 1, 0);
     EQ(set_auth(f.h, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY, RPC_C_AUTHN_WINNT), RPC_S_OK);
     EQ(rx_raw_call(f.h, &f.r, 10, NULL, 0, r, sizeof r, &n), RPC_S_OK);
-    EQ(r[0], RPC_S_OK); EQ(r[1], RPC_C_AUTHN_LEVEL_PKT_INTEGRITY); EQ(r[2], RPC_C_AUTHN_WINNT);
+    EQ(r[0], RPC_S_OK); EQ(r[1], LRPC_LVL); EQ(r[2], RPC_C_AUTHN_WINNT);
     t_note("RpcBindingInqAuthClient authz service = %lu", r[3]);
     /* unauthenticated client */
     EQ(rx_raw_call(f.h, &f.r, 10, NULL, 0, r, sizeof r, &n), RPC_S_OK);
@@ -297,7 +307,8 @@ TEST(ncalrpc_sec_authclient_unauthenticated) {
     rawfx f; DWORD r[4]; ULONG n;
     RUP(f, 0x96, 1, 0);
     EQ(rx_raw_call(f.h, &f.r, 10, NULL, 0, r, sizeof r, &n), RPC_S_OK);
-    CHECK(r[0] != RPC_S_OK);
+    EQ(r[0], RPC_S_OK);                            /* local clients always carry an (implicit) NTLM authentication */
+    EQ(r[1], LRPC_LVL); EQ(r[2], RPC_C_AUTHN_WINNT);
     t_note("RpcBindingInqAuthClient for an unauthenticated ncalrpc call -> %lu (level %lu svc %lu)", r[0], r[1], r[2]);
     raw_down(&f);
 }
@@ -353,6 +364,14 @@ TEST(ncalrpc_sec_server_from_client) {
 }
 
 /* ---- security callbacks --------------------------------------------------- */
+/* The IfHandle given to the callback is not the caller's RPC_SERVER_INTERFACE pointer. Look for the interface id in the
+ * first bytes behind it and report where (on Windows 10 it is not there, the layout is internal). */
+static void find_ifid(void *p) {
+    struct { const volatile void *p; const void *want; int off; } *c = p;
+    const unsigned char *a = (const unsigned char *)c->p; unsigned i;
+    for (i = 0; i + sizeof(RPC_SYNTAX_IDENTIFIER) <= 512; i++)
+        if (!memcmp(a + i, c->want, sizeof(RPC_SYNTAX_IDENTIFIER))) { c->off = (int)i; return; }
+}
 TEST(ncalrpc_sec_callback_allow_called_with_ctx) {
     rawfx f; ULONG n; RPC_STATUS st;
     rx_cb_result = RPC_S_OK; rx_cb_calls = 0; rx_cb_last_if = NULL; rx_cb_last_ctx = NULL; rx_cb_attr_st = -1;
@@ -360,7 +379,17 @@ TEST(ncalrpc_sec_callback_allow_called_with_ctx) {
     st = rx_raw_call(f.h, &f.r, 4, NULL, 0, NULL, 0, &n);
     EQ(st, RPC_S_OK);
     CHECK(rx_cb_calls >= 1);
-    CHECK(rx_cb_last_if == (void *)&f.r.si);          /* IfHandle is the registered server interface */
+    {
+        struct { const volatile void *p; const void *want; int off; } c;
+        c.p = rx_cb_last_if; c.want = &f.r.si.InterfaceId; c.off = -1;
+        t_note("callback IfHandle %p, registered interface %p", (const void *)rx_cb_last_if, (const void *)&f.r.si);
+        CHECK(rx_cb_last_if != NULL);
+        if (rx_cb_last_if) {
+            DWORD x = rx_guarded(find_ifid, &c);
+            t_note("interface id found inside the callback IfHandle at offset %d (exception 0x%lx)", c.off, (unsigned long)x);
+            CHECK(x == 0);                            /* readable; the id is not stored as a plain RPC_SERVER_INTERFACE copy in its first 512 bytes on Windows 10 */
+        }
+    }
     CHECK(rx_cb_last_ctx != NULL);                    /* client binding context */
     if (!t_is_wine()) {
         EQ(rx_cb_attr_st, RPC_S_OK);                  /* RpcServerInqCallAttributes(Context) works inside the callback */
@@ -430,7 +459,7 @@ TEST(ncalrpc_sec_callback_authenticated_without_flag) {
     st = rx_raw_call(f.h, &f.r, 4, NULL, 0, NULL, 0, &n);
     EQ(st, RPC_S_OK);
     CHECK(rx_cb_calls >= 1);                          /* an authenticated client always reaches the callback */
-    if (!t_is_wine()) EQ(rx_cb_attr_level, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY);
+    if (!t_is_wine()) EQ(rx_cb_attr_level, LRPC_LVL);
     raw_down(&f);
 }
 
@@ -441,13 +470,14 @@ TEST(ncalrpc_sec_flag_allow_local_only) {
     EQ(rx_raw_call(f.h, &f.r, 4, NULL, 0, NULL, 0, &n), RPC_S_OK);       /* a local ncalrpc client is allowed */
     raw_down(&f);
 }
-TEST(ncalrpc_sec_flag_allow_secure_only_rejects_unauthenticated) {
+TEST(ncalrpc_sec_flag_allow_secure_only_local_client_is_secure) {
     rawfx f; ULONG n; RPC_STATUS st; LONG c0;
     RUPX(f, 0xb1, 1, 0, RPC_IF_ALLOW_SECURE_ONLY, NULL);
     c0 = rx_raw_calls;
     st = rx_raw_call(f.h, &f.r, 4, NULL, 0, NULL, 0, &n);
-    EQ(st, RPC_S_ACCESS_DENIED);
-    EQ(rx_raw_calls, c0);
+    /* a local client is always authenticated (see above), so SECURE_ONLY lets the unauthenticated binding through */
+    EQ(st, RPC_S_OK);
+    EQ(rx_raw_calls, c0 + 1);
     raw_down(&f);
 }
 TEST(ncalrpc_sec_flag_allow_secure_only_accepts_authenticated) {
