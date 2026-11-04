@@ -502,7 +502,11 @@ TEST(ndr_complexarray_unmarshal_enum16_range) {
     EXPECT_EQ(n_code, 0); EXPECT_EQ(dst[0], 1); EXPECT_EQ(dst[1], 0x7fff);
     nc_done(&c);
     nc_rx(&c, fmt, bad, 4, 1); p = (unsigned char *)dst;
+    dst[1] = 0xdead;
     NTRY f.um(&c.sm, &p, fmt, 0); NEND;
-    EXPECT_EQ(n_code, X_ENUM_RANGE);
+    /* unlike NdrSimpleTypeUnmarshall and complex structs, Windows does not range check enum16 elements of a complex array */
+    t_note("complex array enum16 0x8000: raised %lu, element %x", (unsigned long)n_code, dst[1]);
+    EXPECT_EQ(n_code, 0);
+    EXPECT_EQ(dst[1], 0x8000);
     nc_done(&c);
 }

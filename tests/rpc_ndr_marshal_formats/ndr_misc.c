@@ -102,7 +102,7 @@ TEST(ndr_correlation_initialize_sets_header_and_pad) {
     memset(&sm, 0, sizeof sm); memset(buf, 0, sizeof buf);
     sm.StackTop = (unsigned char *)(ULONG_PTR)0x12345678;
     U(NdrCorrelationInitialize)(&sm, buf, sizeof buf, 0);
-    EXPECT_EQ(sm.Pad, 2);
+    EXPECT_EQ(sm.CorrDespIncrement, 2);   /* the SDK name of the byte some older headers call Pad */
     EXPECT_EQ(sm.pCorrInfo, buf);
     EXPECT_EQ(sm.pCorrMemory, sm.StackTop);
     EXPECT_EQ(*(void **)buf, buf);
@@ -114,9 +114,9 @@ TEST(ndr_correlation_initialize_keeps_nonzero_pad) {
     REQUIRE(U(NdrCorrelationInitialize));
     MIDL_STUB_MESSAGE sm; unsigned char buf[256];
     memset(&sm, 0, sizeof sm); memset(buf, 0, sizeof buf);
-    sm.Pad = 1;
+    sm.CorrDespIncrement = 1;
     U(NdrCorrelationInitialize)(&sm, buf, sizeof buf, 0);
-    EXPECT_EQ(sm.Pad, 1);
+    EXPECT_EQ(sm.CorrDespIncrement, 1);
 }
 TEST(ndr_correlation_cache_size_encoding) {
     REQUIRE(U(NdrCorrelationInitialize));

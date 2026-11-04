@@ -24,7 +24,11 @@ TEST(ndr_simple_marshal_aligned_start) {
         U(NdrSimpleTypeMarshall)(&c.sm, mem, g_st[i].fc);
         CHECKF(nc_used(&c) == g_st[i].size, "%s used %lu", g_st[i].name, nc_used(&c));
         CHECKF(!memcmp(c.buf, pat, g_st[i].size), "%s bytes", g_st[i].name);
-        CHECKF(c.buf[g_st[i].size] == 0xCD, "%s overran", g_st[i].name);
+        /* Windows stores sub-dword values as a zero extended dword: the bytes up to the next 4-byte boundary are zeroed,
+           nothing beyond is touched */
+        { unsigned dw = g_st[i].size < 4 ? 4 : g_st[i].size;
+          for (unsigned z = g_st[i].size; z < dw; z++) CHECKF(c.buf[z] == 0, "%s pad byte %u = %02x", g_st[i].name, z, c.buf[z]);
+          CHECKF(c.buf[dw] == 0xCD, "%s overran", g_st[i].name); }
         nc_done(&c);
     }
 }
@@ -269,7 +273,7 @@ TEST(ndr_init_client_new_fields) {
     EXPECT_EQ(sm.BufferLength, 0);
     EXPECT_EQ(sm.IsClient, 1);
     EXPECT_EQ(sm.ReuseBuffer, 0);
-    EXPECT_EQ(sm.Pad, 0);
+    t_note("Pad after init: 0x%x (init does not write it)", sm.Pad);
     EXPECT_EQ(sm.StubDesc, &d);
     EXPECT_EQ(sm.pfnAllocate, d.pfnAllocate);
     EXPECT_EQ(sm.pfnFree, d.pfnFree);
@@ -311,7 +315,7 @@ TEST(ndr_init_server_new_fields) {
     EXPECT_EQ(sm.BufferEnd, buffer + sizeof buffer);
     EXPECT_EQ(sm.IsClient, 0);
     EXPECT_EQ(sm.ReuseBuffer, 0);
-    EXPECT_EQ(sm.Pad, 0);
+    t_note("Pad after init: 0x%x (init does not write it)", sm.Pad);
     EXPECT_EQ(sm.FullPtrXlatTables, NULL);
     EXPECT_EQ(sm.StubDesc, &d);
     EXPECT_EQ(sm.pfnAllocate, d.pfnAllocate);
@@ -358,17 +362,18 @@ TEST(ndr_init_server_initialize_unmarshall_sets_up_reader) {
     EXPECT_EQ(sm.IsClient, 0);
     EXPECT_EQ(sm.RpcMsg, &rpc);
 }
-TEST(ndr_init_server_initialize_marshall_resets_for_reply) {
-    WSTUB("NdrServerInitializeMarshall");
+TEST(ndr_init_server_initialize_marshall_is_a_noop) {
+    /* On Windows 10 NdrServerInitializeMarshall is an empty routine (a bare ret): it leaves the message untouched */
     REQUIRE(U(NdrServerInitializeUnmarshall)); REQUIRE(U(NdrServerInitializeMarshall));
     MIDL_STUB_MESSAGE sm; RPC_MESSAGE rpc; MIDL_STUB_DESC d; unsigned char buffer[64];
     n_fill_desc(&d, NULL);
     memset(&rpc, 0, sizeof rpc); rpc.Buffer = buffer; rpc.BufferLength = 40; rpc.RpcFlags = RPC_BUFFER_COMPLETE;
     U(NdrServerInitializeUnmarshall)(&sm, &d, &rpc);
-    sm.fBufferValid = 1;
-    U(NdrServerInitializeMarshall)(&rpc, &sm);
-    EXPECT_EQ(sm.BufferLength, 0);
-    EXPECT_EQ(sm.fBufferValid, 0);
+    sm.fBufferValid = 1; sm.BufferLength = 77;
+    NTRY U(NdrServerInitializeMarshall)(&rpc, &sm); NEND;
+    EXPECT_EQ(n_code, 0);
+    EXPECT_EQ(sm.BufferLength, 77);
+    EXPECT_EQ(sm.fBufferValid, -1);       /* the 1-bit signed field still holds its 1 */
     EXPECT_EQ(sm.IsClient, 0);
 }
 TEST(ndr_init_server_initialize_partial_records_requested_size) {
@@ -382,5 +387,7 @@ TEST(ndr_init_server_initialize_partial_records_requested_size) {
     EXPECT_EQ(sm.RpcMsg, &rpc);
     EXPECT_EQ(sm.IsClient, 0);
     EXPECT_EQ(sm.Buffer, buffer);
-    EXPECT_EQ(sm.BufferLength, 123);
+    /* Windows hands the request to MakeSureWeHaveNonPipeArgs, which only fetches more data for an incomplete buffer;
+       the stub message BufferLength stays 0 */
+    EXPECT_EQ(sm.BufferLength, 0);
 }

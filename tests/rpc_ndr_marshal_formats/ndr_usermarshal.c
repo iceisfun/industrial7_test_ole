@@ -87,7 +87,7 @@ TEST(ndr_usermarshal_flags_correlation_bit_follows_pad_byte) {
     um_reset();
     nctx c; nc_client(&c, f, 64);
     c.desc.aUserMarshalQuadruple = g_quad;
-    c.sm.Pad = 2;     /* what NdrCorrelationInitialize leaves behind: new-style correlation descriptors */
+    c.sm.CorrDespIncrement = 2;     /* what NdrCorrelationInitialize leaves behind: new-style correlation descriptors */
     U(NdrUserMarshalBufferSize)(&c.sm, (unsigned char *)&obj, f);
     EXPECT_EQ(um.flags[0] & 0x200, 0x200);
     nc_done(&c);
