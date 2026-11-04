@@ -579,11 +579,11 @@ TEST(gap6_copydata_lock_count_overflow) {
     SAFEARRAY *s = mk(VT_I4, 1, &b), *t = mk(VT_I4, 1, &b); CHECK(s && t); if (!(s && t)) return;
     s->cLocks = 0xffff;
     HRESULT hr = U(SafeArrayCopyData)(s, t);
-    EQ(hr, 0x8000FFFF);        /* E_UNEXPECTED: source lock count would overflow */
+    EQ(hr, (HRESULT)0x8000FFFFL);        /* E_UNEXPECTED: source lock count would overflow */
     s->cLocks = 0;
     t->cLocks = 0xffff;
     hr = U(SafeArrayCopyData)(s, t);
-    EQ(hr, 0x8000FFFF);        /* target lock count would overflow; the source lock taken first is dropped again */
+    EQ(hr, (HRESULT)0x8000FFFFL);        /* target lock count would overflow; the source lock taken first is dropped again */
     EQ(s->cLocks, 0);
     t->cLocks = 0; s->cLocks = 0;
     U(SafeArrayDestroy)(s); U(SafeArrayDestroy)(t);
