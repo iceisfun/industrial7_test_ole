@@ -185,7 +185,9 @@ TEST(sa_get_put_lock_saturated)
     psa->cLocks = 0xffff;
     EQHR(pPutElement(psa, &i, &v), E_UNEXPECTED);
     EQHR(pGetElement(psa, &i, &v), E_UNEXPECTED);
-    EQ(psa->cLocks, 0xffff);
+    /* Windows: Put fails without touching the count, but Get's common exit path
+       releases a lock it never took, so a saturated count drops by one. */
+    EQ(psa->cLocks, 0xfffe);
     psa->cLocks = 0xfffe;                /* one more lock still fits; it is released again */
     EQHR(pPutElement(psa, &i, &v), S_OK);
     EQ(psa->cLocks, 0xfffe);
