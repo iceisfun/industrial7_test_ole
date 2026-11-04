@@ -325,7 +325,7 @@ static ULONG WINAPI reg_cb(WMIDPREQUESTCODE code, PVOID ctx, ULONG *size, PVOID 
 TEST(gap8_etw_registertraceguidsa_ignores_mof_strings)
 {
     ULONG (WINAPI *r)(WMIDPREQUEST, PVOID, LPCGUID, ULONG, PTRACE_GUID_REGISTRATION, LPCSTR, LPCSTR, PTRACEHANDLE) = (void *)t_proc_in(SH, "RegisterTraceGuidsA");
-    ULONG (WINAPI *u)(TRACEHANDLE) = (void *)t_proc_in(SH, "UnregisterTraceGuids");
+    ULONG (WINAPI *u)(TRACEHANDLE) = (void *)t_proc_in("advapi32.dll", "UnregisterTraceGuids");
     GUID g = { 0x6f1d1c0e, 0x1a8a, 0x4b8f, { 0x9a,0x00,0x6f,0x1d,0x47,0x61,0x70,0x08 } }; TRACEHANDLE h1 = 0, h2 = 0; ULONG e1, e2; REQUIRE(r); REQUIRE(u); NOWINE();
     g.Data1 ^= GetCurrentProcessId();
     e1 = r(reg_cb, NULL, &g, 0, NULL, NULL, NULL, &h1);
@@ -340,7 +340,7 @@ TEST(gap8_etw_registertraceguidsa_ignores_mof_strings)
 TEST(gap8_etw_registertraceguidsa_argument_errors_match_w)
 {
     ULONG (WINAPI *ra)(WMIDPREQUEST, PVOID, LPCGUID, ULONG, PTRACE_GUID_REGISTRATION, LPCSTR, LPCSTR, PTRACEHANDLE) = (void *)t_proc_in(SH, "RegisterTraceGuidsA");
-    ULONG (WINAPI *rw)(WMIDPREQUEST, PVOID, LPCGUID, ULONG, PTRACE_GUID_REGISTRATION, LPCWSTR, LPCWSTR, PTRACEHANDLE) = (void *)t_proc_in(SH, "RegisterTraceGuidsW");
+    ULONG (WINAPI *rw)(WMIDPREQUEST, PVOID, LPCGUID, ULONG, PTRACE_GUID_REGISTRATION, LPCWSTR, LPCWSTR, PTRACEHANDLE) = (void *)t_proc_in("advapi32.dll", "RegisterTraceGuidsW");
     GUID g = { 0x7f1d1c0e, 0x1a8a, 0x4b8f, { 0x9a,0x00,0x6f,0x1d,0x47,0x61,0x70,0x09 } }; TRACEHANDLE h = 0x77; ULONG ea, ew; REQUIRE(ra); REQUIRE(rw); NOWINE();
     ea = ra(reg_cb, NULL, NULL, 0, NULL, NULL, NULL, &h); ew = rw(reg_cb, NULL, NULL, 0, NULL, NULL, NULL, &h);
     CHECKF(ea == ew && ea != 0, "NULL ControlGuid: A=%lu W=%lu", ea, ew);
@@ -348,7 +348,7 @@ TEST(gap8_etw_registertraceguidsa_argument_errors_match_w)
     CHECKF(ea == ew && ea != 0, "NULL RegistrationHandle: A=%lu W=%lu", ea, ew);
     ea = ra(NULL, NULL, &g, 0, NULL, NULL, NULL, &h); ew = rw(NULL, NULL, &g, 0, NULL, NULL, NULL, &h);
     CHECKF(ea == ew, "NULL callback: A=%lu W=%lu", ea, ew);
-    if (ea == 0) { ULONG (WINAPI *u)(TRACEHANDLE) = (void *)t_proc_in(SH, "UnregisterTraceGuids"); if (u) u(h); }
+    if (ea == 0) { ULONG (WINAPI *u)(TRACEHANDLE) = (void *)t_proc_in("advapi32.dll", "UnregisterTraceGuids"); if (u) u(h); }
     t_note("RegisterTraceGuids NULL guid -> %lu", ea);
 }
 

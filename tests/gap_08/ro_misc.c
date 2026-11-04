@@ -93,7 +93,7 @@ TEST(gap8_ro_resolveref_invalid_reference_strings)
     }
 }
 
-static struct { HRESULT origin, got_details_hr; int ran; char why[96]; } g_rt;
+static struct { HRESULT origin, got_details_hr; int ran, noref; char why[96]; } g_rt;
 static DWORD WINAPI roundtrip_thread(void *p)
 {
     typedef struct IREI { const struct IREIVtbl { HRESULT (WINAPI *QI)(void *, REFIID, void **); ULONG (WINAPI *AddRef)(void *); ULONG (WINAPI *Release)(void *);
@@ -108,7 +108,14 @@ static DWORD WINAPI roundtrip_thread(void *p)
     hr = UN(GetRestrictedErrorInfo)((void **)&info);
     if (hr != S_OK || !info) { strcpy(g_rt.why, "GetRestrictedErrorInfo"); goto done; }
     hr = info->v->GetReference(info, &ref);
-    if (hr != S_OK || !ref) { sprintf(g_rt.why, "GetReference hr=%lx", hr); goto done; }
+    if (hr == S_OK && !ref) {   /* Windows 10: S_OK with a NULL reference for a RoOriginateError object; narrow to the details the object does carry */
+        g_rt.noref = 1;
+        hr = info->v->GetErrorDetails(info, &d1, &e1, &r1, &s1);
+        if (hr != S_OK) { sprintf(g_rt.why, "GetErrorDetails hr=%lx", hr); goto done; }
+        t_check(e1 == g_rt.origin, __FILE__, __LINE__, "original error code (no reference)", "0x%lx", e1);
+        g_rt.ran = 1; goto done;
+    }
+    if (hr != S_OK) { sprintf(g_rt.why, "GetReference hr=%lx", hr); goto done; }
     info->v->GetErrorDetails(info, &d1, &e1, &r1, &s1);
     hr = UN(RoResolveRestrictedErrorInfoReference)(ref, (void **)&info2);
     g_rt.got_details_hr = hr;
@@ -137,6 +144,7 @@ TEST(gap8_ro_resolveref_roundtrip_same_process)
     NEEDRR(); REQUIRE(UN(RoOriginateError)); REQUIRE(UN(GetRestrictedErrorInfo)); REQUIRE(U(WindowsCreateString)); REQUIRE(U(CoInitializeEx));
     memset(&g_rt, 0, sizeof g_rt); g_rt.origin = (HRESULT)0x80070005;
     G8_EQ(g8_run_thread(roundtrip_thread, NULL, 20000), 0);
+    if (g_rt.noref) t_note("GetReference returns S_OK with a NULL reference for a RoOriginateError object (Windows 10); resolve not exercised");
     CHECKF(g_rt.ran, "roundtrip did not complete: %s", g_rt.why);
 }
 
@@ -147,6 +155,7 @@ TEST(gap8_ro_resolveref_roundtrip_other_codes)
     for (i = 0; i < sizeof codes / sizeof *codes; i++) {
         memset(&g_rt, 0, sizeof g_rt); g_rt.origin = codes[i];
         G8_EQ(g8_run_thread(roundtrip_thread, NULL, 20000), 0);
+        if (g_rt.noref) t_note("code 0x%lx: GetReference returns S_OK with a NULL reference (Windows 10)", codes[i]);
         CHECKF(g_rt.ran, "code 0x%lx: %s", codes[i], g_rt.why);
     }
 }
@@ -208,6 +217,8 @@ TEST(gap8_ro_failfast_terminates_process)
     for (i = 0; i < sizeof args / sizeof *args; i++) {
         DWORD rc = t_run_child("gap8_failfast", args[i], 20000);
         CHECKF(rc != 3 && rc != 4 && rc != 0xDEAD0000 && rc != 0xDEAD0001, "child exit 0x%lx for hr %s", rc, args[i]);
-        CHECKF(rc == 0xC0000409, "fail-fast exit code 0x%lx for hr %s", rc, args[i]);   /* STATUS_STACK_BUFFER_OVERRUN / __fastfail */
+        /* Windows 10 22H2 terminates with STATUS_FAIL_FAST_EXCEPTION (RoFailFastWithErrorContext raises a fail-fast
+         * exception record); STATUS_STACK_BUFFER_OVERRUN (__fastfail) is what older builds reported. */
+        CHECKF(rc == 0xC0000602, "fail-fast exit code 0x%lx for hr %s", rc, args[i]);
     }
 }
