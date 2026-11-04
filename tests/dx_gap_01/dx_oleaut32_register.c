@@ -1,7 +1,9 @@
 #include "dx1.h"
 /* oleaut32!DllRegisterServer registers the ITypeInfo2/ITypeLib2 proxy-stub entries under HKCR\Interface, the standard
- * types (StdTypesRegisterServer / OcxDllRegisterServer) and stdole2.tlb. On Windows these keys already exist with exactly
- * these values, so the call is idempotent; it needs write access to HKLM\Software\Classes (administrator). */
+ * types and stdole2.tlb. On Windows 10 these keys already exist with exactly these values (installed by the OS), but
+ * the Interface keys are owned by TrustedInstaller: even an elevated administrator gets ERROR_ACCESS_DENIED opening them
+ * for write, so DllRegisterServer returns E_ACCESSDENIED unless run with a token that may write them. The tests pin the
+ * pre-installed values and accept either S_OK or E_ACCESSDENIED from the call (never a half-registered state). */
 
 static int get_default(const WCHAR *path, const WCHAR *name, WCHAR *out, DWORD cch)
 {
@@ -31,8 +33,9 @@ TEST(dx_gap1_oleaut32_dllregisterserver_interface_keys)
         hr = f(); t_note("not elevated: DllRegisterServer -> 0x%08lx", (unsigned long)hr);
         CHECK(FAILED(hr)); t_skip("needs administrator for the success path"); return;
     }
-    hr = f(); EXPECT_EQ(hr, S_OK);
-    hr = f(); EXPECT_EQ(hr, S_OK);                       /* idempotent */
+    hr = f(); t_note("DllRegisterServer (elevated) -> 0x%08lx", (unsigned long)hr);
+    CHECK(hr == S_OK || hr == E_ACCESSDENIED);           /* Windows 10: E_ACCESSDENIED, keys are TrustedInstaller-owned */
+    EXPECT_EQ(f(), hr);                                  /* same result the second time */
     for (i = 0; i < 6; i++) {
         v[0] = 0;
         CHECKF(get_default(tab[i].key, tab[i].name, v, 260), "missing %ls", tab[i].key);
@@ -47,7 +50,7 @@ TEST(dx_gap1_oleaut32_dllregisterserver_registers_stdole2)
     REQUIRE(f);
     if (t_is_wine()) { t_skip("registration is emulator specific"); return; }
     if (!dx_is_admin()) { t_skip("needs administrator"); return; }
-    EXPECT_EQ(f(), S_OK);
+    { HRESULT hr = f(); t_note("DllRegisterServer (elevated) -> 0x%08lx", (unsigned long)hr); CHECK(hr == S_OK || hr == E_ACCESSDENIED); }
     CHECK(RegOpenKeyExW(HKEY_CLASSES_ROOT, L"TypeLib\\{00020430-0000-0000-C000-000000000046}\\2.0", 0, KEY_READ, &k) == 0);
     if (get_default(L"TypeLib\\{00020430-0000-0000-C000-000000000046}\\2.0\\0\\win64", NULL, v, 300)) {
         size_t n = wcslen(v);
