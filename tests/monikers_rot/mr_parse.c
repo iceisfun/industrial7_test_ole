@@ -437,7 +437,8 @@ TEST(mr_parse_existing_temp_file_with_item) {
         lstrcatW(wp, L"!Item1");
         eaten = 0;
         hr = U(MkParseDisplayName)(bc, wp, &eaten, &m);
-        t_note("MkParseDisplayName(file!Item1) -> %08lx eaten=%lu", hr, eaten);
+        /* the absolute eaten count depends on the length of the temp path (account name), so report it relative to the path */
+        t_note("MkParseDisplayName(file!Item1) -> %08lx eaten=len%+ld", hr, (long)eaten - (long)lstrlenW(wp));
         if (hr == S_OK && m) { CHECK_TYPE(m, MKSYS_GENERICCOMPOSITE); CHECK_DN(m, wp); EXPECT_EQ(eaten, lstrlenW(wp)); IMoniker_Release(m); }
         IBindCtx_Release(bc);
     }
