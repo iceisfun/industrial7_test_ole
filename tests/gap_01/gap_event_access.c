@@ -78,10 +78,11 @@ TEST(gap1_event_access_remove_invalid_args)
 }
 
 /* Returns 1 when the registry is readable, otherwise notes why not. */
+static ULONG last_query_rc;
 static int can_query(void)
 {
     GUID g = unique_guid(4); ULONG sz = 0, r;
-    SET_ERR(0); r = EAQ(&g, NULL, &sz);
+    SET_ERR(0); r = EAQ(&g, NULL, &sz); last_query_rc = r;
     if (r == ERROR_MORE_DATA) return 1;
     t_note("EventAccessQuery(unregistered guid, NULL buffer) returned %lu (size %lu): registry not readable here", r, sz);
     return 0;
@@ -91,7 +92,12 @@ TEST(gap1_event_access_query_size_protocol)
 {
     GUID g = unique_guid(5); ULONG sz = 0, need, r; BYTE *b; BYTE tiny[2] = { 0xaa, 0xaa };
     REQUIRE(EAQ);
-    if (!can_query()) { if (!t_is_wine()) CHECK(0 && "EventAccessQuery not usable on Windows"); return; }
+    if (!can_query()) {
+        /* a restricted (non-admin) token cannot read the trace security registry: environment, not a defect */
+        if (last_query_rc == ERROR_ACCESS_DENIED) { t_skip("EventAccessQuery needs read access to the trace security key (restricted token)"); return; }
+        if (!t_is_wine()) CHECK(0 && "EventAccessQuery not usable on Windows");
+        return;
+    }
     /* an unregistered provider falls back to the default trace security descriptor */
     sz = 0; SET_ERR(0); r = EAQ(&g, NULL, &sz);
     EXPECT_EQ(r, ERROR_MORE_DATA); EXPECT_ERR(ERROR_MORE_DATA); CHECK(sz >= 20);   /* a relative SD header is 20 bytes */

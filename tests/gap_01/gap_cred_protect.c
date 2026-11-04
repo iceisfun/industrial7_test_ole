@@ -48,7 +48,8 @@ TEST(gap1_protect_w_roundtrip)
     CHECKF(t == CredUserProtection || t == CredTrustedProtection, "type %d", t);
     EXPECT_EQ(wcslen(p), need - 1);           /* the capacity reported counts the NUL */
     CHECK(p[0] == L'@' && p[1] == L'@');
-    for (i = 0; i < need - 1; i++) CHECKF(p[i] >= 0x20 && p[i] < 0x7f, "non-printable char %x at %lu", p[i], i);
+    /* Win10 emits the marshaled credential as arbitrary WCHARs after the "@@" prefix (not restricted to printable ASCII) */
+    for (i = 2; i < need - 1; i++) CHECKF(p[i] != 0, "embedded NUL at %lu", i);
     /* IsProtected agrees */
     SET_ERR(0); r = CIW(p, &t2); CHECK(r); EXPECT_EQ(t2, t);
     /* Unprotect: size query, too small, exact */

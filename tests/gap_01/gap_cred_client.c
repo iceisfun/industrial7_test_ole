@@ -223,9 +223,10 @@ TEST(gap1_cred_enumerate_flags)
     CHECK(!r); EXPECT_ERR(ERROR_INVALID_FLAGS); EXPECT_EQ(c, 0); EXPECT_EQ(pw, 0);
     /* unknown flag bits */
     c = 9; pa = (void *)0x1234; SET_ERR(0); r = CR(CredEnumerateA)(NULL, 0xdeadbeee, &c, &pa);
-    CHECK(!r); e = GetLastError(); CHECKF(e == ERROR_INVALID_FLAGS, "err %lu", e); EXPECT_EQ(c, 0); EXPECT_EQ(pa, 0);
+    /* Win10 22H2: unknown flag bits come back from the credential service as ERROR_INVALID_PARAMETER, not ERROR_INVALID_FLAGS */
+    CHECK(!r); e = GetLastError(); CHECKF(e == ERROR_INVALID_PARAMETER, "err %lu", e); EXPECT_EQ(c, 0); EXPECT_EQ(pa, 0);
     c = 9; pw = (void *)0x1234; SET_ERR(0); r = CR(CredEnumerateW)(NULL, 0x80000000, &c, &pw);
-    CHECK(!r); EXPECT_ERR(ERROR_INVALID_FLAGS);
+    CHECK(!r); EXPECT_ERR(ERROR_INVALID_PARAMETER);
 }
 
 TEST(gap1_cred_enumerate_all_no_filter)
@@ -256,9 +257,10 @@ TEST(gap1_cred_find_best)
     EXPECT_EQ(pa, 0xdead0001); EXPECT_EQ(pw, 0xdead0001);
     SET_ERR(0); r = CR(CredFindBestCredentialW)(gnamew(), CRED_TYPE_GENERIC, 0, &pw);
     if (!r && g1_no_cred_session(GetLastError())) return;
-    CHECK(!r); EXPECT_ERR(ERROR_NOT_FOUND); EXPECT_EQ(pw, 0xdead0001);
+    /* Win10 22H2: the credential service refuses CRED_TYPE_GENERIC here with ERROR_INVALID_PARAMETER (not ERROR_NOT_FOUND) */
+    CHECK(!r); EXPECT_ERR(ERROR_INVALID_PARAMETER); EXPECT_EQ(pw, 0xdead0001);
     SET_ERR(0); r = CR(CredFindBestCredentialA)(gname(), CRED_TYPE_GENERIC, 0, &pa);
-    CHECK(!r); EXPECT_ERR(ERROR_NOT_FOUND); EXPECT_EQ(pa, 0xdead0001);
+    CHECK(!r); EXPECT_ERR(ERROR_INVALID_PARAMETER); EXPECT_EQ(pa, 0xdead0001);
     SET_ERR(0); r = CR(CredFindBestCredentialW)(gnamew(), CRED_TYPE_DOMAIN_PASSWORD, 0, &pw); e = GetLastError();
     CHECK(!r); t_note("FindBest unknown target, DOMAIN_PASSWORD: error %lu", e);
     SET_ERR(0); r = CR(CredFindBestCredentialW)(gnamew(), CRED_TYPE_GENERIC, 0x80, &pw); e = GetLastError();

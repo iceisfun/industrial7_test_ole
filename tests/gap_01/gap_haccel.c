@@ -128,7 +128,7 @@ TEST(gap1_haccel_marshal_wire_format)
                         CHECKF(e == d + 8, "w%d ctx %lu pad %lu: end %p start %p", w, nonremote[c], pad, e, d);
                         EXPECT_EQ(RD32(d, 0), TAG_H);
                         EXPECT_EQ(RD32(d, 4), (ULONG)(ULONG_PTR)h);       /* low 32 bits of the handle value */
-                        CHECK(d[8] == 0xcc && d[-1 + (d > b + pad ? 0 : 1)] == 0xcc);
+                        CHECK(d[8] == 0xcc && d[-1] == 0xcc);
                     }
                     free(raw);
                 }
