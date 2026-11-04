@@ -367,7 +367,7 @@ static void make_cert_str(char *s, unsigned char fill) { unsigned char h[20]; me
 
 TEST(gap7_cred_unmarshal_type_char_sets_type_even_on_failure)
 {
-    unsigned t; DWORD last_le = 0xffffffffu;
+    unsigned t;
     REQUIRE(CUW);
     for (t = 0; t < 64; t++) {
         char s[128]; WCHAR w[128]; CRED_MARSHAL_TYPE rt = (CRED_MARSHAL_TYPE)0x77; void *u = (void *)1; BOOL r; DWORD le;
@@ -376,7 +376,7 @@ TEST(gap7_cred_unmarshal_type_char_sets_type_even_on_failure)
         if (t == 1) { CHECK(r); if (r && u) CFREE(u); }
         else {
             CHECKF(!r, "type char %u unexpectedly accepted", t);
-            if (!t_is_wine()) { if (le != last_le) { t_note("type char %u '%c': GetLastError %lu (Win10 leaves a stale/other error here, not ERROR_INVALID_PARAMETER)", t, ALPHA[t], le); last_le = le; } CHECK(u == NULL); }   /* wine neither sets the error nor clears the output */
+            if (!t_is_wine()) { CHECKF(le == ERROR_INVALID_PARAMETER, "type char %u: GetLastError %lu", t, (unsigned long)le); CHECK(u == NULL); }   /* wine neither sets the error nor clears the output */
         }
         CHECKF((unsigned)rt == t, "type %u: out %d", t, rt);
     }
