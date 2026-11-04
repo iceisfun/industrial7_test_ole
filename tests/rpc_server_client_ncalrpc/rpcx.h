@@ -25,7 +25,7 @@
  *   4 nop          empty reply
  *   5 inqobject    reply 16 bytes: RpcBindingInqObject on the call handle (+ DWORD status)
  *   6 stop         RpcMgmtStopServerListening(NULL), reply DWORD status
- *   7 waitcancel   polls RpcServerTestCancel up to 5 s, reply DWORD status of last poll
+ *   7 waitcancel   polls RpcServerTestCancel up to 5 s (OK = cancelled, CALL_IN_PROGRESS = not), reply 3 x DWORD: last, first, elapsed ms
  *   8 inqmsg       reply DWORD: msg->DataRepresentation, BufferLength, ProcNum, RpcFlags
  *   9 impersonate  RpcImpersonateClient(NULL) / OpenThreadToken / RpcRevertToSelf; reply 3 x DWORD
  *  10 authclient   RpcBindingInqAuthClientW(NULL...) reply: status, level, authn, authz
@@ -117,6 +117,10 @@ int rx_fx_up(rx_fx *f);                         /* 1 on success */
 void rx_fx_down(rx_fx *f);
 /* shorthand for NDR client calls with the fixture binding */
 DWORD rx_add(RPC_BINDING_HANDLE h, int a, int b, int *r);
+
+/* run fn(arg) under a vectored handler: returns 0, or the exception code if it faulted (the runtime dereferences
+ * some invalid arguments instead of validating them) */
+DWORD rx_guarded(void (*fn)(void *), void *arg);
 
 /* run fn on a thread and wait <= ms; returns TRUE if it finished */
 HANDLE rx_thread(LPTHREAD_START_ROUTINE fn, void *arg);

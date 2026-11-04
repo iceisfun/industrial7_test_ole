@@ -147,12 +147,22 @@ TEST(ncalrpc_life_inqbindings_binding_usable) {
     CHECK(ok);
     U(RpcBindingVectorFree)(&v);
 }
+static void bvf_null(void *p) {
+    struct { RPC_BINDING_VECTOR **pv; RPC_STATUS st; } *a = p;
+    a->st = U(RpcBindingVectorFree)(a->pv);
+}
 TEST(ncalrpc_life_bindingvectorfree_null) {
     RPC_BINDING_VECTOR *v = NULL; RPC_STATUS st;
     REQUIRE(U(RpcBindingVectorFree));
     if (t_is_wine()) { t_skip("crashes in wine"); return; }
-    st = U(RpcBindingVectorFree)(&v);       /* *v == NULL */
-    t_note("RpcBindingVectorFree(&NULL) -> %lu", (unsigned long)st);
+    /* Windows dereferences *v without checking it, so a NULL vector faults */
+    {   struct { RPC_BINDING_VECTOR **pv; RPC_STATUS st; } a; DWORD x;
+        a.pv = &v; a.st = 0xdead;
+        x = rx_guarded(bvf_null, &a);
+        t_note("RpcBindingVectorFree(&NULL) -> exception 0x%lx status %lu", (unsigned long)x, (unsigned long)a.st);
+        EQ(x, EXCEPTION_ACCESS_VIOLATION);
+    }
+    (void)st;
 }
 
 /* ---- RpcServerRegisterIf / Unregister ------------------------------------ */
@@ -169,7 +179,7 @@ TEST(ncalrpc_life_registerif_twice) {
     REQUIRE(U(RpcServerRegisterIf)); rx_ep(ep, 64);
     SERVE(ep);
     s2 = U(RpcServerRegisterIf)(rx_xif_s_ifspec, NULL, NULL);
-    CHECK(s2 == RPC_S_OK || s2 == RPC_S_ALREADY_REGISTERED);
+    EQ(s2, RPC_S_TYPE_ALREADY_REGISTERED);
     t_note("second RpcServerRegisterIf of same if/mgr -> %lu", (unsigned long)s2);
     s3 = U(RpcServerUnregisterIf)(rx_xif_s_ifspec, NULL, 1);
     EQ(s3, RPC_S_OK);
@@ -187,7 +197,7 @@ TEST(ncalrpc_life_unregisterif_twice) {
     REQUIRE(U(RpcServerUnregisterIf)); rx_ep(ep, 64);
     SERVE(ep);
     EQ(U(RpcServerUnregisterIf)(rx_xif_s_ifspec, NULL, 1), RPC_S_OK);
-    EQ(U(RpcServerUnregisterIf)(rx_xif_s_ifspec, NULL, 1), RPC_S_UNKNOWN_IF);
+    EQ(U(RpcServerUnregisterIf)(rx_xif_s_ifspec, NULL, 1), RPC_S_UNKNOWN_MGR_TYPE);   /* the interface entry survives, its manager is gone */
     rx_server_down(NULL, NULL);
 }
 TEST(ncalrpc_life_unregisterifex_unknown_and_known) {
@@ -197,7 +207,7 @@ TEST(ncalrpc_life_unregisterifex_unknown_and_known) {
     EQ(U(RpcServerUnregisterIfEx)((RPC_IF_HANDLE)&r.si, NULL, 0), RPC_S_UNKNOWN_IF);
     rx_ep(ep, 64); SERVE(ep);
     EQ(U(RpcServerUnregisterIfEx)(rx_xif_s_ifspec, NULL, 0), RPC_S_OK);
-    EQ(U(RpcServerUnregisterIfEx)(rx_xif_s_ifspec, NULL, 1), RPC_S_UNKNOWN_IF);
+    EQ(U(RpcServerUnregisterIfEx)(rx_xif_s_ifspec, NULL, 1), RPC_S_UNKNOWN_MGR_TYPE);
     rx_server_down(NULL, NULL);
 }
 TEST(ncalrpc_life_unregistered_if_not_callable) {
@@ -634,8 +644,9 @@ TEST(ncalrpc_life_inqstats_counts_calls) {
 }
 TEST(ncalrpc_life_set_stack_size) {
     REQUIRE(U(RpcMgmtSetServerStackSize));
-    EQ(U(RpcMgmtSetServerStackSize)(0x100000), RPC_S_OK);
-    t_note("RpcMgmtSetServerStackSize(0) -> %lu", (unsigned long)U(RpcMgmtSetServerStackSize)(0));
+    /* the call is a stub on Windows 10: it only reports that it cannot support the request */
+    EQ(U(RpcMgmtSetServerStackSize)(0x100000), RPC_S_CANNOT_SUPPORT);
+    EQ(U(RpcMgmtSetServerStackSize)(0), RPC_S_CANNOT_SUPPORT);
 }
 TEST(ncalrpc_life_enable_idle_cleanup) {
     REQUIRE(U(RpcMgmtEnableIdleCleanup));
@@ -661,7 +672,7 @@ TEST(ncalrpc_life_useprotseqif_without_endpoint_info) {
     /* the interface carries no RpcProtseqEndpoint table: ncalrpc has no entry */
     st = U(RpcServerUseProtseqIfW)((RPC_WSTR)L"ncalrpc", 10, (RPC_IF_HANDLE)&r.si, NULL);
     t_note("UseProtseqIf(ncalrpc) on an interface without endpoint table -> %lu", (unsigned long)st);
-    CHECK(st == RPC_S_OK || st == RPC_S_INVALID_ARG || st == RPC_S_PROTSEQ_NOT_FOUND || st == RPC_S_NO_ENDPOINT_FOUND || st == RPC_S_INVALID_ENDPOINT_FORMAT);
+    EQ(st, RPC_S_PROTSEQ_NOT_SUPPORTED);          /* the interface offers no endpoint for ncalrpc */
 }
 TEST(ncalrpc_life_useprotseqif_with_endpoint_table) {
     rx_raw r; UUID u; RPC_STATUS st; WCHAR epw[64]; char epa[64]; static RPC_PROTSEQ_ENDPOINT pe[1]; RPC_BINDING_HANDLE h; DWORD e;
