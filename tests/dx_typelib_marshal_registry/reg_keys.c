@@ -154,7 +154,23 @@ TMTEST(dxtm_regif_unregister_removes_interfaces)
     ids[4] = TM_IID_IOletProxyFlag; ids[5] = TM_IID_IOletPlain;
     for (i = 0; i < 5; i++) CHECK(tm_hkcr_has_iface(&ids[i]));
     EQ(pUnRegisterTypeLibForUser(&TM_LIBID_Main, TM_MAIN_MAJ, TM_MAIN_MIN, 0, SYS_WIN64), S_OK);
-    for (i = 0; i < 6; i++) CHECKF(!tm_hkcr_has_iface(&ids[i]), "iface %d still registered", i);
+    for (i = 0; i < 6; i++) {
+        if (i == 4) continue;
+        CHECKF(!tm_hkcr_has_iface(&ids[i]), "iface %d still registered", i);
+    }
+    /* Windows leaves the bare Interface\{iid} key of a TYPEFLAG_FPROXY interface behind (its default value only);
+       the ProxyStubClsid32 / TypeLib subkeys are gone like for all the others. */
+    {
+        WCHAR pp[260]; HKEY kk;
+        tm_if_path(HKEY_CLASSES_ROOT, &ids[4], NULL, pp, 260);
+        if (RegOpenKeyExW(HKEY_CLASSES_ROOT, pp, 0, KEY_READ, &kk) == 0) {
+            DWORD ns = 0, nv = 0;
+            RegQueryInfoKeyW(kk, NULL, NULL, NULL, &ns, NULL, NULL, &nv, NULL, NULL, NULL, NULL);
+            RegCloseKey(kk);
+            CHECKF(ns == 0, "FPROXY interface key keeps %lu subkeys", (unsigned long)ns);
+            t_note("FPROXY interface key left behind after UnRegisterTypeLib (%lu subkeys, %lu values)", (unsigned long)ns, (unsigned long)nv);
+        }
+    }
     CHECK(!tm_hkcu_has_lib(&TM_LIBID_Main));
 }
 

@@ -175,6 +175,7 @@ typedef struct TMLibSpec {
 HRESULT tm_build_main(const WCHAR *path);
 HRESULT tm_build_mini(const WCHAR *path, const TMLibSpec *spec);
 void tm_spec_init(TMLibSpec *s, const GUID *libid, WORD maj, WORD min, LCID lcid, const GUID *iid);
+const WCHAR *tm_invoke_path(void);     /* unrestricted unregistered copy of the main library, for ITypeInfo::Invoke */
 const WCHAR *tm_main_path(void);       /* built on demand in t_tmpdir; NULL on failure */
 const WCHAR *tm_mini_path(const char *leaf, const TMLibSpec *spec);   /* build a mini lib file; NULL on failure */
 

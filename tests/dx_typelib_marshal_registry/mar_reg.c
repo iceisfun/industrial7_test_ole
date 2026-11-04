@@ -110,7 +110,9 @@ static void factory_checks(const CLSID *clsid, const GUID *riid, int expect_ok, 
         hr = IPSFactoryBuffer_CreateProxy(f, NULL, riid, &px, &itf);
         CHECKF((hr == S_OK) == !!expect_ok, "%s: CreateProxy hr=0x%lx", what, (long)hr);
         if (SUCCEEDED(hr)) {
-            CHECK(px != NULL && itf != NULL);
+            CHECK(px != NULL);
+            /* Windows hands out the interface pointer only once the proxy is connected to a channel */
+            if (!itf) t_note("%s: CreateProxy returned no interface pointer before Connect", what);
             if (itf) {
                 /* the interface pointer is the proxy for riid; QI back to it works */
                 void *again = NULL;
@@ -163,17 +165,24 @@ static void tamper_delete(const GUID *iid, const WCHAR *sub)
     tm_if_path(tm_ur(), iid, sub, p, 260);
     RegDeleteTreeW(tm_ur(), p);
 }
+/* A broken registration does not stop the marshaling side: on Windows CoMarshalInterThreadInterfaceInStream may
+   succeed (and the same process can unmarshal again). What must fail is the proxy side in a fresh process, which
+   has to find the typelib through the registry. */
 static void marshal_must_fail_(const GUID *iid, const char *what, int hard)
 {
     IOletMini *o; IStream *stm = NULL; HRESULT hr;
     EQ(U(CoInitializeEx)(NULL, COINIT_APARTMENTTHREADED), S_OK);
     o = tm_new_mini(iid);
     hr = U(CoMarshalInterThreadInterfaceInStream)(iid, (IUnknown *)o, &stm);
-    if (hard) CHECKF(FAILED(hr), "%s: marshaling succeeded (hr=0x%lx)", what, (long)hr);
     t_note("%s: hr=0x%lx", what, (long)hr);
     if (stm) IStream_Release(stm);
     o->lpVtbl->Release(o);
     U(CoUninitialize)();
+    if (hard && SUCCEEDED(hr)) {
+        DWORD cc = tm_xp_fresh_unmarshal(iid);
+        t_note("%s: marshaling succeeded; fresh-process unmarshal %s", what, cc == 0 ? "failed" : "worked");
+        CHECKF(cc == 0, "%s: marshaling succeeded and a fresh process could unmarshal (child code %lu)", what, (unsigned long)cc);
+    }
 }
 
 #define marshal_must_fail(i, w) marshal_must_fail_(i, w, 1)
@@ -237,11 +246,15 @@ TMTEST_BARE(dxtm_marreg_interface_absent_from_registered_typelib)
     EQ(U(CoInitializeEx)(NULL, COINIT_APARTMENTTHREADED), S_OK);
     o = tm_new_mini(&TM_IID_MiniDual);
     hr = U(CoMarshalInterThreadInterfaceInStream)(&TM_IID_MiniDual, (IUnknown *)o, &stm);
-    CHECK(FAILED(hr));
     t_note("IID missing from its registered typelib: hr=0x%lx (TYPE_E_ELEMENTNOTFOUND=0x8002802B)", (long)hr);
     if (stm) IStream_Release(stm);
     o->lpVtbl->Release(o);
     U(CoUninitialize)();
+    if (SUCCEEDED(hr)) {
+        DWORD cc = tm_xp_fresh_unmarshal(&TM_IID_MiniDual);
+        t_note("IID missing from its registered typelib: marshaling succeeded; fresh-process unmarshal %s", cc == 0 ? "failed" : "worked");
+        CHECKF(cc == 0, "marshaling succeeded and a fresh process could unmarshal (child code %lu)", (unsigned long)cc);
+    }
     RegDeleteTreeW(tm_ur(), p);
     tm_end();
 }

@@ -213,7 +213,7 @@ static void cl_mix(void *p, void *ctx)
     EQ(out.pt.x, 2); EQ(out.pt.y, 1);
     SysFreeString(out.name);
     SysFreeString(in.name);
-    in.name = NULL; memset(&out, 0, sizeof out);
+    in.name = NULL; in.id = 0; memset(&out, 0, sizeof out);
     hr = M(c, EchoMix, &in, &out);
     EQ(hr, S_OK);
     CHECK(out.name == NULL);
@@ -303,16 +303,29 @@ TMTEST(dxtm_mar_no_errorinfo_without_server_error) { RUN_CUSTOM(cl_errinfo_none,
 
 static void cl_errinfo_long(void *p, void *ctx)
 {
-    CLI(c, p); BSTR d = SysAllocStringLen(NULL, 70000); IErrorInfo *ei = NULL; BSTR got = NULL; UINT i;
-    for (i = 0; i < 70000; i++) d[i] = (WCHAR)(L'a' + i % 26);
-    EQ(M(c, RaiseError, d, E_FAIL), E_FAIL);
-    EQ(GetErrorInfo(0, &ei), S_OK);
-    if (ei) {
-        EQ(IErrorInfo_GetDescription(ei, &got), S_OK);
-        CHECK(got && SysStringLen(got) == 70000 && !memcmp(got, d, 70000 * 2));
-        SysFreeString(got); IErrorInfo_Release(ei);
+    /* Windows carries a description of up to 65535 characters across the proxy; with 65536 or more the error info
+       does not arrive at all (the call still returns the server's hr and GetErrorInfo gives S_FALSE). */
+    CLI(c, p); static const UINT lens[] = { 65535, 65536, 70000 }; int k;
+    for (k = 0; k < 3; k++) {
+        UINT n = lens[k], i; BSTR d = SysAllocStringLen(NULL, n), got = NULL; IErrorInfo *ei = NULL; HRESULT hr;
+        for (i = 0; i < n; i++) d[i] = (WCHAR)(L'a' + i % 26);
+        SetErrorInfo(0, NULL);
+        EQ(M(c, RaiseError, d, E_FAIL), E_FAIL);
+        hr = GetErrorInfo(0, &ei);
+        if (n <= 65535) {
+            EQ(hr, S_OK);
+            if (ei) {
+                EQ(IErrorInfo_GetDescription(ei, &got), S_OK);
+                CHECKF(got && SysStringLen(got) == n && !memcmp(got, d, n * 2), "description of %u characters altered", n);
+                SysFreeString(got);
+            }
+        } else {
+            EQ(hr, S_FALSE);
+            t_note("description of %u characters: no error info arrives (GetErrorInfo hr=0x%lx)", n, (long)hr);
+        }
+        if (ei) IErrorInfo_Release(ei);
+        SysFreeString(d);
     }
-    SysFreeString(d);
 }
 TMTEST(dxtm_mar_errorinfo_description_over_64k) { RUN_CUSTOM(cl_errinfo_long, NULL); }
 
