@@ -139,7 +139,8 @@ TEST(dx_gap6_ctl_legacy_file_not_loadable) {
     ITypeLib *tl = NULL;
     HRESULT hr = U(LoadTypeLibEx)(p, REGKIND_NONE, &tl);
     t_note("legacy CreateTypeLib file load: 0x%lx (Win10 22H2: TYPE_E_UNSUPFORMAT 0x80028019)", hr);
-    if (hr != (HRESULT)0x80028019L) CHECK(SUCCEEDED(hr) == (tl != NULL));
+    EQ(hr, (HRESULT)0x80028019L);
+    CHECK(tl == NULL);
     if (tl) tl->lpVtbl->Release(tl);
     DeleteFileW(p);
 }
