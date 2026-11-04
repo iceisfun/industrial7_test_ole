@@ -3,7 +3,7 @@
  * process with a short timeout. */
 #include "pf.h"
 
-#define SYS_COLOR_COUNT 31   /* COLOR_SCROLLBAR (0) .. COLOR_MENUBAR (30) */
+#define SYS_COLOR_COUNT 25   /* COLOR_SCROLLBAR (0) .. COLOR_INFOBK (24); Win10 rejects 25..30 (incl. HOTLIGHT, gradients, MENUHILIGHT, MENUBAR) */
 
 static HRESULT tc(OLE_COLOR c, HPALETTE pal, COLORREF *out) { return U(OleTranslateColor)(c, pal, out); }
 
@@ -40,7 +40,6 @@ TEST(pcolor_system_color_named_indices) {
     static const struct { int idx; const char *n; } t[] = {
         { COLOR_SCROLLBAR, "scrollbar" }, { COLOR_BACKGROUND, "background" }, { COLOR_WINDOW, "window" },
         { COLOR_WINDOWTEXT, "windowtext" }, { COLOR_BTNFACE, "btnface" }, { COLOR_HIGHLIGHT, "highlight" },
-        { COLOR_MENUBAR, "menubar" },
     };
     int i; REQUIRE(U(OleTranslateColor));
     for (i = 0; i < PF_N(t); i++) {
@@ -51,7 +50,7 @@ TEST(pcolor_system_color_named_indices) {
     }
 }
 TEST(pcolor_system_color_out_of_range) {
-    static const OLE_COLOR t[] = { 0x8000001f, 0x80000020, 0x80000040, 0x800000ff };
+    static const OLE_COLOR t[] = { 0x80000019, 0x8000001a, 0x8000001b, 0x8000001c, 0x8000001d, 0x8000001e, 0x8000001f, 0x80000020, 0x80000040, 0x800000ff };
     int i; REQUIRE(U(OleTranslateColor));
     for (i = 0; i < PF_N(t); i++) {
         COLORREF c = 0x5a5a5a5a; HRESULT hr = tc(t[i], NULL, &c);

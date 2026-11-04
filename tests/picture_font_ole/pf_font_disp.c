@@ -196,7 +196,7 @@ TEST(pfontdisp_invoke_get_matches_ifont) {
     EQ(IFont_get_Name(f, &n), S_OK);
     if (V_VT(&v) == VT_BSTR && n) CHECK(!lstrcmpW(V_BSTR(&v), n));
     SysFreeString(n); VariantClear(&v);
-    EQ(inv_get(d, DISPID_FONT_WEIGHT, &v), S_OK); w = V_VT(&v) == VT_I2 ? V_I2(&v) : -1; EQ(w, 300); VariantClear(&v);
+    EQ(inv_get(d, DISPID_FONT_WEIGHT, &v), S_OK); w = V_VT(&v) == VT_I2 ? V_I2(&v) : -1; EQ(w, pf_snap_weight(300)); VariantClear(&v);
     EQ(inv_get(d, DISPID_FONT_CHARSET, &v), S_OK); cs = V_VT(&v) == VT_I2 ? V_I2(&v) : -1; EQ(cs, 2); VariantClear(&v);
     EQ(inv_get(d, DISPID_FONT_SIZE, &v), S_OK);
     if (V_VT(&v) == VT_CY) CHECK(V_CY(&v).int64 - 345600 < 10000 && V_CY(&v).int64 - 345600 > -10000);
@@ -222,7 +222,7 @@ TEST(pfontdisp_invoke_put_roundtrip) {
     V_BOOL(&v) = VARIANT_FALSE;
     EQ(inv_put(d, DISPID_FONT_BOLD, &v, 0), S_OK); EQ(IFont_get_Bold(f, &b), S_OK); EQ(b, FALSE);
     V_VT(&v) = VT_I2; V_I2(&v) = 900;
-    EQ(inv_put(d, DISPID_FONT_WEIGHT, &v, 0), S_OK); EQ(IFont_get_Weight(f, &s), S_OK); EQ(s, 900);
+    EQ(inv_put(d, DISPID_FONT_WEIGHT, &v, 0), S_OK); EQ(IFont_get_Weight(f, &s), S_OK); EQ(s, pf_snap_weight(900));
     V_I2(&v) = 5;
     EQ(inv_put(d, DISPID_FONT_CHARSET, &v, 0), S_OK); EQ(IFont_get_Charset(f, &s), S_OK); SOFT_EQ(s, 5);
     IFontDisp_Release(d); IFont_Release(f);
@@ -244,7 +244,7 @@ TEST(pfontdisp_invoke_put_coerces_types) {
     V_VT(&v) = VT_I4; V_I4(&v) = 600;
     hr = inv_put(d, DISPID_FONT_WEIGHT, &v, 0);
     t_note("put Weight via VT_I4 hr=%08lx", hr);
-    if (hr == S_OK) { EQ(IFont_get_Weight(f, &s), S_OK); EQ(s, 600); }
+    if (hr == S_OK) { EQ(IFont_get_Weight(f, &s), S_OK); EQ(s, pf_snap_weight(600)); }
     V_VT(&v) = VT_BSTR; V_BSTR(&v) = SysAllocString(L"abc");
     hr = inv_put(d, DISPID_FONT_WEIGHT, &v, 0);
     CHECKF(FAILED(hr), "uncoercible string accepted as weight: %08lx", hr);
@@ -380,7 +380,7 @@ TEST(pfontevents_changed_via_invoke) {
     for (i = 0; i < PF_N(fprops); i++) {
         VARIANT v;
         switch (fprops[i].vt) {
-        case VT_BSTR: V_VT(&v) = VT_BSTR; V_BSTR(&v) = SysAllocString(L"Arial"); break;
+        case VT_BSTR: V_VT(&v) = VT_BSTR; V_BSTR(&v) = SysAllocString(L"Courier New"); break;   /* must differ from the current name: unchanged values do not notify */
         case VT_CY:   V_VT(&v) = VT_CY; V_CY(&v).int64 = 250000; break;
         case VT_BOOL: V_VT(&v) = VT_BOOL; V_BOOL(&v) = VARIANT_TRUE; break;
         default:      V_VT(&v) = VT_I2; V_I2(&v) = fprops[i].id == DISPID_FONT_WEIGHT ? 900 : 1; break;
@@ -604,7 +604,8 @@ TEST(pfontpersist_getsizemax) {
     if (ps) {
         sz.QuadPart = 0xffff;
         EQ(IPersistStream_GetSizeMax(ps, &sz), S_OK);
-        EQ(sz.QuadPart, 11 + 5);       /* fixed 11 byte header + 5 ANSI chars of "Arial" */
+        /* Win10: GetSizeMax is an upper bound, 11 byte header + LF_FACESIZE (32) name bytes, not the exact 11 + 5 */
+        EQ(sz.QuadPart, 11 + 32);
         IPersistStream_Release(ps);
     }
     IFont_Release(f);
@@ -686,7 +687,7 @@ TEST(pfontpersist_roundtrip) {
         EQ(IFont_IsEqual(a, b), S_OK);
         EQ(IFont_get_Name(b, &nm), S_OK); CHECK(nm && !lstrcmpW(nm, pf_arial)); SysFreeString(nm);
         EQ(IFont_get_Size(b, &sz), S_OK); EQ(sz.int64, 135000);
-        EQ(IFont_get_Weight(b, &w), S_OK); EQ(w, 300);
+        EQ(IFont_get_Weight(b, &w), S_OK); EQ(w, pf_snap_weight(300));
         EQ(IFont_get_Charset(b, &cs), S_OK); EQ(cs, GREEK_CHARSET);
         EQ(IFont_get_Italic(b, &bb), S_OK); EQ(bb, TRUE);
         EQ(IFont_get_Underline(b, &bb), S_OK); EQ(bb, TRUE);
@@ -706,7 +707,8 @@ TEST(pfontpersist_save_position_advances) {
         EQ(IPersistStream_Save(ps, s, FALSE), S_OK);
         z.QuadPart = 0; pos.QuadPart = 0;
         EQ(IStream_Seek(s, z, STREAM_SEEK_CUR, &pos), S_OK);
-        EQ(pos.QuadPart, max.QuadPart);
+        /* Win10: GetSizeMax is an upper bound; the position is the exact size written (11 + 5 for "Arial") */
+        CHECK(pos.QuadPart <= max.QuadPart); EQ(pos.QuadPart, 11 + 5);
     } else CHECK(0);
     if (s) IStream_Release(s);
     if (ps) IPersistStream_Release(ps);
@@ -805,10 +807,12 @@ static ULONG WINAPI pb_ar(IPropertyBag *i) { return 2; }
 static ULONG WINAPI pb_rel(IPropertyBag *i) { return 1; }
 static HRESULT WINAPI pb_read(IPropertyBag *i, LPCOLESTR name, VARIANT *v, IErrorLog *e) {
     bag_t *b = (bag_t *)i;
+    t_note("bag Read(%ls) incoming vt=%u", name, V_VT(v));
     if (b->reads < 16) lstrcpynW(b->seen[b->reads], name, 16);
     b->reads++;
     if (!lstrcmpW(name, L"Name")) { V_VT(v) = VT_BSTR; V_BSTR(v) = SysAllocString(L"Tahoma"); return S_OK; }
-    if (!lstrcmpW(name, L"Size")) { V_VT(v) = VT_R8; V_R8(v) = 13.8; return S_OK; }
+    /* the control asks for VT_CY (incoming vt=6); Win10 does not coerce a VT_R8 answer (fails with DISP_E_OVERFLOW) */
+    if (!lstrcmpW(name, L"Size")) { V_VT(v) = VT_CY; V_CY(v).int64 = 138000; return S_OK; }
     if (!lstrcmpW(name, L"Weight")) { V_VT(v) = VT_I2; V_I2(v) = 700; return S_OK; }
     if (!lstrcmpW(name, L"Charset")) { V_VT(v) = VT_I2; V_I2(v) = 0; return S_OK; }
     if (!lstrcmpW(name, L"Italic")) { V_VT(v) = VT_BOOL; V_BOOL(v) = VARIANT_TRUE; return S_OK; }
@@ -852,15 +856,32 @@ TEST(pfontclass_cocreateinstance) {
     U(CoUninitialize)();
 }
 TEST(pfontclass_cocreate_matches_indirect_default) {
-    HRESULT hr; IFont *a = NULL, *b = NULL;
+    /* Win10: both creators give the same visible default font (MS Sans Serif, 8.25pt, weight 400, charset 0), instances of
+     * the same creator compare equal, but IsEqual between a CoCreateInstance font and an OleCreateFontIndirect(NULL)
+     * font is S_FALSE (hidden internal state differs). */
+    IFont *a = NULL, *a2 = NULL, *b = NULL, *b2 = NULL;
     REQUIRE(U(CoInitializeEx)); REQUIRE(U(CoCreateInstance)); REQUIRE(U(CoUninitialize)); REQUIRE(U(OleCreateFontIndirect));
     EQ(U(CoInitializeEx)(NULL, COINIT_APARTMENTTHREADED), S_OK);
-    hr = U(CoCreateInstance)(&PF_CLSID_StdFont, NULL, CLSCTX_INPROC_SERVER, &IID_IFont, (void **)&a);
-    EQ(hr, S_OK);
+    EQ(U(CoCreateInstance)(&PF_CLSID_StdFont, NULL, CLSCTX_INPROC_SERVER, &IID_IFont, (void **)&a), S_OK);
+    EQ(U(CoCreateInstance)(&PF_CLSID_StdFont, NULL, CLSCTX_INPROC_SERVER, &IID_IFont, (void **)&a2), S_OK);
     EQ(U(OleCreateFontIndirect)(NULL, &IID_IFont, (void **)&b), S_OK);
-    if (a && b) EQ(IFont_IsEqual(a, b), S_OK);
+    EQ(U(OleCreateFontIndirect)(NULL, &IID_IFont, (void **)&b2), S_OK);
+    if (a && a2 && b && b2) {
+        BSTR na = NULL, nb = NULL; CY sa, sb; SHORT wa = 0, wb = 0, ca = 0, cb = 0;
+        IFont_get_Name(a, &na); IFont_get_Name(b, &nb); IFont_get_Size(a, &sa); IFont_get_Size(b, &sb);
+        IFont_get_Weight(a, &wa); IFont_get_Weight(b, &wb); IFont_get_Charset(a, &ca); IFont_get_Charset(b, &cb);
+        t_note("CoCreate default: '%ls' size=%lld weight=%d charset=%d", na ? na : L"", (long long)sa.int64, wa, ca);
+        t_note("OleCreateFontIndirect(NULL): '%ls' size=%lld weight=%d charset=%d", nb ? nb : L"", (long long)sb.int64, wb, cb);
+        CHECK(na && nb && !lstrcmpW(na, nb)); EQ(sa.int64, sb.int64); EQ(wa, wb); EQ(ca, cb);
+        SysFreeString(na); SysFreeString(nb);
+        EQ(IFont_IsEqual(a, a2), S_OK);
+        EQ(IFont_IsEqual(b, b2), S_OK);
+        EQ(IFont_IsEqual(a, b), S_FALSE);
+    }
     if (a) IFont_Release(a);
+    if (a2) IFont_Release(a2);
     if (b) IFont_Release(b);
+    if (b2) IFont_Release(b2);
     U(CoUninitialize)();
 }
 TEST(pfontclass_class_factory) {

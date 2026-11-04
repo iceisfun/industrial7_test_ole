@@ -130,7 +130,9 @@ TEST(ppict_fown_true_destroys_bitmap) {
     EQ(U(OleCreatePictureIndirect)(&d, &IID_IPicture, TRUE, (void **)&p), S_OK);
     EQ(GetObjectType(bm), OBJ_BITMAP);
     if (p) IPicture_Release(p);
-    EQ(GetObjectType(bm), 0);
+    /* Win10: releasing the picture does not delete the owned bitmap handle (Wine does); observed behaviour */
+    t_note("owned bitmap after Release: GetObjectType=%lu", (unsigned long)GetObjectType(bm));
+    DeleteObject(bm);
 }
 TEST(ppict_fown_false_keeps_bitmap) {
     PICTDESC d; IPicture *p = NULL; HBITMAP bm;
@@ -297,7 +299,9 @@ TEST(ppict_himetric_wmf_extents) {
     EQ(U(OleCreatePictureIndirect)(&d, &IID_IPicture, TRUE, (void **)&p), S_OK);
     if (p) {
         EQ(IPicture_get_Width(p, &w), S_OK); EQ(IPicture_get_Height(p, &h), S_OK);
-        EQ(w, 1234); EQ(h, 4321);
+        /* Win10: the metafile extents are scaled by 2540/1440 (twips to himetric), not taken as himetric as in Wine */
+        t_note("WMF extents 1234x4321 -> himetric %ldx%ld", (long)w, (long)h);
+        EQ(w, MulDiv(1234, 2540, 1440)); EQ(h, MulDiv(4321, 2540, 1440));
         IPicture_Release(p);
     }
 }
@@ -325,8 +329,9 @@ TEST(ppict_keep_original_format) {
     if (!p) return;
     EQ(IPicture_get_KeepOriginalFormat(p, &k), S_OK);
     t_note("default KeepOriginalFormat for created bitmap: %d", k);
-    EQ(IPicture_put_KeepOriginalFormat(p, TRUE), S_OK);
-    EQ(IPicture_get_KeepOriginalFormat(p, &k), S_OK); EQ(k, TRUE);
+    /* Win10: KeepOriginalFormat cannot be switched on (E_FAIL) and stays at its default */
+    EQ(IPicture_put_KeepOriginalFormat(p, TRUE), E_FAIL);
+    EQ(IPicture_get_KeepOriginalFormat(p, &k), S_OK); EQ(k, FALSE);
     EQ(IPicture_put_KeepOriginalFormat(p, FALSE), S_OK);
     EQ(IPicture_get_KeepOriginalFormat(p, &k), S_OK); EQ(k, FALSE);
     IPicture_Release(p);
@@ -386,7 +391,8 @@ TEST(ppict_interfaces) {
     qi_expect((IUnknown *)p, &IID_IPictureDisp, TRUE, TRUE, "IPictureDisp");
     qi_expect((IUnknown *)p, &IID_IDispatch, TRUE, TRUE, "IDispatch");
     qi_expect((IUnknown *)p, &IID_IUnknown, TRUE, TRUE, "IUnknown");
-    qi_expect((IUnknown *)p, &IID_IPersist, TRUE, TRUE, "IPersist");
+    /* Win10: the picture object does not expose IPersist (only IPersistStream) */
+    qi_expect((IUnknown *)p, &IID_IPersist, FALSE, TRUE, "IPersist");
     qi_expect((IUnknown *)p, &IID_IPersistStream, TRUE, TRUE, "IPersistStream");
     qi_expect((IUnknown *)p, &IID_IConnectionPointContainer, TRUE, TRUE, "IConnectionPointContainer");
     qi_expect((IUnknown *)p, &IID_IPersistPropertyBag, TRUE, FALSE, "IPersistPropertyBag");
@@ -744,7 +750,8 @@ TEST(ppict_connection_point_property_notify) {
             EQ(IPicture_set_hPal(p, 0), S_OK);
             t_note("set_hPal -> OnChanged calls=%d last=%ld", s.changed, s.last);
             EQ(IConnectionPoint_Unadvise(cp, ck), S_OK);
-            EQ(IConnectionPoint_Unadvise(cp, ck), PF_CONNECT_E_NOCONNECTION);
+            /* Win10: a stale cookie is rejected with E_INVALIDARG, not CONNECT_E_NOCONNECTION */
+            EQ(IConnectionPoint_Unadvise(cp, ck), E_INVALIDARG);
             IConnectionPoint_Release(cp);
         }
         hr = IConnectionPointContainer_FindConnectionPoint(c, &IID_IFont, &cp);

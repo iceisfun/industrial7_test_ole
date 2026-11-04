@@ -23,6 +23,13 @@ static HRESULT load_flavour(int flavour, const void *data, size_t len, LONG lsiz
     return hr;
 }
 
+/* Win10: a stream whose Seek is E_NOTIMPL (forward-only) cannot be loaded; the stream's E_NOTIMPL is returned as is
+ * (Wine reads such streams to the end). */
+static void check_fwd_refused(HRESULT hr, void *p, const char *what) {
+    CHECKF(hr == E_NOTIMPL && !p, "%s (forward-only): hr=%08lx want E_NOTIMPL", what, hr);
+    if (p) IPicture_Release((IPicture *)p);
+}
+
 /* Checks common to every successfully loaded raster image */
 static void check_bitmap_pic(IPicture *pic, const img_t *im, const char *ctx) {
     short ty = -1; OLE_HANDLE h = 0, hp = 0xdeadbeef; OLE_XSIZE_HIMETRIC w = 0; OLE_YSIZE_HIMETRIC ht = 0; DWORD at = 0xdeadbeef;
@@ -61,16 +68,14 @@ TEST(ploadpic_raw_forward_only_stream) {
     int i; REQUIRE(U(OleLoadPicture));
     for (i = 0; i < PF_N(images); i++) {
         IPicture *p = NULL; HRESULT hr = load_flavour(1, images[i].data, images[i].len, 0, &IID_IPicture, (void **)&p);
-        CHECKF(hr == S_OK && p, "%s: hr=%08lx", images[i].name, hr);
-        if (hr == S_OK && p) { check_bitmap_pic(p, &images[i], "forward-only"); EQ(IPicture_Release(p), 0); }
+        check_fwd_refused(hr, p, images[i].name);
     }
 }
 TEST(ploadpic_raw_forward_only_stream_with_size) {
     int i; REQUIRE(U(OleLoadPicture));
     for (i = 0; i < PF_N(images); i++) {
         IPicture *p = NULL; HRESULT hr = load_flavour(1, images[i].data, images[i].len, (LONG)images[i].len, &IID_IPicture, (void **)&p);
-        CHECKF(hr == S_OK && p, "%s: hr=%08lx", images[i].name, hr);
-        if (hr == S_OK && p) { check_bitmap_pic(p, &images[i], "forward-only/size"); IPicture_Release(p); }
+        check_fwd_refused(hr, p, images[i].name);
     }
 }
 TEST(ploadpic_raw_seekable_lsize_zero) {
@@ -96,8 +101,7 @@ TEST(ploadpic_lt_header_repeated) {
             if (hr == S_OK && p) { check_bitmap_pic(p, &images[k], "lt-header"); IPicture_Release(p); }
             p = NULL;
             hr = load_flavour(1, buf, images[k].len + 8 * i, (LONG)images[k].len, &IID_IPicture, (void **)&p);
-            CHECKF(hr == S_OK && p, "%s x%d headers (forward-only): hr=%08lx", images[k].name, i, hr);
-            if (hr == S_OK && p) { check_bitmap_pic(p, &images[k], "lt-header/fwd"); IPicture_Release(p); }
+            check_fwd_refused(hr, p, images[k].name);
             free(buf);
         }
     }
@@ -237,8 +241,7 @@ TEST(ploadpic_empty_image_at_offset) {
 TEST(ploadpic_empty_image_forward_only_size_zero) {
     static const BYTE e[8] = { 'l', 't', 0, 0, 0, 0, 0, 0 };
     void *p = NULL; short ty = 99; REQUIRE(U(OleLoadPicture));
-    EQ(load_flavour(1, e, 8, 0, &IID_IPicture, &p), S_OK);
-    if (p) { EQ(IPicture_get_Type((IPicture *)p, &ty), S_OK); EQ(ty, PICTYPE_NONE); IPicture_Release((IPicture *)p); }
+    check_fwd_refused(load_flavour(1, e, 8, 0, &IID_IPicture, &p), p, "empty image");
 }
 TEST(ploadpic_empty_image_is_renderable_noop) {
     static const BYTE e[8] = { 'l', 't', 0, 0, 0, 0, 0, 0 };
@@ -425,8 +428,7 @@ TEST(ploadpic_ico_32x32) {
 TEST(ploadpic_ico_forward_only) {
     BYTE buf[1200]; size_t n; void *p = NULL; short ty = -1; REQUIRE(U(OleLoadPicture));
     n = pf_build_ico(buf, 1, 16, 16);
-    EQ(load_flavour(1, buf, n, 0, &IID_IPicture, &p), S_OK);
-    if (p) { EQ(IPicture_get_Type((IPicture *)p, &ty), S_OK); EQ(ty, PICTYPE_ICON); IPicture_Release((IPicture *)p); }
+    check_fwd_refused(load_flavour(1, buf, n, 0, &IID_IPicture, &p), p, "icon");
 }
 TEST(ploadpic_cur_16x16) {
     BYTE buf[1200]; size_t n; REQUIRE(U(OleLoadPicture));
