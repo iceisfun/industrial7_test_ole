@@ -357,7 +357,8 @@ TEST(mem_imalloc_didalloc) {
         CHECK(p != NULL); if (!p) return;
         EXPECT_EQ(im->lpVtbl->DidAlloc(im, p), 1);
         EXPECT_EQ(im->lpVtbl->DidAlloc(im, NULL), -1);          /* cannot tell for NULL */
-        EXPECT_EQ(im->lpVtbl->DidAlloc(im, (void *)1), 0);
+        /* Win10 DidAlloc == HeapValidate(heap, 0, p): TRUE/FALSE, i.e. 1 or 0, -1 only for NULL */
+        EXPECT_EQ(im->lpVtbl->DidAlloc(im, (void *)1), 0);      /* HeapValidate faults and swallows it internally */
         EXPECT_EQ(im->lpVtbl->DidAlloc(im, p + 4), 0);          /* interior pointer is not a block start */
         char *z = im->lpVtbl->Alloc(im, 0);
         if (z) { EXPECT_EQ(im->lpVtbl->DidAlloc(im, z), 1); im->lpVtbl->Free(im, z); }

@@ -43,7 +43,16 @@ static LONG WINAPI veh(PEXCEPTION_POINTERS ep) {
     if (!g_in_test) return EXCEPTION_CONTINUE_SEARCH;
     if (c == 0x40010006 || c == 0x406D1388 || c == DBG_PRINTEXCEPTION_C || c == 0x4001000A) return EXCEPTION_CONTINUE_SEARCH;
     if ((c & 0xF0000000) != 0xC0000000) return EXCEPTION_CONTINUE_SEARCH;
-    printf("  FAIL exception 0x%08lx at %p in %s\n", c, ep->ExceptionRecord->ExceptionAddress, g_cur);
+    {
+        HMODULE hm = NULL; char mn[MAX_PATH] = "?";
+        if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)ep->ExceptionRecord->ExceptionAddress, &hm) && hm) {
+            GetModuleFileNameA(hm, mn, sizeof mn);
+            const char *b = strrchr(mn, '\\'); b = b ? b + 1 : mn;
+            printf("  FAIL exception 0x%08lx at %s+0x%llx (access %lu addr %p) in %s\n", c, b, (unsigned long long)((char *)ep->ExceptionRecord->ExceptionAddress - (char *)hm),
+                   ep->ExceptionRecord->NumberParameters > 0 ? (unsigned long)ep->ExceptionRecord->ExceptionInformation[0] : 0UL,
+                   ep->ExceptionRecord->NumberParameters > 1 ? (void *)ep->ExceptionRecord->ExceptionInformation[1] : NULL, g_cur);
+        } else printf("  FAIL exception 0x%08lx at %p in %s\n", c, ep->ExceptionRecord->ExceptionAddress, g_cur);
+    }
     g_fail++; g_cur_fail++;
     g_in_test = 0;
     longjmp(g_jb, 1);
