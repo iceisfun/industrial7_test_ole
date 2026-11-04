@@ -95,7 +95,7 @@ TEST(gap4_stgmedium_userfree_stream_releases_interface) {
         }
     }
 }
-TEST(gap4_stgmedium_userfree_stream_with_punk_releases_only_punk) {
+TEST(gap4_stgmedium_userfree_stream_with_punk_releases_stream_and_punk) {
     int w;
     for (w = 0; w < 2; w++) {
         void *f = ffn(w); UMC c; STGMEDIUM m; mock s, k;
@@ -104,7 +104,8 @@ TEST(gap4_stgmedium_userfree_stream_with_punk_releases_only_punk) {
         memset(&m, 0, sizeof m); m.tymed = TY_ISTREAM; m.pstm = (IStream *)&s; m.pUnkForRelease = (IUnknown *)&k;
         um_init(&c, NULL, 0, C_LOCAL);
         XEQ(um_x_free(f, UMF(&c), &m), 0);
-        CHECKF(k.nrel == 1 && s.nrel == 0, "w=%d: punk %ld stream %ld", w, (long)k.nrel, (long)s.nrel);
+        /* Win10: STGMEDIUM_UserFree on an ISTREAM medium goes through ReleaseStgMedium and releases the stream as well as pUnkForRelease. */
+        CHECKF(k.nrel == 1 && s.nrel == 1, "w=%d: punk %ld stream %ld", w, (long)k.nrel, (long)s.nrel);
     }
 }
 TEST(gap4_stgmedium_userfree_file_name_freed) {
@@ -129,8 +130,11 @@ TEST(gap4_stgmedium_userfree_gdi_deleted_unless_inproc) {
         memset(&m, 0, sizeof m); m.tymed = TY_GDI; m.hBitmap = bm;
         um_init(&c, NULL, 0, ctx);
         XEQ(um_x_free(f, UMF(&c), &m), 0);
-        if (inproc) { CHECKF(UIN("gdi32.dll", GetObjectType)(bm) == OBJ_BITMAP, "w=%d: INPROC must not delete", w); UIN("gdi32.dll", DeleteObject)(bm); }
-        else CHECKF(UIN("gdi32.dll", GetObjectType)(bm) == 0, "w=%d ctx=%lu: bitmap not deleted", w, ctx);
+        /* Win10: the bitmap is deleted for every context except INPROC; a second DeleteObject therefore fails (GetObjectType keeps
+         * reporting OBJ_BITMAP for the stale handle, so it cannot be used to tell). */
+        { BOOL del = UIN("gdi32.dll", DeleteObject)(bm);
+          if (inproc) CHECKF(del, "w=%d: INPROC must not delete", w);
+          else CHECKF(!del, "w=%d ctx=%lu: bitmap not deleted", w, ctx); }
     }
 }
 TEST(gap4_stgmedium_userfree_invalid_tymed) {
@@ -159,7 +163,10 @@ TEST(gap4_stgmedium_unmarshal64_tymed_null) {
         um_init(&c, b, 64, C_LOCAL);
         XEQ(um_x_mar(fu, UMF(&c), b + off, &o, &e), 0);
         CHECKF(e == b + a8 + 16, "end %+ld want %u", (long)(e - b), a8 + 16);
-        CHECKF(o.tymed == 0 && o.pUnkForRelease == NULL && o.hGlobal == NULL, "tymed %lu u %p unk %p", o.tymed, o.hGlobal, o.pUnkForRelease);
+        /* Win10: the output is zeroed only when the marshal context says so; with this plain context a NULL-tymed medium leaves
+         * pUnkForRelease as the caller had it (the 0xAB pattern) and only clears the union. */
+        CHECKF(o.tymed == 0 && o.hGlobal == NULL, "tymed %lu u %p", o.tymed, o.hGlobal);
+        CHECKF(o.pUnkForRelease == (IUnknown *)(ULONG_PTR)0xabababababababab, "pUnkForRelease %p (untouched expected)", o.pUnkForRelease);
         um_buf_free(b);
     }
 }
@@ -189,7 +196,10 @@ TEST(gap4_stgmedium_unmarshal64_roundtrip_hglobal) {
             CHECKF(o.tymed == TY_HGLOBAL && o.hGlobal != NULL && o.hGlobal != g && o.pUnkForRelease == NULL, "size %lu ctx %lu", sizes[k], ctx);
             if (o.hGlobal) {
                 CHECK(GlobalSize(o.hGlobal) >= sizes[k]);
-                p = GlobalLock(o.hGlobal); CHECK(p && p[0] == 0x11 && p[sizes[k] - 1] == 0x22 && p[sizes[k] / 2] == 0x5a); GlobalUnlock(o.hGlobal);
+                p = GlobalLock(o.hGlobal);
+                /* the source fill is 0x5a with p[0]=0x11 then p[n-1]=0x22: for a 1-byte block the last write wins */
+                CHECKF(p && p[0] == (sizes[k] == 1 ? 0x22 : 0x11) && p[sizes[k] - 1] == 0x22 && (sizes[k] < 3 || p[sizes[k] / 2] == 0x5a), "size %lu", sizes[k]);
+                GlobalUnlock(o.hGlobal);
                 um_init(&c, NULL, 0, ctx);
                 XEQ(um_x_free(ff, UMF(&c), &o), 0);
             }

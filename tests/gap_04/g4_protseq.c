@@ -13,7 +13,8 @@
 #define G4_INVALID_BOUND 1734
 #define G4_PROTSEQ_NOT_SUPPORTED 1703
 #define G4_NO_PROTSEQS 1719
-#define G4_INVALID_RPC_PROTSEQ 1704
+/* Win10: an unknown protocol sequence is reported as RPC_S_PROTSEQ_NOT_SUPPORTED (1703), not RPC_S_INVALID_RPC_PROTSEQ (1704) */
+#define G4_INVALID_RPC_PROTSEQ 1703
 
 #define NOWINE(why) do { if (t_is_wine()) { t_skip("%s", why); return; } } while (0)
 static RPC_POLICY mkpol(unsigned len) { RPC_POLICY p; memset(&p, 0, sizeof p); p.Length = len; return p; }

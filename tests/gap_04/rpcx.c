@@ -294,9 +294,11 @@ static void RPC_ENTRY raw_inqbind(RPC_MESSAGE *m) {
  * reply: {st, clientLen, serverLen, level, svc, local, pid, canary_ok, char cname[160], char sname[160]} */
 typedef struct { DWORD st, clen, slen, level, svc, local, pid, canary_ok; char cname[160]; char sname[160]; } g4_attrsA_reply;
 static void RPC_ENTRY raw_attrsA(RPC_MESSAGE *m) {
-    g4_attrsA_reply r; DWORD *q = (DWORD *)m->Buffer; RPC_CALL_ATTRIBUTES_V2_A a; char cb[160], sb[160]; DWORD i, ok = 1;
+    g4_attrsA_reply r; DWORD *q = (DWORD *)m->Buffer; union { RPC_CALL_ATTRIBUTES_V2_A a; BYTE v3pad[0x100]; } ua; char cb[160], sb[160]; DWORD i, ok = 1;
+#define a ua.a
+    /* Win10 accepts Version 3 (a 0x78-byte structure, larger than the SDK V2 one): give it room so it cannot write past our buffer */
     InterlockedIncrement(&rx_raw_calls);
-    memset(&r, 0, sizeof r); memset(&a, 0, sizeof a); memset(cb, 0x7f, sizeof cb); memset(sb, 0x7f, sizeof sb);
+    memset(&r, 0, sizeof r); memset(&ua, 0, sizeof ua); memset(cb, 0x7f, sizeof cb); memset(sb, 0x7f, sizeof sb);
     a.Version = q[0]; a.Flags = q[1];
     a.ClientPrincipalName = (unsigned short *)cb; a.ClientPrincipalNameBufferLength = q[2];
     a.ServerPrincipalName = (unsigned short *)sb; a.ServerPrincipalNameBufferLength = q[3];
@@ -308,6 +310,7 @@ static void RPC_ENTRY raw_attrsA(RPC_MESSAGE *m) {
     r.canary_ok = ok;
     memcpy(r.cname, cb, 160); memcpy(r.sname, sb, 160);
     raw_reply(m, &r, sizeof r);
+#undef a
 }
 /* 15 container: reply 9 x DWORD:
  *  0 ImpersonateClientContainer(NULL)  1 RevertContainerImpersonation()  2 RevertToSelfEx(NULL) with nothing impersonated
