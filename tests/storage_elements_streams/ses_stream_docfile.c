@@ -163,7 +163,8 @@ DF_TEST(ses_df_setsize_shrink_preserves_prefix) {
     HR(IStream_SetSize(s, ULI(10000)), S_OK);
     ses_seek(s, 0, STREAM_SEEK_SET, NULL); memset(r, 0xee, sizeof r);
     HR(IStream_Read(s, r, sizeof r, &n), S_OK); EQ(n, 10000);
-    CHECK(!memcmp(r, w, 100)); CHECKW(ses_allzero(r + 100, 9900));
+    CHECK(!memcmp(r, w, 100)); /* Windows does not zero the discarded tail: growing back exposes the old bytes */
+    CHECK(!memcmp(r + 100, w + 100, 9900));
     IStream_Release(s);
 }
 DF_TEST(ses_df_setsize_zero_resets) {
@@ -184,7 +185,8 @@ DF_TEST(ses_df_setsize_keeps_pointer_and_write_after) {
     ses_write_all(s, "Z", 1); /* writing beyond the (shrunk) end re-extends with a zero gap */
     EQ(ses_stream_size(s), 11);
     unsigned char b[11]; ULONG n; ses_seek(s, 0, STREAM_SEEK_SET, NULL); IStream_Read(s, b, 11, &n);
-    CHECK(!memcmp(b, "0123", 4) && b[10] == 'Z'); CHECKW(ses_allzero(b + 4, 6));
+    CHECK(!memcmp(b, "0123", 4) && b[10] == 'Z'); /* Windows keeps the discarded bytes in the gap instead of zeroing it */
+    CHECK(!memcmp(b + 4, "456789", 6));
     IStream_Release(s);
 }
 DF_TEST(ses_df_ministream_boundary_sizes) {
@@ -236,7 +238,8 @@ DF_TEST(ses_df_shrink_large_to_mini_roundtrip) {
     HR(IStream_SetSize(s, ULI(4096)), S_OK); EQ(ses_stream_size(s), 4096);
     HR(IStream_SetSize(s, ULI(4097)), S_OK); EQ(ses_stream_size(s), 4097);
     ses_seek(s, 0, STREAM_SEEK_SET, NULL); IStream_Read(s, r, sizeof r, &n); EQ(n, 4097);
-    CHECK(!memcmp(r, w, 1000)); CHECKW(ses_allzero(r + 1000, 3097));
+    CHECK(!memcmp(r, w, 1000)); /* Windows does not zero the regrown range: the old bytes show through */
+    CHECK(!memcmp(r + 1000, w + 1000, 3097));
     IStream_Release(s);
 }
 DF_TEST(ses_df_stream_4mb) {

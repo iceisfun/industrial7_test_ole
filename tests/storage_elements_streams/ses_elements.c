@@ -171,8 +171,10 @@ DF_TEST(ses_el_createstorage_invalid_modes) {
     static const DWORD bad[] = { STGM_READWRITE, STGM_READ, STGM_SHARE_DENY_NONE | STGM_READWRITE, MODE_RW | STGM_DELETEONRELEASE };
     for (unsigned i = 0; i < sizeof bad / sizeof *bad; i++) {
         IStorage *g = NULL; HRESULT hr = IStorage_CreateStorage(stg, L"S", bad[i], 0, 0, &g);
-        CHECKW(hr == STG_E_INVALIDFLAG);
-        if (hr != STG_E_INVALIDFLAG) t_note("CreateStorage mode 0x%lx -> 0x%08lx", bad[i], (unsigned long)hr);
+        /* Windows: DELETEONRELEASE is STG_E_INVALIDFUNCTION, the other bad modes STG_E_INVALIDFLAG */
+        HRESULT want = (bad[i] & STGM_DELETEONRELEASE) ? STG_E_INVALIDFUNCTION : STG_E_INVALIDFLAG;
+        CHECK(hr == want);
+        if (hr != want) t_note("CreateStorage mode 0x%lx -> 0x%08lx", bad[i], (unsigned long)hr);
         if (g) { IStorage_Release(g); IStorage_DestroyElement(stg, L"S"); }
     }
 }
@@ -264,7 +266,7 @@ DF_TEST(ses_el_openstream_invalid_modes) {
     HR(IStorage_OpenStream(stg, L"s", NULL, STGM_TRANSACTED | MODE_RW, 0, &s), STG_E_INVALIDFUNCTION);
     HRW(IStorage_OpenStream(stg, L"s", NULL, STGM_READWRITE, 0, &s), STG_E_INVALIDFLAG);
     HRW(IStorage_OpenStream(stg, L"s", NULL, STGM_READ, 0, &s), STG_E_INVALIDFLAG);
-    HRW(IStorage_OpenStream(stg, L"s", NULL, STGM_SHARE_DENY_WRITE | STGM_READ, 0, &s), STG_E_INVALIDFLAG);
+    HR(IStorage_OpenStream(stg, L"s", NULL, STGM_SHARE_DENY_WRITE | STGM_READ, 0, &s), STG_E_INVALIDFUNCTION); /* Windows: not INVALIDFLAG */
     CHECK(s == NULL);
 }
 DF_TEST(ses_el_openstream_valid_modes) {
@@ -409,12 +411,13 @@ DF_TEST(ses_el_rename_name_too_long) {
 }
 DF_TEST(ses_el_rename_target_exists) {
     ses_put(stg, L"a", "1", 1); ses_put(stg, L"b", "22", 2);
-    HR(IStorage_RenameElement(stg, L"a", L"b"), STG_E_FILEALREADYEXISTS);
-    HR(IStorage_RenameElement(stg, L"a", L"B"), STG_E_FILEALREADYEXISTS); /* case-insensitive collision */
+    /* Windows reports a name collision as STG_E_ACCESSDENIED, not STG_E_FILEALREADYEXISTS */
+    HR(IStorage_RenameElement(stg, L"a", L"b"), STG_E_ACCESSDENIED);
+    HR(IStorage_RenameElement(stg, L"a", L"B"), STG_E_ACCESSDENIED); /* case-insensitive collision */
     char r[4]; EQ(ses_get(stg, L"a", r, 4), 1); EQ(ses_get(stg, L"b", r, 4), 2);
     IStorage *g = NULL; IStorage_CreateStorage(stg, L"g", MODE_RW, 0, 0, &g); if (g) IStorage_Release(g);
-    HR(IStorage_RenameElement(stg, L"a", L"g"), STG_E_FILEALREADYEXISTS); /* stream onto storage name */
-    HR(IStorage_RenameElement(stg, L"g", L"a"), STG_E_FILEALREADYEXISTS);
+    HR(IStorage_RenameElement(stg, L"a", L"g"), STG_E_ACCESSDENIED); /* stream onto storage name */
+    HR(IStorage_RenameElement(stg, L"g", L"a"), STG_E_ACCESSDENIED);
 }
 DF_TEST(ses_el_rename_source_missing) {
     HR(IStorage_RenameElement(stg, L"nothing", L"other"), STG_E_FILENOTFOUND);
@@ -566,7 +569,8 @@ DF_TEST(ses_el_setelementtimes_substorage) {
 DF_TEST(ses_el_setelementtimes_errors) {
     FILETIME ft = {1, 1};
     HRW(IStorage_SetElementTimes(stg, L"nothere", &ft, &ft, &ft), STG_E_FILENOTFOUND);
-    HRW(IStorage_SetElementTimes(stg, NULL, &ft, &ft, &ft), STG_E_INVALIDNAME);
+    /* a NULL name addresses the storage itself (documented), so Windows succeeds */
+    HRW(IStorage_SetElementTimes(stg, NULL, &ft, &ft, &ft), S_OK);
 }
 DF_TEST(ses_el_setelementtimes_stream_observed) {
     ses_put(stg, L"s", "x", 1);

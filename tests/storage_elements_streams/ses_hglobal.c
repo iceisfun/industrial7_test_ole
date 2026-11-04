@@ -113,7 +113,7 @@ TEST(ses_hg_write_zero_bytes) {
     EXPECT_EQ(ses_stream_size(s), 0);
     HR(ses_seek(s, 10, STREAM_SEEK_SET, NULL), S_OK);
     n = 77; HR(IStream_Write(s, "x", 0, &n), S_OK); EXPECT_EQ(n, 0);
-    EXPECT_EQ(ses_stream_size(s), 0); /* zero-length write past the end does not extend */
+    EXPECT_EQ(ses_stream_size(s), 10); /* Windows: a zero-length write past the end extends the stream to the seek position */
     IStream_Release(s);
 }
 TEST(ses_hg_read_zero_bytes) {
