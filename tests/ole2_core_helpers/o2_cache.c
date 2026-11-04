@@ -27,6 +27,19 @@ static void cache_close(cache_t *c) {
 static HGLOBAL mk_mfpict(void) {
     return U(OleMetafilePictFromIconAndLabel)(LoadIconA(NULL, IDI_APPLICATION), L"cache", NULL, 0);
 }
+/* a metafile with enough records (> 16) that the draw loop polls the continue callback */
+static HGLOBAL mk_mfpict_big(void) {
+    HDC mdc; HMETAFILE mf; HGLOBAL g; METAFILEPICT *p; int i;
+    if (!G(CreateMetaFileA) || !G(CloseMetaFile) || !G(Rectangle)) return NULL;
+    mdc = G(CreateMetaFileA)(NULL); if (!mdc) return NULL;
+    for (i = 0; i < 64; i++) G(Rectangle)(mdc, i, i, i + 20, i + 20);
+    mf = G(CloseMetaFile)(mdc); if (!mf) return NULL;
+    g = GlobalAlloc(GMEM_MOVEABLE, sizeof *p); if (!g) return NULL;
+    p = (METAFILEPICT *)GlobalLock(g);
+    p->mm = MM_ANISOTROPIC; p->xExt = 2000; p->yExt = 2000; p->hMF = mf;
+    GlobalUnlock(g);
+    return g;
+}
 static FORMATETC mkfe(CLIPFORMAT cf, DWORD aspect, DWORD tymed) {
     FORMATETC f; f.cfFormat = cf; f.ptd = NULL; f.dwAspect = aspect; f.lindex = -1; f.tymed = tymed; return f;
 }
@@ -147,7 +160,8 @@ TEST(o2cache_cache_null_arguments) {
     EQ(cache_open(&c, &O2_GUID_NULL), S_OK);
     EQ(IOleCache2_Cache(c.c2, NULL, 0, &con), O2_E_INVALIDARG);
     EQ(IOleCache2_Cache(c.c2, NULL, 0, NULL), O2_E_INVALIDARG);
-    EQ(IOleCache2_Cache(c.c2, &f, 0, NULL), O2_E_INVALIDARG);
+    /* Win10: the connection cookie out-parameter is optional (S_OK); the node is created anyway */
+    EQ(IOleCache2_Cache(c.c2, &f, 0, NULL), S_OK);
     cache_close(&c);
 }
 TEST(o2cache_uncache_unknown_connection) {
@@ -305,13 +319,14 @@ TEST(o2cache_draw_cached_and_blank_aspects) {
     if (!c.c2) return;
     dc = G(CreateCompatibleDC)(NULL);
     EQ(IOleCache2_Cache(c.c2, &node, 0, &con), S_OK);
-    g = mk_mfpict();
+    g = mk_mfpict_big();
     memset(&m, 0, sizeof m); m.tymed = TYMED_MFPICT; m.hMetaFilePict = g;
     EQ(IOleCache2_SetData(c.c2, &f, &m, FALSE), S_OK);
     U(ReleaseStgMedium)(&m);
     g_cont_calls = 0;
     hr = IViewObject_Draw(c.vo, DVASPECT_ICON, -1, NULL, NULL, NULL, dc, &rc, NULL, cont_count_true, 0xdeadbeef);
     EQ(hr, S_OK);
+    /* the metafile player polls the continue callback once per 16 records */
     CHECK(g_cont_calls >= 1);
     EQ(g_cont_arg, 0xdeadbeef);
     hr = IViewObject_Draw(c.vo, DVASPECT_CONTENT, -1, NULL, NULL, NULL, dc, &rc, NULL, cont_count_true, 0xdeadbeef);

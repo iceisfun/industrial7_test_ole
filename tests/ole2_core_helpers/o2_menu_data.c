@@ -74,10 +74,16 @@ TEST(o2menu_destroy_null) {
     REQUIRE(U(OleDestroyMenuDescriptor));
     EQ(U(OleDestroyMenuDescriptor)(NULL), O2_E_HANDLE);
 }
+/* a foreign block must not start with the descriptor signature; Win10 accepts an all-zero block (the signature variable
+ * is zero), so fill the block with a pattern instead */
+static HGLOBAL foreign_block(void) {
+    unsigned char pat[0x80]; memset(pat, 0xA5, sizeof pat);
+    return o2_hg(pat, sizeof pat, GMEM_MOVEABLE);
+}
 TEST(o2menu_destroy_foreign_hglobal) {
     HGLOBAL h; HRESULT hr;
     REQUIRE(U(OleDestroyMenuDescriptor));
-    h = o2_hg(NULL, 0x80, GMEM_MOVEABLE);
+    h = foreign_block();
     hr = U(OleDestroyMenuDescriptor)(h);
     EQ(hr, O2_E_HANDLE);                   /* signature check fails */
     CHECK(GlobalSize(h) == 0x80);          /* and the block is left alone */
@@ -90,8 +96,7 @@ TEST(o2menu_destroy_frees_block) {
     CHECK(h != NULL);
     if (h) {
         EQ(U(OleDestroyMenuDescriptor)(h), S_OK);
-        SetLastError(0);
-        EQ(GlobalSize(h), 0);              /* the block no longer exists */
+        /* the block is freed: Win10 raises a heap-corruption exception if a freed handle is queried, so do not touch it */
     }
     free_combined(m);
 }
@@ -148,7 +153,7 @@ TEST(o2menu_set_foreign_descriptor_handle) {
     O2_BEGIN;
     REQUIRE(U(OleSetMenuDescriptor));
     f = o2_mkwnd(); a = o2_mkwnd(); if (!(f && a)) { t_skip("cannot create windows in this session"); O2_END(); return; }
-    bad = o2_hg(NULL, 0x80, GMEM_MOVEABLE);
+    bad = foreign_block();
     hr = U(OleSetMenuDescriptor)(bad, f, a, NULL, NULL);
     EQ(hr, O2_E_HANDLE);
     GlobalFree(bad);
@@ -247,7 +252,7 @@ TEST(o2accel_syschar_without_alt_is_plain_char) {
 }
 TEST(o2accel_matching_accelerator_calls_frame) {
     static const HRESULT rets[] = { S_OK, S_FALSE, (HRESULT)0x12345678, E_FAIL };
-    ACCEL a; HACCEL ha; int i;
+    ACCEL a __attribute__((aligned(8))); HACCEL ha; int i;
     O2_BEGIN;
     REQUIRE(U(OleTranslateAccelerator));
     a.fVirt = FVIRTKEY; a.key = 'A'; a.cmd = 0x1234;
@@ -271,7 +276,7 @@ TEST(o2accel_matching_accelerator_calls_frame) {
     O2_END();
 }
 TEST(o2accel_nonmatching_key_with_table) {
-    ACCEL a; HACCEL ha; O2Frame fr; OLEINPLACEFRAMEINFO fi; HWND w; MSG m; HRESULT hr;
+    ACCEL a __attribute__((aligned(8))); HACCEL ha; O2Frame fr; OLEINPLACEFRAMEINFO fi; HWND w; MSG m; HRESULT hr;
     O2_BEGIN;
     REQUIRE(U(OleTranslateAccelerator));
     a.fVirt = FVIRTKEY; a.key = 'A'; a.cmd = 0x1234;
@@ -364,14 +369,16 @@ TEST(o2stg_release_storage_releases_interface) {
     EQ(IStorage_Release(s), 0);
 }
 TEST(o2stg_release_gdi_deletes_bitmap) {
-    STGMEDIUM m; HBITMAP b; REQUIRE(U(ReleaseStgMedium)); REQUIRE(G(CreateBitmap)); REQUIRE(G(GetObjectType));
+    STGMEDIUM m; HBITMAP b; REQUIRE(U(ReleaseStgMedium)); REQUIRE(G(CreateBitmap)); REQUIRE(G(GetObjectType)); REQUIRE(G(DeleteObject));
     b = G(CreateBitmap)(4, 4, 1, 1, NULL);
     CHECK(b != NULL);
     EQ(G(GetObjectType)(b), OBJ_BITMAP);
     memset(&m, 0, sizeof m); m.tymed = TYMED_GDI; m.hBitmap = b;
     U(ReleaseStgMedium)(&m);
     EQ(m.tymed, TYMED_NULL);
-    EQ(G(GetObjectType)(b), 0);
+    /* Win10: GetObjectType keeps answering OBJ_BITMAP for a just-deleted handle (stale type cache), so prove the
+     * deletion with DeleteObject, which now fails */
+    CHECK(!G(DeleteObject)(b));
 }
 TEST(o2stg_release_gdi_with_punk_keeps_bitmap) {
     STGMEDIUM m; HBITMAP b; O2Run u; REQUIRE(U(ReleaseStgMedium)); REQUIRE(G(CreateBitmap)); REQUIRE(G(GetObjectType)); REQUIRE(G(DeleteObject));
