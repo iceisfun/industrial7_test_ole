@@ -72,6 +72,7 @@ static void check_inspectable(void *o, const WCHAR *cls) {
             for (ULONG j = i + 1; j < n; j++) CHECK(memcmp(&ids[i], &ids[j], 16));
             void *q = NULL;
             HRESULT hr = ro_qi(o, &ids[i], &q);
+            t_note("  iid[%lu] {%08lX-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X}", i, ids[i].Data1, ids[i].Data2, ids[i].Data3, ids[i].Data4[0], ids[i].Data4[1], ids[i].Data4[2], ids[i].Data4[3], ids[i].Data4[4], ids[i].Data4[5], ids[i].Data4[6], ids[i].Data4[7]);
             CHECKF(hr == S_OK, "GetIids lists {%08lx-...} but QueryInterface = %08lx", ids[i].Data1, (unsigned long)hr);
             if (hr == S_OK) RO_RELEASE(*(IUnknown **)&q);
         }
@@ -244,7 +245,7 @@ RO_TEST(winrt_roapi_class_uri_defaults) {
     CHECK(uri_prop_is(u, 18, L"", "UserName"));
     CHECK(uri_prop_is(u, 12, L"", "Password"));
     CHECK(uri_prop_is(u, 6, L"https://www.contoso.com/a/b.txt?x=1#frag", "AbsoluteUri"));
-    CHECK(uri_prop_is(u, 7, L"https://www.contoso.com/a/b.txt?x=1", "DisplayUri"));   /* DisplayUri drops the fragment */
+    CHECK(uri_prop_is(u, 7, L"https://www.contoso.com/a/b.txt?x=1#frag", "DisplayUri"));   /* Win10: DisplayUri keeps the fragment */
     RO_RELEASE(*(IUnknown **)&u);
     u = mk_uri(f, L"http://www.contoso.com"); REQUIRE(u);
     RO_EQ(((s_out_i32)SLOT(u, 19))(u, &port), S_OK); RO_EQ(port, 80);
@@ -299,7 +300,8 @@ RO_TEST(winrt_roapi_class_uri_invalid) {
         HSTRING h = STR(bad[i]); void *u = (void *)1;
         hr = ((s_hs_obj)SLOT(f, 6))(f, h, &u);
         t_note("CreateUri(\"%ls\") = %08lx", bad[i], (unsigned long)hr);
-        if (i < 3) { CHECKF(FAILED(hr), "CreateUri(\"%ls\") succeeded", bad[i]); CHECK(u == NULL); }
+        /* Win10: CreateUri("http://") succeeds (empty host accepted); only "", "not a uri" are refused */
+        if (i != 1 && i < 3) { CHECKF(FAILED(hr), "CreateUri(\"%ls\") succeeded", bad[i]); CHECK(u == NULL); }
         else if (SUCCEEDED(hr) && u) RO_RELEASE(*(IUnknown **)&u);
         ro_hs_free(h);
     }
@@ -339,7 +341,7 @@ RO_TEST(winrt_roapi_class_propertyvalue_int32) {
     RO_EQ(((s_in_i32_obj)SLOT(f, 10))(f, -5, &o), S_OK); REQUIRE(o);
     void *pv = NULL; RO_EQ(ro_qi(o, &RIID_IPropertyValue, &pv), S_OK); REQUIRE(pv);
     int type = -1; RO_EQ(((s_gettrust)SLOT(pv, 6))(pv, &type), S_OK); RO_EQ(type, 4);   /* PropertyType_Int32 */
-    BOOLEAN num = 7; RO_EQ(((s_out_bool)SLOT(pv, 7))(pv, &num), S_OK); CHECK(num == TRUE);
+    BOOLEAN num = 7; RO_EQ(((s_out_bool)SLOT(pv, 7))(pv, &num), S_OK); CHECK(num == FALSE);   /* Win10: always FALSE (shared stub), docs say TRUE for numeric */
     INT32 v = 0; RO_EQ(((s_out_i32)SLOT(pv, 11))(pv, &v), S_OK); RO_EQ(v, -5);
     INT64 w = 0; RO_EQ(((s_out_i64)SLOT(pv, 13))(pv, &w), S_OK); CHECK(w == -5);        /* widening conversion */
     double d = 0; RO_EQ(((s_out_dbl)SLOT(pv, 16))(pv, &d), S_OK); CHECK(d == -5.0);
@@ -376,8 +378,9 @@ RO_TEST(winrt_roapi_class_propertyvalue_scalar_types) {
         int type = -1; if (pv) ((s_gettrust)SLOT(pv, 6))(pv, &type);
         CHECKF(type == t[i].type, "%s: Type=%d want %d", t[i].n, type, t[i].type);
         BOOLEAN num = 7; if (pv) ((s_out_bool)SLOT(pv, 7))(pv, &num);
-        int want_num = t[i].type <= 9;
-        CHECKF(num == want_num, "%s: IsNumericScalar=%d want %d", t[i].n, num, want_num);
+        /* Win10 22H2 (wintypes): get_IsNumericScalar is one shared stub that stores FALSE for every PropertyValue
+           object, numeric scalars included (the docs say TRUE for numeric types). Windows is the authority. */
+        CHECKF(num == FALSE, "%s: IsNumericScalar=%d want 0", t[i].n, num);
         RO_RELEASE(*(IUnknown **)&pv);
     }
     { void *pv; ro_qi(t[0].o, &RIID_IPropertyValue, &pv); BYTE v = 0; RO_EQ(((s_out_u8)SLOT(pv, 8))(pv, &v), S_OK); CHECK(v == 200); INT16 w = 0; RO_EQ(((s_out_i16)SLOT(pv, 9))(pv, &w), S_OK); CHECK(w == 200); RO_RELEASE(*(IUnknown **)&pv); }
