@@ -121,7 +121,11 @@ TEST(dx_gap1_event_access_query_buffer_protocol_after_set)
     r = EAC(&g, 0, (PSID)sid_world, 0x1, TRUE);
     if (r) { t_note("EventAccessControl -> %lu", r); EAR(&g); return; }
     SET_ERR(0); r = EAQ(&g, NULL, &sz); EXPECT_EQ(r, ERROR_MORE_DATA); need = sz; CHECK(need >= 20);
-    b = calloc(1, need + 8); sz = need - 1; r = EAQ(&g, b, &sz); EXPECT_EQ(r, ERROR_MORE_DATA); EXPECT_EQ(sz, need);
+    b = calloc(1, need + 8);
+    /* Windows 10: a zero-length buffer is ERROR_MORE_DATA with the real size; a buffer a few bytes short of the stored
+     * value is still accepted when the descriptor itself fits (observed: need-1 .. need-4 return 0 after SetDACL) */
+    sz = 0; r = EAQ(&g, b, &sz); EXPECT_EQ(r, ERROR_MORE_DATA); EXPECT_EQ(sz, need);
+    sz = need - 1; r = EAQ(&g, b, &sz); t_note("buffer one byte short -> %lu", r); CHECK(r == 0 || r == ERROR_MORE_DATA); EXPECT_EQ(sz, need);
     sz = need; r = EAQ(&g, b, &sz); EXPECT_EQ(r, 0); EXPECT_EQ(sz, need); CHECK(IsValidSecurityDescriptor(b));
     sz = need + 5; r = EAQ(&g, b, &sz); EXPECT_EQ(r, 0); EXPECT_EQ(sz, need);       /* *size is replaced by the real length */
     free(b);
@@ -139,5 +143,5 @@ TEST(dx_gap1_event_access_two_guids_independent)
     if (a && b) { ace_stats(a, sid_world, &al, &de, &m, &tot); EXPECT_EQ(tot, 1); CHECK(s1 != s2 || memcmp(a, b, s1) != 0); }
     free(a); free(b);
     SET_ERR(0); r = EAR(&g2); EXPECT_EQ(r, ERROR_FILE_NOT_FOUND);       /* g2 was never set */
-    EXPECT_EQ(EAR(&g1), 0);
+    r = EAR(&g1); EXPECT_EQ(r, 0);          /* not EXPECT_EQ(EAR(..)): the macro evaluates its argument twice */
 }
