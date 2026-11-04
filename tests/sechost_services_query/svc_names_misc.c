@@ -52,7 +52,8 @@ TEST(svcname_display_A) {
     char a[512]; WCHAR w[512]; DWORD sa = sizeof a, sw = 512;
     if (S(GetServiceDisplayNameA)(scm, "RpcSs", a, &sa) && S(GetServiceDisplayNameW)(scm, L"RpcSs", w, &sw)) {
         char tmp[512]; wide_to_narrow(tmp, sizeof tmp, w); EXPECT_STR(a, tmp);
-        EXPECT_EQ(sa, strlen(a));
+        /* Win10: the ANSI variant leaves *lpcchBuffer at the buffer size on success (W variant returns the length). */
+        EXPECT_EQ(sa, sizeof a);
     } else CHECK(0);
     svc_close(scm);
 }
@@ -98,10 +99,12 @@ TEST(svcname_display_null_scm) {
 }
 TEST(svcname_display_service_handle_as_scm) {
     REQUIRE(S(GetServiceDisplayNameW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     WCHAR buf[64]; DWORD n = 64; SET_ERR(0);
     BOOL r = S(GetServiceDisplayNameW)(s, L"RpcSs", buf, &n);
-    EXPECT_FAIL(!r, ERROR_INVALID_HANDLE);
+    /* Win10 does not check the handle type here: a service handle works as the SCM handle. */
+    CHECK(r);
+    if (r) EXPECT_WSTR(buf, L"Remote Procedure Call (RPC)");
     svc_close(s); svc_close(scm);
 }
 TEST(svcname_display_null_name) {
@@ -125,7 +128,7 @@ TEST(svcname_display_rpcss_en_us) {
 }
 TEST(svcname_display_matches_config) {
     REQUIRE(S(GetServiceDisplayNameW)); REQUIRE(S(QueryServiceConfigW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; S(QueryServiceConfigW)(s, NULL, 0, &need);
     BYTE *buf = calloc(1, need + 16); WCHAR d[256]; DWORD n = 256;
     if (S(QueryServiceConfigW)(s, (void *)buf, need, &need) && S(GetServiceDisplayNameW)(scm, L"RpcSs", d, &n)) {
@@ -199,10 +202,11 @@ TEST(svcname_key_null_scm) {
 }
 TEST(svcname_key_service_handle_as_scm) {
     REQUIRE(S(GetServiceKeyNameW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     WCHAR b[64]; DWORD n = 64; SET_ERR(0);
     BOOL r = S(GetServiceKeyNameW)(s, L"x", b, &n);
-    EXPECT_FAIL(!r, ERROR_INVALID_HANDLE);
+    /* Win10 does not reject the service handle; the lookup of the bogus display name fails normally. */
+    EXPECT_FAIL(!r, ERROR_SERVICE_DOES_NOT_EXIST);
     svc_close(s); svc_close(scm);
 }
 TEST(svcname_key_empty_name) {
@@ -285,7 +289,7 @@ TEST(svclock_null_handle) {
 }
 TEST(svclock_service_handle) {
     REQUIRE(S(QueryServiceLockStatusW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceLockStatusW)(s, NULL, 0, &need);
     EXPECT_FAIL(!r, ERROR_INVALID_HANDLE);

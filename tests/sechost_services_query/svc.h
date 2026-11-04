@@ -18,11 +18,15 @@ static SC_HANDLE scm_open(DWORD access) {
     __typeof__(&OpenSCManagerW) f = S(OpenSCManagerW);
     return f ? f(NULL, NULL, access) : NULL;
 }
+/* Error of the last failed svc_open/svc_fixture (the token may simply lack the requested right). */
+static DWORD g_open_err;
 static SC_HANDLE svc_open(SC_HANDLE scm, const char *name, DWORD access) {
     WCHAR w[300];
     __typeof__(&OpenServiceW) f = S(OpenServiceW);
     if (!f || MultiByteToWideChar(CP_ACP, 0, name, -1, w, 300) <= 0) return NULL;
-    return f(scm, w, access);
+    SC_HANDLE h = f(scm, w, access);
+    g_open_err = h ? 0 : GetLastError();
+    return h;
 }
 static void svc_close(SC_HANDLE h) {
     __typeof__(&CloseServiceHandle) f = S(CloseServiceHandle);
@@ -33,7 +37,7 @@ static SC_HANDLE svc_fixture(const char *name, DWORD access, SC_HANDLE *scm) {
     *scm = scm_open(SC_MANAGER_CONNECT);
     if (!*scm) return NULL;
     SC_HANDLE s = svc_open(*scm, name, access);
-    if (!s) { svc_close(*scm); *scm = NULL; }
+    if (!s) { DWORD e = g_open_err; svc_close(*scm); *scm = NULL; g_open_err = e; }
     return s;
 }
 
@@ -44,6 +48,10 @@ static SC_HANDLE svc_fixture(const char *name, DWORD access, SC_HANDLE *scm) {
     TEST(base##_DcomLaunch)   { fn("DcomLaunch"); } \
     TEST(base##_EventLog)     { fn("EventLog"); } \
     TEST(base##_Winmgmt)      { fn("Winmgmt"); }
+
+/* Skip when the service (or SCM) handle could not be opened: with a restricted token the service DACL
+ * (e.g. RpcSs/RpcEptMapper) does not grant every right to a non-administrator. */
+#define REQUIRE_OPEN(h) do { if (!(h)) { if (g_open_err == ERROR_ACCESS_DENIED) { t_skip("cannot open handle (err=%lu, right not granted to this token)", g_open_err); return; } CHECKF(0, "open failed err=%lu", g_open_err); return; } } while (0)
 
 #define WINE_UNIMPL() do { if (t_is_wine()) { t_skip("unimplemented in wine (aborts)"); return; } } while (0)
 static void wide_to_narrow(char *dst, size_t cap, const WCHAR *w) {

@@ -354,7 +354,7 @@ TEST(svcenum_null_scm) {
 }
 TEST(svcenum_service_handle_as_scm) {
     REQUIRE(S(EnumServicesStatusExW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     BYTE buf[1024]; DWORD need = 0, cnt = 0, resume = 0; SET_ERR(0);
     BOOL r = S(EnumServicesStatusExW)(s, SC_ENUM_PROCESS_INFO, SERVICE_WIN32, SERVICE_STATE_ALL, buf, sizeof buf, &need, &cnt, &resume, NULL);
     EXPECT_FAIL(!r, ERROR_INVALID_HANDLE);
@@ -468,7 +468,7 @@ TEST(svcenum_legacy_resume_paging) {
 /* ---------- EnumDependentServices ---------- */
 static void dependents_of(const char *name, DWORD state, const char *must_contain) {
     REQUIRE(S(EnumDependentServicesW));
-    SC_HANDLE scm, s = svc_fixture(name, SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture(name, SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE_OPEN(s);
     DWORD need = 0, cnt = 99; SET_ERR(0);
     BOOL r = S(EnumDependentServicesW)(s, state, NULL, 0, &need, &cnt);
     if (r) { t_note("%s has no dependents in state %lu", name, state); EXPECT_EQ(cnt, 0); }
@@ -489,8 +489,11 @@ static void dependents_of(const char *name, DWORD state, const char *must_contai
         if (must_contain) CHECKF(found, "%s not in dependents of %s", must_contain, name);
         t_note("%s has %lu dependents (state %lu)", name, cnt, state);
         DWORD n2 = 0, c2 = 0; SET_ERR(0);
-        r = need > 1 ? S(EnumDependentServicesW)(s, state, (LPENUM_SERVICE_STATUSW)buf, need - 1, &n2, &c2) : 1;
+        /* Win10: the size-query value is an upper bound (the real size is returned by the successful call),
+         * so need-1 can succeed; a buffer too small for the first entry must still fail with ERROR_MORE_DATA. */
+        r = S(EnumDependentServicesW)(s, state, (LPENUM_SERVICE_STATUSW)buf, 1, &n2, &c2);
         CHECK(!r); EXPECT_ERR(ERROR_MORE_DATA);
+        CHECK(n2 > 1);
         free(buf);
     }
     svc_close(s); svc_close(scm);
@@ -503,7 +506,7 @@ TEST(svcdep_RpcSs_all)                     { dependents_of("RpcSs", SERVICE_STAT
 TEST(svcdep_EventLog_all)                  { dependents_of("EventLog", SERVICE_STATE_ALL, NULL); }
 TEST(svcdep_A_variant) {
     REQUIRE(S(EnumDependentServicesA));
-    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE_OPEN(s);
     DWORD need = 0, cnt = 99; SET_ERR(0);
     BOOL r = S(EnumDependentServicesA)(s, SERVICE_STATE_ALL, NULL, 0, &need, &cnt);
     EXPECT_FAIL(!r, ERROR_MORE_DATA);
@@ -512,7 +515,7 @@ TEST(svcdep_A_variant) {
 }
 TEST(svcdep_no_enumerate_right) {
     REQUIRE(S(EnumDependentServicesW));
-    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     DWORD need = 0, cnt = 0; SET_ERR(0);
     BOOL r = S(EnumDependentServicesW)(s, SERVICE_STATE_ALL, NULL, 0, &need, &cnt);
     EXPECT_FAIL(!r, ERROR_ACCESS_DENIED);
@@ -534,7 +537,7 @@ TEST(svcdep_scm_handle) {
 }
 TEST(svcdep_bad_state) {
     REQUIRE(S(EnumDependentServicesW));
-    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE_OPEN(s);
     BYTE buf[256]; DWORD need = 0, cnt = 0; SET_ERR(0);
     BOOL r = S(EnumDependentServicesW)(s, 0, (LPENUM_SERVICE_STATUSW)buf, sizeof buf, &need, &cnt);
     CHECK(!r);
@@ -543,7 +546,7 @@ TEST(svcdep_bad_state) {
 }
 TEST(svcdep_closed_handle) {
     REQUIRE(S(EnumDependentServicesW));
-    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE_OPEN(s);
     svc_close(s);
     DWORD need = 0, cnt = 0; SET_ERR(0);
     BOOL r = S(EnumDependentServicesW)(s, SERVICE_STATE_ALL, NULL, 0, &need, &cnt);

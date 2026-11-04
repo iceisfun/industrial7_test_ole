@@ -65,7 +65,7 @@ TEST(svcstat_scm_handle) {
 }
 TEST(svcstat_no_query_status_right) {
     REQUIRE(S(QueryServiceStatus));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS st; SET_ERR(0);
     BOOL r = S(QueryServiceStatus)(s, &st);
     EXPECT_FAIL(!r, ERROR_ACCESS_DENIED);
@@ -73,7 +73,7 @@ TEST(svcstat_no_query_status_right) {
 }
 TEST(svcstat_interrogate_right_alone_insufficient) {
     REQUIRE(S(QueryServiceStatus));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_INTERROGATE, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_INTERROGATE, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS st; SET_ERR(0);
     BOOL r = S(QueryServiceStatus)(s, &st);
     EXPECT_FAIL(!r, ERROR_ACCESS_DENIED);
@@ -81,7 +81,7 @@ TEST(svcstat_interrogate_right_alone_insufficient) {
 }
 TEST(svcstat_closed_handle) {
     REQUIRE(S(QueryServiceStatus));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     svc_close(s);
     SERVICE_STATUS st; SET_ERR(0);
     BOOL r = S(QueryServiceStatus)(s, &st);
@@ -90,7 +90,7 @@ TEST(svcstat_closed_handle) {
 }
 TEST(svcstat_repeatable) {
     REQUIRE(S(QueryServiceStatus));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     for (int i = 0; i < 100; i++) { SERVICE_STATUS st; if (!S(QueryServiceStatus)(s, &st) || st.dwCurrentState != SERVICE_RUNNING) { CHECKF(0, "iteration %d", i); break; } }
     svc_close(s); svc_close(scm);
 }
@@ -98,7 +98,7 @@ TEST(svcstat_repeatable) {
 /* ---------- QueryServiceStatusEx ---------- */
 static void do_qsx(const char *name) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture(name, SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture(name, SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS_PROCESS p; DWORD need = 0; memset(&p, 0xCC, sizeof p);
     SET_ERR(0);
     CHECK(S(QueryServiceStatusEx)(s, SC_STATUS_PROCESS_INFO, (LPBYTE)&p, sizeof p, &need));
@@ -121,7 +121,7 @@ TEST(svcstatex_full_EventLog)     { do_qsx("EventLog"); }
 
 TEST(svcstatex_pid_is_live_process) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS_PROCESS p; DWORD need;
     CHECK(S(QueryServiceStatusEx)(s, SC_STATUS_PROCESS_INFO, (LPBYTE)&p, sizeof p, &need));
     HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, p.dwProcessId);
@@ -135,7 +135,7 @@ TEST(svcstatex_pid_is_live_process) {
 }
 TEST(svcstatex_null_buffer_size_query) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceStatusEx)(s, SC_STATUS_PROCESS_INFO, NULL, 0, &need);
     EXPECT_FAIL(!r, ERROR_INSUFFICIENT_BUFFER);
@@ -144,7 +144,7 @@ TEST(svcstatex_null_buffer_size_query) {
 }
 TEST(svcstatex_buffer_sizes) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     BYTE buf[128];
     for (DWORD cb = 0; cb < 36; cb += (cb < 4 ? 1 : 8)) {
         DWORD need = 0; SET_ERR(0);
@@ -158,7 +158,7 @@ TEST(svcstatex_buffer_sizes) {
 }
 TEST(svcstatex_large_buffer_tail_untouched) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     BYTE buf[64]; memset(buf, 0xA5, sizeof buf); DWORD need;
     CHECK(S(QueryServiceStatusEx)(s, SC_STATUS_PROCESS_INFO, buf, sizeof buf, &need));
     int clean = 1;
@@ -168,7 +168,7 @@ TEST(svcstatex_large_buffer_tail_untouched) {
 }
 TEST(svcstatex_invalid_level_1) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS_PROCESS p; DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceStatusEx)(s, (SC_STATUS_TYPE)1, (LPBYTE)&p, sizeof p, &need);
     EXPECT_FAIL(!r, ERROR_INVALID_LEVEL);
@@ -176,7 +176,7 @@ TEST(svcstatex_invalid_level_1) {
 }
 TEST(svcstatex_invalid_level_large) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS_PROCESS p; DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceStatusEx)(s, (SC_STATUS_TYPE)0x1000, (LPBYTE)&p, sizeof p, &need);
     EXPECT_FAIL(!r, ERROR_INVALID_LEVEL);
@@ -184,7 +184,7 @@ TEST(svcstatex_invalid_level_large) {
 }
 TEST(svcstatex_invalid_level_negative) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS_PROCESS p; DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceStatusEx)(s, (SC_STATUS_TYPE)0xFFFFFFFFu, (LPBYTE)&p, sizeof p, &need);
     EXPECT_FAIL(!r, ERROR_INVALID_LEVEL);
@@ -192,7 +192,7 @@ TEST(svcstatex_invalid_level_negative) {
 }
 TEST(svcstatex_invalid_level_with_null_buffer) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceStatusEx)(s, (SC_STATUS_TYPE)1, NULL, 0, &need);
     CHECK(!r);
@@ -215,7 +215,7 @@ TEST(svcstatex_scm_handle) {
 }
 TEST(svcstatex_closed_handle) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     svc_close(s);
     SERVICE_STATUS_PROCESS p; DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceStatusEx)(s, SC_STATUS_PROCESS_INFO, (LPBYTE)&p, sizeof p, &need);
@@ -224,7 +224,7 @@ TEST(svcstatex_closed_handle) {
 }
 TEST(svcstatex_no_query_status_right) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS_PROCESS p; DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceStatusEx)(s, SC_STATUS_PROCESS_INFO, (LPBYTE)&p, sizeof p, &need);
     EXPECT_FAIL(!r, ERROR_ACCESS_DENIED);
@@ -232,7 +232,7 @@ TEST(svcstatex_no_query_status_right) {
 }
 TEST(svcstatex_dwservicetype_share_process_rpcss) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS_PROCESS p; DWORD need;
     CHECK(S(QueryServiceStatusEx)(s, SC_STATUS_PROCESS_INFO, (LPBYTE)&p, sizeof p, &need));
     t_note("RpcSs dwServiceType=0x%lx", p.dwServiceType);
@@ -241,7 +241,7 @@ TEST(svcstatex_dwservicetype_share_process_rpcss) {
 }
 TEST(svcstatex_pids_differ_from_self) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("EventLog", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("EventLog", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS_PROCESS p; DWORD need;
     CHECK(S(QueryServiceStatusEx)(s, SC_STATUS_PROCESS_INFO, (LPBYTE)&p, sizeof p, &need));
     CHECK(p.dwProcessId != GetCurrentProcessId());
@@ -283,7 +283,7 @@ TEST(svcctl_scm_handle) {
 }
 TEST(svcctl_closed_handle) {
     REQUIRE(S(ControlService));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     svc_close(s);
     SERVICE_STATUS st; SET_ERR(0);
     BOOL r = S(ControlService)(s, SERVICE_CONTROL_INTERROGATE, &st);
@@ -293,7 +293,7 @@ TEST(svcctl_closed_handle) {
 /* Controls on a QUERY_STATUS-only handle: access check precedes delivery, so nothing reaches the service. */
 static void ctl_denied(DWORD code) {
     REQUIRE(S(ControlService));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS st; SET_ERR(0);
     BOOL r = S(ControlService)(s, code, &st);
     EXPECT_FAIL(!r, ERROR_ACCESS_DENIED);
@@ -305,7 +305,7 @@ TEST(svcctl_continue_without_right)         { ctl_denied(SERVICE_CONTROL_CONTINU
 TEST(svcctl_interrogate_without_right)      { ctl_denied(SERVICE_CONTROL_INTERROGATE); }
 static void ctl_denied_note(DWORD code) {
     REQUIRE(S(ControlService));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS st; SET_ERR(0);
     BOOL r = S(ControlService)(s, code, &st);
     CHECK(!r);
@@ -339,18 +339,26 @@ TEST(svcctl_interrogate_core_services) {
 TEST(svcctl_exW_null_handle) {
     REQUIRE(S(ControlServiceExW)); WINE_UNIMPL();
     SET_ERR(0);
+    /* Win10 validates the info level before the handle: level 0 gives ERROR_INVALID_LEVEL (124). */
     BOOL r = S(ControlServiceExW)(NULL, SERVICE_CONTROL_INTERROGATE, 0, NULL);
+    EXPECT_FAIL(!r, ERROR_INVALID_LEVEL);
+    SERVICE_CONTROL_STATUS_REASON_PARAMSW p; memset(&p, 0, sizeof p); SET_ERR(0);
+    r = S(ControlServiceExW)(NULL, SERVICE_CONTROL_INTERROGATE, SERVICE_CONTROL_STATUS_REASON_INFO, &p);
     EXPECT_FAIL(!r, ERROR_INVALID_HANDLE);
 }
 TEST(svcctl_exA_null_handle) {
     REQUIRE(S(ControlServiceExA)); WINE_UNIMPL();
     SET_ERR(0);
+    /* Win10 validates the info level before the handle: level 0 gives ERROR_INVALID_LEVEL (124). */
     BOOL r = S(ControlServiceExA)(NULL, SERVICE_CONTROL_INTERROGATE, 0, NULL);
+    EXPECT_FAIL(!r, ERROR_INVALID_LEVEL);
+    SERVICE_CONTROL_STATUS_REASON_PARAMSA p; memset(&p, 0, sizeof p); SET_ERR(0);
+    r = S(ControlServiceExA)(NULL, SERVICE_CONTROL_INTERROGATE, SERVICE_CONTROL_STATUS_REASON_INFO, &p);
     EXPECT_FAIL(!r, ERROR_INVALID_HANDLE);
 }
 TEST(svcctl_exW_stop_without_right) {
     REQUIRE(S(ControlServiceExW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     SERVICE_STATUS_PROCESS dummy; memset(&dummy, 0, sizeof dummy);
     SET_ERR(0);
     BOOL r = S(ControlServiceExW)(s, SERVICE_CONTROL_STOP, 1, &dummy);
@@ -360,7 +368,7 @@ TEST(svcctl_exW_stop_without_right) {
 }
 TEST(svcctl_exW_bad_info_level) {
     REQUIRE(S(ControlServiceExW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS | SERVICE_INTERROGATE, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS | SERVICE_INTERROGATE, &scm); REQUIRE_OPEN(s);
     BYTE buf[64] = {0};
     SET_ERR(0);
     BOOL r = S(ControlServiceExW)(s, SERVICE_CONTROL_INTERROGATE, 0x77, buf);

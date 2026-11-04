@@ -6,7 +6,7 @@ static int in_buf(const void *base, DWORD len, const void *p) {
 }
 static void do_cfgW(const char *name) {
     REQUIRE(S(QueryServiceConfigW));
-    SC_HANDLE scm, s = svc_fixture(name, SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture(name, SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceConfigW)(s, NULL, 0, &need);
     EXPECT_FAIL(!r, ERROR_INSUFFICIENT_BUFFER);
@@ -32,11 +32,12 @@ static void do_cfgW(const char *name) {
         CHECK(c->dwErrorControl <= SERVICE_ERROR_CRITICAL);
         CHECK(c->dwStartType == SERVICE_AUTO_START || c->dwStartType == SERVICE_DEMAND_START);
         CHECK(n2 <= need);
-        /* needed-1 must fail */
+        /* Win10: the NULL-buffer size is an upper bound; the exact size is what the successful call returned (n2).
+         * One byte less than that must fail and report a size that is at least n2. */
         DWORD n3 = 0; SET_ERR(0);
-        BOOL r3 = S(QueryServiceConfigW)(s, c, need - 1, &n3);
+        BOOL r3 = S(QueryServiceConfigW)(s, c, n2 - 1, &n3);
         EXPECT_FAIL(!r3, ERROR_INSUFFICIENT_BUFFER);
-        EXPECT_EQ(n3, need);
+        CHECKF(n3 >= n2 && n3 <= need, "n3=%lu n2=%lu need=%lu", n3, n2, need);
         free(buf);
     }
     svc_close(s); svc_close(scm);
@@ -45,7 +46,7 @@ PER_SERVICE(svccfg_W, do_cfgW)
 
 static void do_cfgA(const char *name) {
     REQUIRE(S(QueryServiceConfigA)); REQUIRE(S(QueryServiceConfigW));
-    SC_HANDLE scm, s = svc_fixture(name, SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture(name, SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD needA = 0, needW = 0;
     SET_ERR(0);
     BOOL r = S(QueryServiceConfigA)(s, NULL, 0, &needA);
@@ -72,7 +73,7 @@ PER_SERVICE(svccfg_A, do_cfgA)
 
 TEST(svccfg_binary_path_is_svchost_rpcss) {
     REQUIRE(S(QueryServiceConfigW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; S(QueryServiceConfigW)(s, NULL, 0, &need);
     BYTE *buf = calloc(1, need + 16);
     if (S(QueryServiceConfigW)(s, (void *)buf, need, &need)) {
@@ -84,7 +85,7 @@ TEST(svccfg_binary_path_is_svchost_rpcss) {
 }
 TEST(svccfg_rpcss_start_is_auto) {
     REQUIRE(S(QueryServiceConfigW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; S(QueryServiceConfigW)(s, NULL, 0, &need);
     BYTE *buf = calloc(1, need + 16);
     if (S(QueryServiceConfigW)(s, (void *)buf, need, &need)) {
@@ -96,7 +97,7 @@ TEST(svccfg_rpcss_start_is_auto) {
 }
 TEST(svccfg_buffer_sizes_exact_protocol) {
     REQUIRE(S(QueryServiceConfigW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; S(QueryServiceConfigW)(s, NULL, 0, &need);
     BYTE *buf = calloc(1, need + 64);
     DWORD sizes[] = {0, 1, 4, sizeof(QUERY_SERVICE_CONFIGW) - 1, sizeof(QUERY_SERVICE_CONFIGW), need / 2};
@@ -130,7 +131,7 @@ TEST(svccfg_scm_handle) {
 }
 TEST(svccfg_no_query_config_right) {
     REQUIRE(S(QueryServiceConfigW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceConfigW)(s, NULL, 0, &need);
     EXPECT_FAIL(!r, ERROR_ACCESS_DENIED);
@@ -138,7 +139,7 @@ TEST(svccfg_no_query_config_right) {
 }
 TEST(svccfg_closed_handle) {
     REQUIRE(S(QueryServiceConfigW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     svc_close(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceConfigW)(s, NULL, 0, &need);
@@ -162,7 +163,7 @@ TEST(svccfg_service_account_note) {
 static const DWORD valid_levels[] = {1, 2, 3, 4, 5, 6, 7, 8, 9, 12};
 static void cfg2_size_query(DWORD level, DWORD min_expected, int hard) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceConfig2W)(s, level, NULL, 0, &need);
     DWORD e = GetLastError();
@@ -192,7 +193,7 @@ TEST(svccfg2_size_launch_protected)     { cfg2_size_query(SERVICE_CONFIG_LAUNCH_
 
 TEST(svccfg2_fixed_sizes_are_four) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     static const DWORD lv[] = {SERVICE_CONFIG_DELAYED_AUTO_START_INFO, SERVICE_CONFIG_FAILURE_ACTIONS_FLAG, SERVICE_CONFIG_SERVICE_SID_INFO, SERVICE_CONFIG_PRESHUTDOWN_INFO};
     for (int i = 0; i < 4; i++) {
         DWORD need = 0; SET_ERR(0);
@@ -203,7 +204,7 @@ TEST(svccfg2_fixed_sizes_are_four) {
 }
 TEST(svccfg2_delayed_autostart_value) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     SERVICE_DELAYED_AUTO_START_INFO d; DWORD need = 0; d.fDelayedAutostart = 0x55;
     CHECK(S(QueryServiceConfig2W)(s, SERVICE_CONFIG_DELAYED_AUTO_START_INFO, (LPBYTE)&d, sizeof d, &need));
     CHECK(d.fDelayedAutostart == FALSE);   /* RpcSs is plain AUTO_START */
@@ -211,7 +212,7 @@ TEST(svccfg2_delayed_autostart_value) {
 }
 TEST(svccfg2_preshutdown_value) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     SERVICE_PRESHUTDOWN_INFO d; DWORD need = 0; d.dwPreshutdownTimeout = 0xFFFF;
     BOOL r = S(QueryServiceConfig2W)(s, SERVICE_CONFIG_PRESHUTDOWN_INFO, (LPBYTE)&d, sizeof d, &need);
     CHECK(r);
@@ -220,7 +221,7 @@ TEST(svccfg2_preshutdown_value) {
 }
 TEST(svccfg2_sid_info_value) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     SERVICE_SID_INFO d; DWORD need = 0; d.dwServiceSidType = 0xFF;
     BOOL r = S(QueryServiceConfig2W)(s, SERVICE_CONFIG_SERVICE_SID_INFO, (LPBYTE)&d, sizeof d, &need);
     CHECK(r);
@@ -229,7 +230,7 @@ TEST(svccfg2_sid_info_value) {
 }
 TEST(svccfg2_failure_actions_flag_value) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     SERVICE_FAILURE_ACTIONS_FLAG d; DWORD need = 0; d.fFailureActionsOnNonCrashFailures = 0x55;
     BOOL r = S(QueryServiceConfig2W)(s, SERVICE_CONFIG_FAILURE_ACTIONS_FLAG, (LPBYTE)&d, sizeof d, &need);
     CHECK(r);
@@ -238,7 +239,7 @@ TEST(svccfg2_failure_actions_flag_value) {
 }
 TEST(svccfg2_description_content) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; S(QueryServiceConfig2W)(s, SERVICE_CONFIG_DESCRIPTION, NULL, 0, &need);
     BYTE *buf = calloc(1, need + 16);
     if (S(QueryServiceConfig2W)(s, SERVICE_CONFIG_DESCRIPTION, buf, need, &need)) {
@@ -251,7 +252,7 @@ TEST(svccfg2_description_content) {
 }
 TEST(svccfg2_failure_actions_content) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; S(QueryServiceConfig2W)(s, SERVICE_CONFIG_FAILURE_ACTIONS, NULL, 0, &need);
     BYTE *buf = calloc(1, need + 16);
     if (S(QueryServiceConfig2W)(s, SERVICE_CONFIG_FAILURE_ACTIONS, buf, need, &need)) {
@@ -265,7 +266,7 @@ TEST(svccfg2_failure_actions_content) {
 }
 TEST(svccfg2_required_privileges_content) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; S(QueryServiceConfig2W)(s, SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO, NULL, 0, &need);
     BYTE *buf = calloc(1, need + 16);
     if (S(QueryServiceConfig2W)(s, SERVICE_CONFIG_REQUIRED_PRIVILEGES_INFO, buf, need, &need)) {
@@ -277,7 +278,7 @@ TEST(svccfg2_required_privileges_content) {
 }
 TEST(svccfg2_trigger_info_query) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("EventLog", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("EventLog", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceConfig2W)(s, SERVICE_CONFIG_TRIGGER_INFO, NULL, 0, &need);
     t_note("EventLog trigger info NULL query: r=%d err=%lu need=%lu", r, GetLastError(), need);
@@ -285,7 +286,7 @@ TEST(svccfg2_trigger_info_query) {
 }
 TEST(svccfg2_all_valid_levels_never_invalid_level) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     for (unsigned i = 0; i < sizeof valid_levels / sizeof valid_levels[0]; i++) {
         DWORD need = 0; SET_ERR(0);
         S(QueryServiceConfig2W)(s, valid_levels[i], NULL, 0, &need);
@@ -295,7 +296,7 @@ TEST(svccfg2_all_valid_levels_never_invalid_level) {
 }
 static void cfg2_bad_level(DWORD level, int hard) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     BYTE buf[256]; DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceConfig2W)(s, level, buf, sizeof buf, &need);
     DWORD e = GetLastError();
@@ -332,7 +333,7 @@ TEST(svccfg2_scm_handle) {
 }
 TEST(svccfg2_no_query_config_right) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceConfig2W)(s, SERVICE_CONFIG_DESCRIPTION, NULL, 0, &need);
     EXPECT_FAIL(!r, ERROR_ACCESS_DENIED);
@@ -340,7 +341,7 @@ TEST(svccfg2_no_query_config_right) {
 }
 TEST(svccfg2_closed_handle) {
     REQUIRE(S(QueryServiceConfig2W));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     svc_close(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceConfig2W)(s, SERVICE_CONFIG_DESCRIPTION, NULL, 0, &need);
@@ -349,7 +350,7 @@ TEST(svccfg2_closed_handle) {
 }
 TEST(svccfg2_A_W_description_parity) {
     REQUIRE(S(QueryServiceConfig2W)); REQUIRE(S(QueryServiceConfig2A));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD na = 0, nw = 0;
     SET_ERR(0);
     BOOL r = S(QueryServiceConfig2A)(s, SERVICE_CONFIG_DESCRIPTION, NULL, 0, &na);
@@ -366,7 +367,7 @@ TEST(svccfg2_A_W_description_parity) {
 }
 TEST(svccfg2_A_bad_level) {
     REQUIRE(S(QueryServiceConfig2A));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     BYTE buf[256]; DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceConfig2A)(s, 100, buf, sizeof buf, &need);
     EXPECT_FAIL(!r, ERROR_INVALID_LEVEL);
@@ -376,7 +377,7 @@ TEST(svccfg2_A_bad_level) {
 /* ---------- QueryServiceObjectSecurity ---------- */
 static void security_ok(DWORD secinfo, DWORD open_access) {
     REQUIRE(S(QueryServiceObjectSecurity));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", open_access, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", open_access, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceObjectSecurity)(s, secinfo, NULL, 0, &need);
     EXPECT_FAIL(!r, ERROR_INSUFFICIENT_BUFFER);
@@ -413,7 +414,7 @@ TEST(svcsec_all_three)  { security_ok(OWNER_SECURITY_INFORMATION | GROUP_SECURIT
 TEST(svcsec_dacl_with_query_status) { security_ok(DACL_SECURITY_INFORMATION, READ_CONTROL | SERVICE_QUERY_STATUS); }
 TEST(svcsec_no_read_control) {
     REQUIRE(S(QueryServiceObjectSecurity));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; BYTE buf[2048]; SET_ERR(0);
     BOOL r = S(QueryServiceObjectSecurity)(s, DACL_SECURITY_INFORMATION, (PSECURITY_DESCRIPTOR)buf, sizeof buf, &need);
     EXPECT_FAIL(!r, ERROR_ACCESS_DENIED);
@@ -427,7 +428,7 @@ TEST(svcsec_null_handle) {
 }
 TEST(svcsec_closed_handle) {
     REQUIRE(S(QueryServiceObjectSecurity));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", READ_CONTROL, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", READ_CONTROL, &scm); REQUIRE_OPEN(s);
     svc_close(s);
     DWORD need = 0; SET_ERR(0);
     BOOL r = S(QueryServiceObjectSecurity)(s, DACL_SECURITY_INFORMATION, NULL, 0, &need);
@@ -436,7 +437,7 @@ TEST(svcsec_closed_handle) {
 }
 TEST(svcsec_sacl_without_privilege) {
     REQUIRE(S(QueryServiceObjectSecurity));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", READ_CONTROL, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", READ_CONTROL, &scm); REQUIRE_OPEN(s);
     DWORD need = 0; BYTE buf[2048]; SET_ERR(0);
     BOOL r = S(QueryServiceObjectSecurity)(s, SACL_SECURITY_INFORMATION, (PSECURITY_DESCRIPTOR)buf, sizeof buf, &need);
     t_note("SACL query with READ_CONTROL only: r=%d err=%lu", r, r ? 0 : GetLastError());
@@ -454,7 +455,7 @@ TEST(svcsec_scm_handle) {
 }
 TEST(svcsec_dacl_grants_system_full) {
     REQUIRE(S(QueryServiceObjectSecurity));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", READ_CONTROL, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", READ_CONTROL, &scm); REQUIRE_OPEN(s);
     BYTE buf[4096]; DWORD need = 0;
     if (S(QueryServiceObjectSecurity)(s, DACL_SECURITY_INFORMATION, (PSECURITY_DESCRIPTOR)buf, sizeof buf, &need)) {
         BOOL present, def; PACL acl;

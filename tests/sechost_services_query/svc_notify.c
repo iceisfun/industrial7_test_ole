@@ -26,26 +26,26 @@ TEST(svcnotify_null_handle) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(NULL, SERVICE_NOTIFY_RUNNING, &g_nw);
-    EXPECT_EQ(r, ERROR_INVALID_HANDLE);
+    EXPECT_EQ(r, ERROR_INVALID_PARAMETER); /* Win10 reports 87, not ERROR_INVALID_HANDLE */
 }
 TEST(svcnotify_null_handle_A) {
     REQUIRE(S(NotifyServiceStatusChangeA)); WINE_UNIMPL();
     memset(&g_na, 0, sizeof g_na); g_na.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_na.pfnNotifyCallback = (PFN_SC_NOTIFY_CALLBACK)notify_cb;
     DWORD r = S(NotifyServiceStatusChangeA)(NULL, SERVICE_NOTIFY_RUNNING, &g_na);
-    EXPECT_EQ(r, ERROR_INVALID_HANDLE);
+    EXPECT_EQ(r, ERROR_INVALID_PARAMETER); /* Win10 reports 87, not ERROR_INVALID_HANDLE */
 }
 TEST(svcnotify_closed_handle) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     svc_close(s);
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, SERVICE_NOTIFY_RUNNING, &g_nw);
-    EXPECT_EQ(r, ERROR_INVALID_HANDLE);
+    EXPECT_EQ(r, ERROR_INVALID_PARAMETER); /* Win10 reports 87 for a closed handle too */
     svc_close(scm);
 }
 TEST(svcnotify_no_query_status_right) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, SERVICE_NOTIFY_RUNNING, &g_nw);
     EXPECT_EQ(r, ERROR_ACCESS_DENIED);
@@ -53,7 +53,7 @@ TEST(svcnotify_no_query_status_right) {
 }
 TEST(svcnotify_mask_zero) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, 0, &g_nw);
     t_note("mask 0 -> %lu", r);
@@ -62,7 +62,7 @@ TEST(svcnotify_mask_zero) {
 }
 TEST(svcnotify_mask_invalid_bits) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, 0x80000000u, &g_nw);
     t_note("mask 0x80000000 -> %lu", r);
@@ -71,7 +71,7 @@ TEST(svcnotify_mask_invalid_bits) {
 }
 TEST(svcnotify_version_0) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = 0; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, SERVICE_NOTIFY_RUNNING, &g_nw);
     t_note("dwVersion 0 -> %lu", r);
@@ -80,7 +80,7 @@ TEST(svcnotify_version_0) {
 }
 TEST(svcnotify_version_3) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = 3; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, SERVICE_NOTIFY_RUNNING, &g_nw);
     t_note("dwVersion 3 -> %lu", r);
@@ -89,7 +89,7 @@ TEST(svcnotify_version_3) {
 }
 TEST(svcnotify_running_service_immediate_callback) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     reset_cb();
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, SERVICE_NOTIFY_RUNNING, &g_nw);
@@ -111,7 +111,7 @@ TEST(svcnotify_running_service_immediate_callback) {
 }
 TEST(svcnotify_callback_runs_on_calling_thread_apc) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     reset_cb();
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, SERVICE_NOTIFY_RUNNING, &g_nw);
@@ -127,7 +127,7 @@ TEST(svcnotify_callback_runs_on_calling_thread_apc) {
 }
 TEST(svcnotify_running_service_stopped_mask_pending) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     reset_cb();
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, SERVICE_NOTIFY_STOPPED, &g_nw);
@@ -143,7 +143,7 @@ TEST(svcnotify_running_service_stopped_mask_pending) {
 }
 TEST(svcnotify_second_request_while_pending) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     reset_cb();
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r1 = S(NotifyServiceStatusChangeW)(s, SERVICE_NOTIFY_STOPPED, &g_nw);
@@ -158,7 +158,7 @@ TEST(svcnotify_second_request_while_pending) {
 }
 TEST(svcnotify_version_1_accepted_or_rejected) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     reset_cb();
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE_1; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, SERVICE_NOTIFY_RUNNING, &g_nw);
@@ -168,7 +168,7 @@ TEST(svcnotify_version_1_accepted_or_rejected) {
 }
 TEST(svcnotify_all_state_mask_on_running) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     reset_cb();
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, SERVICE_NOTIFY_STOPPED | SERVICE_NOTIFY_START_PENDING | SERVICE_NOTIFY_STOP_PENDING |
@@ -179,7 +179,7 @@ TEST(svcnotify_all_state_mask_on_running) {
 }
 TEST(svcnotify_A_running_service) {
     REQUIRE(S(NotifyServiceStatusChangeA)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     reset_cb();
     memset(&g_na, 0, sizeof g_na); g_na.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_na.pfnNotifyCallback = (PFN_SC_NOTIFY_CALLBACK)notify_cb;
     DWORD r = S(NotifyServiceStatusChangeA)(s, SERVICE_NOTIFY_RUNNING, &g_na);
@@ -189,7 +189,7 @@ TEST(svcnotify_A_running_service) {
 }
 TEST(svcnotify_alias_matches_W) {
     REQUIRE(S(NotifyServiceStatusChange)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     reset_cb();
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = ((DWORD (WINAPI *)(SC_HANDLE, DWORD, PVOID))svc_p("NotifyServiceStatusChange"))(s, SERVICE_NOTIFY_RUNNING, &g_nw);
@@ -219,7 +219,7 @@ TEST(svcnotify_scm_handle_running_mask_invalid) {
 }
 TEST(svcnotify_service_handle_created_mask_invalid) {
     REQUIRE(S(NotifyServiceStatusChangeW)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     memset(&g_nw, 0, sizeof g_nw); g_nw.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; g_nw.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(s, SERVICE_NOTIFY_CREATED, &g_nw);
     t_note("service handle with CREATED mask -> %lu", r);
@@ -247,7 +247,7 @@ TEST(svcsub_null_handle) {
 }
 TEST(svcsub_bad_event_type) {
     REQUIRE(UN(SubscribeServiceChangeNotifications)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     PVOID sub = NULL;
     DWORD r = UN(SubscribeServiceChangeNotifications)(s, 77, sub_cb, NULL, &sub);
     CHECK(r != ERROR_SUCCESS);
@@ -257,7 +257,7 @@ TEST(svcsub_bad_event_type) {
 }
 TEST(svcsub_status_change_roundtrip) {
     REQUIRE(UN(SubscribeServiceChangeNotifications)); REQUIRE(UN(UnsubscribeServiceChangeNotifications)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     PVOID sub = NULL; g_sub_hits = 0;
     DWORD r = UN(SubscribeServiceChangeNotifications)(s, 2 /* SC_EVENT_STATUS_CHANGE */, sub_cb, NULL, &sub);
     t_note("Subscribe(status change, RpcSs) -> %lu sub=%p", r, sub);
@@ -280,7 +280,7 @@ TEST(svcsub_database_change_roundtrip) {
 }
 TEST(svcsub_repeat_subscribe_unsubscribe) {
     REQUIRE(UN(SubscribeServiceChangeNotifications)); REQUIRE(UN(UnsubscribeServiceChangeNotifications)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     int ok = 0;
     for (int i = 0; i < 10; i++) {
         PVOID sub = NULL;
@@ -291,34 +291,40 @@ TEST(svcsub_repeat_subscribe_unsubscribe) {
 }
 TEST(svcwait_null_handle) {
     REQUIRE(UN(WaitServiceState)); WINE_UNIMPL();
+    /* Win10: returns the (non-zero) service state reached, or 0 with GetLastError set. */
+    SET_ERR(0);
     DWORD r = UN(WaitServiceState)(NULL, SERVICE_NOTIFY_RUNNING, 100, NULL);
-    CHECK(r != ERROR_SUCCESS);
-    t_note("WaitServiceState(NULL) -> %lu", r);
+    CHECK(r == 0);
+    t_note("WaitServiceState(NULL) -> %lu err=%lu", r, GetLastError());
+    CHECK(GetLastError() != 0);
 }
 TEST(svcwait_running_already) {
     REQUIRE(UN(WaitServiceState)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     DWORD t0 = GetTickCount();
     DWORD r = UN(WaitServiceState)(s, SERVICE_NOTIFY_RUNNING, 5000, NULL);
     DWORD dt = GetTickCount() - t0;
     t_note("WaitServiceState(RUNNING) -> %lu after %lu ms", r, dt);
+    EXPECT_EQ(r, SERVICE_RUNNING);      /* returns the state reached */
     CHECK(dt < 8000);
     svc_close(s); svc_close(scm);
 }
 TEST(svcwait_stopped_times_out) {
     REQUIRE(UN(WaitServiceState)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     DWORD t0 = GetTickCount();
+    SET_ERR(0);
     DWORD r = UN(WaitServiceState)(s, SERVICE_NOTIFY_STOPPED, 300, NULL);
-    DWORD dt = GetTickCount() - t0;
-    CHECK(r != ERROR_SUCCESS);
-    CHECK(dt < 8000);
-    t_note("WaitServiceState(STOPPED, 300ms) -> %lu after %lu ms", r, dt);
+    DWORD e = GetLastError(), dt = GetTickCount() - t0;
+    EXPECT_EQ(r, 0);                    /* 0 = failure; non-zero would be the state reached */
+    EXPECT_EQ(e, ERROR_TIMEOUT);
+    CHECK(dt >= 250 && dt < 8000);
+    t_note("WaitServiceState(STOPPED, 300ms) -> %lu err=%lu after %lu ms", r, e, dt);
     svc_close(s); svc_close(scm);
 }
 TEST(svcwait_cancel_event) {
     REQUIRE(UN(WaitServiceState)); WINE_UNIMPL();
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     HANDLE ev = CreateEventW(NULL, TRUE, TRUE, NULL);
     DWORD t0 = GetTickCount();
     DWORD r = UN(WaitServiceState)(s, SERVICE_NOTIFY_STOPPED, 4000, ev);
@@ -330,15 +336,12 @@ TEST(svcwait_cancel_event) {
 }
 TEST(svcdyn_null_handle) {
     REQUIRE(UN(QueryServiceDynamicInformation)); WINE_UNIMPL();
-    PVOID info = NULL; SET_ERR(0);
-    BOOL r = UN(QueryServiceDynamicInformation)(NULL, 1, &info);
-    CHECK(!r);
-    t_note("QueryServiceDynamicInformation(NULL) err=%lu", GetLastError());
+    /* Win10 walks the per-process service table, which exists only inside a service host: in an ordinary process
+     * the table pointer is NULL and the call raises an access violation instead of failing. Not callable here. */
+    t_skip("QueryServiceDynamicInformation faults (access violation) outside a service process on Win10");
 }
 TEST(svcdyn_not_a_service_process) {
     /* This process never called RegisterServiceCtrlHandler, so there is no status handle to resolve. */
     REQUIRE(UN(QueryServiceDynamicInformation)); WINE_UNIMPL();
-    PVOID info = NULL; SET_ERR(0);
-    BOOL r = UN(QueryServiceDynamicInformation)((SERVICE_STATUS_HANDLE)(ULONG_PTR)0, 0, &info);
-    CHECK(!r);
+    t_skip("QueryServiceDynamicInformation faults (access violation) outside a service process on Win10");
 }

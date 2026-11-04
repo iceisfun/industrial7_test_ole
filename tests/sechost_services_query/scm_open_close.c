@@ -378,7 +378,8 @@ TEST(scm_openservice_long_name_257) {
     SC_HANDLE s = S(OpenServiceW)(scm, nm, SERVICE_QUERY_STATUS);
     CHECK(s == NULL);
     DWORD e = GetLastError();
-    CHECKF(e == ERROR_INVALID_NAME || e == ERROR_SERVICE_DOES_NOT_EXIST, "err=%lu", e);
+    /* Win10: over-long names are rejected by the RPC stub (RPC_X_BAD_STUB_DATA, 1783). */
+    EXPECT_EQ(e, RPC_X_BAD_STUB_DATA);
     t_note("257-char name err=%lu", e);
     svc_close(s); svc_close(scm);
 }
@@ -392,7 +393,7 @@ TEST(scm_openservice_long_name_1000) {
     SC_HANDLE s = S(OpenServiceW)(scm, nm, SERVICE_QUERY_STATUS);
     CHECK(s == NULL);
     DWORD e = GetLastError();
-    CHECKF(e == ERROR_INVALID_NAME || e == ERROR_SERVICE_DOES_NOT_EXIST, "err=%lu", e);
+    EXPECT_EQ(e, RPC_X_BAD_STUB_DATA); /* see the 257-char case */
     t_note("1000-char name err=%lu", e);
     svc_close(s); svc_close(scm);
 }
@@ -417,10 +418,12 @@ TEST(scm_openservice_access_zero_cannot_query) {
     REQUIRE(S(OpenServiceW)); REQUIRE(S(QueryServiceStatus));
     SC_HANDLE scm = scm_open(SC_MANAGER_CONNECT); REQUIRE(scm);
     SC_HANDLE s = S(OpenServiceW)(scm, L"RpcSs", 0);
-    if (!s) { t_skip("access 0 open refused"); svc_close(scm); return; }
-    SERVICE_STATUS st; SET_ERR(0);
-    BOOL r = S(QueryServiceStatus)(s, &st);
-    EXPECT_FAIL(!r, ERROR_ACCESS_DENIED);
+    /* Win10 refuses to open a service with desired access 0, so a handle that cannot query never exists. */
+    if (s) {
+        SERVICE_STATUS st; SET_ERR(0);
+        BOOL r = S(QueryServiceStatus)(s, &st);
+        EXPECT_FAIL(!r, ERROR_ACCESS_DENIED);
+    } else EXPECT_ERR(ERROR_ACCESS_DENIED);
     svc_close(s); svc_close(scm);
 }
 TEST(scm_openservice_stop_right_rpcss) {
@@ -451,8 +454,17 @@ TEST(scm_openservice_maximum_allowed) {
 TEST(scm_openservice_generic_read) {
     REQUIRE(S(OpenServiceW));
     SC_HANDLE scm = scm_open(SC_MANAGER_CONNECT); REQUIRE(scm);
+    SET_ERR(0);
     SC_HANDLE s = S(OpenServiceW)(scm, L"RpcSs", GENERIC_READ);
-    CHECK(s != NULL);
+    if (!s) {
+        /* GENERIC_READ includes ENUMERATE_DEPENDENTS, which the RpcSs DACL grants to administrators only on Win10. */
+        DWORD e = GetLastError();
+        SC_HANDLE s2 = S(OpenServiceW)(scm, L"RpcSs", SERVICE_QUERY_CONFIG | SERVICE_QUERY_STATUS | SERVICE_INTERROGATE | READ_CONTROL);
+        SC_HANDLE s3 = S(OpenServiceW)(scm, L"RpcSs", SERVICE_ENUMERATE_DEPENDENTS);
+        t_note("GENERIC_READ on RpcSs denied err=%lu (without ENUMERATE_DEPENDENTS %s, ENUMERATE_DEPENDENTS alone %s)", e, s2 ? "ok" : "denied", s3 ? "ok" : "denied");
+        CHECK(e == ERROR_ACCESS_DENIED && s2 != NULL && s3 == NULL);
+        svc_close(s2); svc_close(s3);
+    }
     svc_close(s); svc_close(scm);
 }
 TEST(scm_openservice_each_right_individually) {
@@ -467,7 +479,8 @@ TEST(scm_openservice_each_right_individually) {
     for (unsigned i = 0; i < sizeof t / sizeof t[0]; i++) {
         SC_HANDLE s = S(OpenServiceW)(scm, L"RpcSs", t[i].r);
         if (!s) t_note("RpcSs right %s denied err=%lu", t[i].n, GetLastError());
-        if (t[i].r == SERVICE_QUERY_STATUS || t[i].r == SERVICE_QUERY_CONFIG || t[i].r == SERVICE_ENUMERATE_DEPENDENTS || t[i].r == SERVICE_INTERROGATE || t[i].r == READ_CONTROL)
+        /* ENUMERATE_DEPENDENTS on RpcSs is administrator-only on Win10 (noted above when denied). */
+        if (t[i].r == SERVICE_QUERY_STATUS || t[i].r == SERVICE_QUERY_CONFIG || t[i].r == SERVICE_INTERROGATE || t[i].r == READ_CONTROL)
             CHECKF(s != NULL, "right %s should be grantable", t[i].n);
         svc_close(s);
     }
