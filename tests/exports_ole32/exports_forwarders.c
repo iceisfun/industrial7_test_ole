@@ -248,10 +248,10 @@ TEST(exports_ole32_known_ordinals) {
         CHECKF(a != NULL && a == b, "%s must be ordinal %u", t[i].n, t[i].o);
     }
 }
-/* exports that Windows 10 ole32 does not have (they live elsewhere) */
+/* exports that Windows 10 ole32 does not have (they live elsewhere); DllRegisterServer (ordinal 1010) IS exported, see the table */
 TEST(exports_ole32_known_absent) {
     WINE_SKIP();
-    static const char *const n[] = { "DllCanUnloadNow", "DllRegisterServer", "DllUnregisterServer", "CoInitializeEx2",
+    static const char *const n[] = { "DllCanUnloadNow", "DllUnregisterServer", "CoInitializeEx2",
         "RoInitialize", "WindowsCreateString", "OleUIInsertObjectA", "CoCreateInstanceA", "CoInitializeExW" };
     HMODULE m = t_module("ole32.dll"); if (!m) { t_skip("ole32"); return; }
     for (unsigned i = 0; i < sizeof n / sizeof n[0]; i++) {
