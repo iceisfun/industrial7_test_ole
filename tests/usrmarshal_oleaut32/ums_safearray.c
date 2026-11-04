@@ -334,9 +334,15 @@ TEST(ums_sa_sftype_and_element_wire_size)
             uctx_init(&c, size, MSHCTX_LOCAL, USER_MARSHAL_CB_MARSHALL);
             u_marshal(&c, UF_SAFEARRAY, v, c.buf, &psa, NULL);
             w = c.buf;
-            t_check(rd32(w + (v ? 32 : 20)) == vtcases[i].sf, __FILE__, __LINE__, "SF_TYPE", "v64=%d %s got %lx want %lx", v, vtcases[i].name, rd32(w + (v ? 32 : 20)), vtcases[i].sf);
+            { ULONG want_sf = (vtcases[i].vt == VT_DISPATCH || vtcases[i].vt == VT_UNKNOWN) ? 0x800d : vtcases[i].sf; /* Win10: SF_HAVEIID, IID follows */
+              t_check(rd32(w + (v ? 32 : 20)) == want_sf, __FILE__, __LINE__, "SF_TYPE", "v64=%d %s got %lx want %lx", v, vtcases[i].name, rd32(w + (v ? 32 : 20)), want_sf); }
             t_check(rd32(w + 12 + (v ? 8 : 0)) == vtcases[i].wel, __FILE__, __LINE__, "element wire size", "v64=%d %s got %lu want %lu", v, vtcases[i].name, rd32(w + 12 + (v ? 8 : 0)), vtcases[i].wel);
-            t_check(rd16(w + (v ? 26 : 18)) == vtcases[i].vt, __FILE__, __LINE__, "vartype in cLocks high word", "v64=%d %s", v, vtcases[i].name);
+            if (vtcases[i].vt == VT_DISPATCH || vtcases[i].vt == VT_UNKNOWN) {
+                /* Win10: interface arrays carry FADF_HAVEIID (0x40) plus FADF_DISPATCH (0x400) or FADF_UNKNOWN (0x200) in fFeatures and no vartype in the cLocks high word */
+                t_check(rd16(w + (v ? 18 : 10)) == (vtcases[i].vt == VT_DISPATCH ? 0x440 : 0x240), __FILE__, __LINE__, "interface array fFeatures", "v64=%d %s got %x", v, vtcases[i].name, rd16(w + (v ? 18 : 10)));
+                t_check(rd16(w + (v ? 26 : 18)) == 0, __FILE__, __LINE__, "interface array cLocks high word", "v64=%d %s got %x", v, vtcases[i].name, rd16(w + (v ? 26 : 18)));
+            }
+            else t_check(rd16(w + (v ? 26 : 18)) == vtcases[i].vt, __FILE__, __LINE__, "vartype in cLocks high word", "v64=%d %s", v, vtcases[i].name);
             uctx_free(&c);
             SafeArrayDestroy(psa);
         }
@@ -826,8 +832,10 @@ TEST(ums_sa_unmarshal_malformed_fields)
     wr32(w + 20, 3); wr32(w + 40, 0xfffffffe);
     uctx_wire(&c, w, 52, MSHCTX_LOCAL); exc = 0; dst = NULL;
     u_unmarshal(&c, UF_SAFEARRAY, 0, c.buf, &dst, &exc);
-    t_check(exc != 0, __FILE__, __LINE__, "negative cell count rejected", "exc 0x%lx", exc);
-    CHECK(dst == NULL);
+    /* Win10 does not validate the cell count against the bounds: it unmarshals without an exception into a 1-dim, 4-byte-element array */
+    t_check(exc == 0, __FILE__, __LINE__, "negative cell count: no exception", "exc 0x%lx", exc);
+    t_check(dst != NULL && dst->cDims == 1 && dst->cbElements == 4, __FILE__, __LINE__, "negative cell count: array built", "dst %p", (void *)dst);
+    if (dst) sa_userfree(0, &dst);
     uctx_free(&c);
 }
 
