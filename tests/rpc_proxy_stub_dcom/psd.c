@@ -166,6 +166,7 @@ static HRESULT WINAPI ch_sendreceive(IRpcChannelBuffer *p, RPCOLEMESSAGE *m, ULO
     if (FAILED(c->hr_sendrecv)) return c->hr_sendrecv;
     if (!c->stub) return E_UNEXPECTED;
     RPCOLEMESSAGE sm = *m;
+    memset(sm.reserved2, 0, sizeof sm.reserved2);   /* the real channel hands the stub a fresh server-side message: ManagerEpv etc. are clear */
     sm.iMethod &= ~0x8000u;   /* the real channel strips RPC_FLAGS_VALID_BIT before dispatching to the stub */
     c->last_raw_imethod = m->iMethod;
     void *req = m->Buffer;

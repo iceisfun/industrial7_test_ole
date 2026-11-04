@@ -41,7 +41,14 @@ static LONG CALLBACK veh(PEXCEPTION_POINTERS ep) {
     if (!g_in_test) return EXCEPTION_CONTINUE_SEARCH;
     if (c == 0x40010006 || c == 0x406D1388 || c == DBG_PRINTEXCEPTION_C || c == 0x4001000A) return EXCEPTION_CONTINUE_SEARCH;
     if ((c & 0xF0000000) != 0xC0000000) return EXCEPTION_CONTINUE_SEARCH;
-    printf("  FAIL exception 0x%08lx at %p in %s\n", c, ep->ExceptionRecord->ExceptionAddress, g_cur);
+    {
+        HMODULE hm = NULL; char mn[MAX_PATH] = "?"; const char *bn = mn;
+        PVOID ea = ep->ExceptionRecord->ExceptionAddress;
+        if (GetModuleHandleExA(GET_MODULE_HANDLE_EX_FLAG_FROM_ADDRESS | GET_MODULE_HANDLE_EX_FLAG_UNCHANGED_REFCOUNT, (LPCSTR)ea, &hm) && hm
+            && GetModuleFileNameA(hm, mn, sizeof mn)) { for (const char *q = mn; *q; q++) if (*q == '\\') bn = q + 1; }
+        else hm = NULL;
+        printf("  FAIL exception 0x%08lx at %p (%s+0x%llx) in %s\n", c, ea, bn, (unsigned long long)((char *)ea - (char *)hm), g_cur);
+    }
     g_fail++; g_cur_fail++;
     g_in_test = 0;
     longjmp(g_jb, 1);
