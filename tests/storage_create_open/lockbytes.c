@@ -218,7 +218,10 @@ TEST(sco_createdocfile_onilb_invalid_args) {
     EQ(U(StgCreateDocfileOnILockBytes)(ilb, STGM_CREATE | EXCL | RW, 0, NULL), STG_E_INVALIDPOINTER);
     EQ(U(StgCreateDocfileOnILockBytes)(NULL, STGM_CREATE | EXCL | RW, 0, &s), STG_E_INVALIDPOINTER);
     CHECK(s == NULL);
-    EQ(U(StgCreateDocfileOnILockBytes)(ilb, 0, 0, &s), STG_E_INVALIDFLAG);
+    /* Windows 10: grfMode 0 (no CREATE, no access bits) is rejected as STG_E_FILEALREADYEXISTS, not INVALIDFLAG */
+    EQ(U(StgCreateDocfileOnILockBytes)(ilb, 0, 0, &s), STG_E_FILEALREADYEXISTS);
+    CHECK(s == NULL);
+    t_note("StgCreateDocfileOnILockBytes(grfMode 0) -> STG_E_FILEALREADYEXISTS on Windows 10");
     HRESULT hr0 = U(StgCreateDocfileOnILockBytes)(ilb, STGM_CREATE | EXCL | STGM_READ, 0, &s);
     t_note("create on ILockBytes with CREATE|EXCL|READ -> 0x%08lx", hr0); sco_rel(s); s = NULL;
     hr0 = U(StgCreateDocfileOnILockBytes)(ilb, STGM_CREATE | EXCL | RW, 1, &s);

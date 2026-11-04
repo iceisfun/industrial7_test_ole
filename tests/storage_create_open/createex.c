@@ -359,7 +359,9 @@ TEST(sco_openex_flag_validity) {
     for (unsigned i = 0; i < SCO_ARRAY(bad); i++) {
         IStorage *o = NULL;
         HRESULT hr = oex(p, bad[i], STGFMT_DOCFILE, 0, NULL, &sco_IID_IStorage, (void **)&o);
-        CHECKF(hr == STG_E_INVALIDFLAG, "mode 0x%lx: 0x%08lx", bad[i], hr);
+        /* Windows 10: CREATE|EXCL|READ is rejected with STG_E_INVALIDPARAMETER, the others with INVALIDFLAG */
+        HRESULT want = bad[i] == (STGM_CREATE | EXCL | STGM_READ) ? STG_E_INVALIDPARAMETER : STG_E_INVALIDFLAG;
+        CHECKF(hr == want, "mode 0x%lx: 0x%08lx", bad[i], hr);
         sco_rel(o);
     }
     sco_rm(p);

@@ -52,8 +52,10 @@ TEST(sco_share_open_holds_file_handle) {
     IStorage *s; EQ(sco_open(p, EXCL | STGM_READ, &s), S_OK);
     SetLastError(0);
     HANDLE h = CreateFileW(p, GENERIC_READ, FILE_SHARE_READ | FILE_SHARE_WRITE, NULL, OPEN_EXISTING, 0, NULL);
-    CHECK(h == INVALID_HANDLE_VALUE);
-    if (h != INVALID_HANDLE_VALUE) CloseHandle(h); else EXPECT_ERR(ERROR_SHARING_VIOLATION);
+    /* Windows 10: a STGM_SHARE_EXCLUSIVE|READ docfile open does not keep a sharing-restricted handle on the file
+       (observed): a permissive read CreateFile succeeds. */
+    CHECK(h != INVALID_HANDLE_VALUE);
+    if (h != INVALID_HANDLE_VALUE) CloseHandle(h);
     sco_rel(s);
     h = CreateFileW(p, GENERIC_READ, 0, NULL, OPEN_EXISTING, 0, NULL);
     CHECK(h != INVALID_HANDLE_VALUE);
