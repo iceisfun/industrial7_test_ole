@@ -25,6 +25,8 @@ static LONG (WINAPI *p_GetBitmapBits)(HBITMAP, LONG, LPVOID);
 static HPALETTE (WINAPI *p_CreatePalette)(const LOGPALETTE *);
 static UINT (WINAPI *p_GetPaletteEntries)(HPALETTE, UINT, UINT, LPPALETTEENTRY);
 
+/* A deleted GDI handle is detected by a second DeleteObject() failing. On Win10 GetObjectType() keeps reporting the
+   old type for a handle that was just deleted, so it cannot be used to prove deletion. */
 static int gdi_load(void)
 {
 #define L(n) p_##n = (void *)t_proc_in("gdi32.dll", #n)
@@ -32,6 +34,8 @@ static int gdi_load(void)
 #undef L
     return p_CreateBitmap && p_GetObjectW && p_GetObjectType && p_DeleteObject && p_GetBitmapBits && p_CreatePalette && p_GetPaletteEntries;
 }
+
+static int gdi_gone(void *h) { return !p_DeleteObject(h); }
 
 #define W32(b, o, v) (*(ULONG *)((b) + (o)) = (ULONG)(v))
 #define W16(b, o, v) (*(WORD *)((b) + (o)) = (WORD)(v))
@@ -187,7 +191,7 @@ TEST(gap9_hbitmap_unmarshal_deletes_previous_destination_bitmap)
     um_init(&c, b, end, C_LOCAL);
     XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), 0);
     CHECK(o != NULL);
-    CHECKF(p_GetObjectType(old) == 0, "the previous bitmap is DeleteObject()ed");
+    CHECKF(gdi_gone(old), "the previous bitmap is DeleteObject()ed");
     if (o) p_DeleteObject(o);
     /* replaced by NULL */
     old = p_CreateBitmap(8, 8, 1, 1, NULL); o = old;
@@ -196,7 +200,7 @@ TEST(gap9_hbitmap_unmarshal_deletes_previous_destination_bitmap)
     um_init(&c, b, 8, C_LOCAL);
     XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), 0);
     CHECK(o == NULL);
-    CHECKF(p_GetObjectType(old) == 0, "NULL result also deletes the previous bitmap");
+    CHECKF(gdi_gone(old), "NULL result also deletes the previous bitmap");
     um_buf_free(b);
 }
 
@@ -368,24 +372,32 @@ TEST(gap9_hbitmap_unmarshal_zero_sized_bitmap)
 
 TEST(gap9_hbitmap_unmarshal_unsupported_bitdepth_reports_createbitmap_error)
 {
-    /* bpp 3 satisfies the header checks (widthBytes = ((w*3+15)>>4)*2) but cannot be created */
+    /* odd depths satisfy the header checks (widthBytes = ((w*bpp+15)>>4)*2); the outcome must follow CreateBitmap itself:
+       a depth CreateBitmap refuses surfaces as an RPC exception, a depth it accepts unmarshals to a bitmap (Win10 accepts 3) */
+    static const int depths[] = { 0, 2, 3, 5, 7, 9, 12, 15, 33, 48, 64, 128 };
     void *fu = UM_FNIN("ole32.dll", "HBITMAP_UserUnmarshal");
-    unsigned char *b, *e; UMC c; HBITMAP o = NULL; DWORD code; ULONG wb = wb_of(16, 3);
-    HBITMAP probe;
+    unsigned i;
     if (!gdi_load()) { t_skip("gdi32 unavailable"); return; }
     REQUIRE(fu);
-    SetLastError(0);
-    probe = p_CreateBitmap(16, 4, 1, 3, NULL);
-    if (probe) { p_DeleteObject(probe); t_skip("CreateBitmap accepts 3 bpp on this system"); return; }
-    b = um_buf_new(200);
-    memset(b, 0, 100);
-    W32(b, 0, UM_TAG_R); W32(b, 4, 3); W32(b, 8, 4 * wb); W32(b, 16, 16); W32(b, 20, 4); W32(b, 24, wb); W16(b, 28, 1); W16(b, 30, 3);
-    um_init(&c, b, 32 + 4 * wb, C_LOCAL);
-    code = um_x_mar(fu, UMF(&c), b, &o, &e);
-    CHECKF(code != 0, "CreateBitmap failure must surface as an RPC exception");
-    CHECK(o == NULL);
-    t_note("unmarshal of an uncreatable bitmap raised %#lx", code);
-    um_buf_free(b);
+    for (i = 0; i < sizeof depths / sizeof *depths; i++) {
+        int bpp = depths[i];
+        unsigned char *b = um_buf_new(1200), *e = NULL; UMC c; HBITMAP o = NULL, probe; DWORD code; ULONG wb = wb_of(16, bpp);
+        probe = p_CreateBitmap(16, 4, 1, bpp, NULL);
+        if (probe) p_DeleteObject(probe);
+        memset(b, 0, 1200);
+        W32(b, 0, UM_TAG_R); W32(b, 4, 3); W32(b, 8, 4 * wb); W32(b, 16, 16); W32(b, 20, 4); W32(b, 24, wb); W16(b, 28, 1); W16(b, 30, bpp);
+        um_init(&c, b, 32 + 4 * wb, C_LOCAL);
+        code = um_x_mar(fu, UMF(&c), b, &o, &e);
+        if (probe) {
+            CHECKF(code == 0 && o != NULL, "bpp %d: CreateBitmap accepts it, so the unmarshal must succeed (code %#lx)", bpp, code);
+            if (o) p_DeleteObject(o);
+        } else {
+            CHECKF(code != 0, "bpp %d: CreateBitmap failure must surface as an RPC exception", bpp);
+            CHECKF(o == NULL, "bpp %d: no bitmap on failure", bpp);
+            t_note("bpp %d: unmarshal of an uncreatable bitmap raised %#lx", bpp, code);
+        }
+        um_buf_free(b);
+    }
 }
 
 /* ---- HPALETTE ----------------------------------------------------------------------------------------------- */
@@ -467,7 +479,7 @@ TEST(gap9_hpalette_unmarshal_null_handle_succeeds_in_every_context)
         um_init(&c, b, 8, ctx);
         XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), 0);
         CHECKF(e == b + 8 && o == NULL, "ctx %lu: NULL result, end 8", ctx);
-        CHECKF(p_GetObjectType(old) == 0, "ctx %lu: previous palette deleted", ctx);
+        CHECKF(gdi_gone(old), "ctx %lu: previous palette deleted", ctx);
         um_buf_free(b);
     }
 }
@@ -627,7 +639,7 @@ TEST(gap9_hpalette_unmarshal_replaces_and_deletes_destination)
     um_init(&c, b, end, C_LOCAL);
     XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), 0);
     CHECK(o != NULL && o != old);
-    CHECKF(p_GetObjectType(old) == 0, "old palette deleted");
+    CHECKF(gdi_gone(old), "old palette deleted");
     if (o) { CHECK(p_GetPaletteEntries(o, 0, 0, NULL) == 2); p_DeleteObject(o); }
     um_buf_free(b);
 }

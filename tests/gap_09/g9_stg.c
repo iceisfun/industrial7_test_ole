@@ -655,7 +655,7 @@ TEST(gap9_stgmedium_unmarshal_gdi_palette_roundtrip)
             memset(pe, 0, sizeof pe);
             CHECK(gpe((HPALETTE)o.hBitmap, 0, 3, pe) == 3 && pe[2].peBlue == 9 && pe[0].peRed == 1);
             um_init(&c, NULL, 0, ctx); XEQ(um_x_free(ff, UMF(&c), &o), 0);
-            CHECK(gtype(o.hBitmap) == 0);
+            CHECKF(!del(o.hBitmap), "UserFree deleted the palette (second DeleteObject fails; GetObjectType still reports it on Win10)");
         }
         um_buf_free(b);
     }

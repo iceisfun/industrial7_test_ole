@@ -337,7 +337,7 @@ TEST(gap9_variant_usersize64_byref_variant_recurses)
             setv(&in, inner[i]);
             setv(&v, VT_VARIANT | VT_BYREF); v.pvarVal = &in;
             XEQ(vsize(f, C_LOCAL, off, &v, &r), 0);
-            XEQ(vsize(f, C_LOCAL, UM_ALIGN(off, 8) + 24 + 8, &in, &ri), 0);
+            XEQ(vsize(f, C_LOCAL, UM_ALIGN(off, 8) + 24 + 8 + 8, &in, &ri), 0);   /* Win10: one extra 8-byte slot before the referenced variant */
             CHECKF(r == ri, "inner vt %u off %lu: %lu vs %lu", inner[i], off, r, ri);
         }
 }
@@ -353,9 +353,9 @@ TEST(gap9_variant_usersize64_byref_variant_chain)
     XEQ(vsize(f, C_LOCAL, 0, &leaf, &rl), 0);
     CHECK(rl == 24 + 8);
     XEQ(vsize(f, C_LOCAL, 0, &mid, &r), 0);
-    CHECKF(r == 24 + 8 + (24 + 8), "one level: %lu", r);                   /* mid header + ptr, then leaf at offset 32 */
+    CHECKF(r == 24 + 8 + 8 + (24 + 8), "one level: %lu", r);                   /* mid header + ptr, then leaf at offset 32 */
     XEQ(vsize(f, C_LOCAL, 0, &top, &r), 0);
-    CHECKF(r == 24 + 8 + (24 + 8 + (24 + 8)), "two levels: %lu", r);
+    CHECKF(r == 24 + 8 + 8 + (24 + 8 + 8 + (24 + 8)), "two levels: %lu", r);
 }
 
 TEST(gap9_variant_usersize64_byref_variant_inner_by_value_variant_raises)
