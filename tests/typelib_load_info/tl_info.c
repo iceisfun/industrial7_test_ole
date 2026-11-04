@@ -658,7 +658,7 @@ TEST(tlli_ti_coclass_stdfont)
     CHECKF(ta->cImplTypes >= 2, "cImplTypes=%u", ta->cImplTypes);
     UINT n = ta->cImplTypes;
     ITypeInfo_ReleaseTypeAttr(ti, ta);
-    int sawIFont = 0, sawFont = 0, defaults = 0;
+    int sawIFont = 0, sawFont = 0, defaults = 0, srcdefaults = 0;
     for (UINT i = 0; i < n; i++) {
         HREFTYPE h; ITypeInfo *r = NULL; INT fl = 0; BSTR nm = NULL;
         TEQ(ITypeInfo_GetRefTypeOfImplType(ti, i, &h), S_OK);
@@ -669,7 +669,7 @@ TEST(tlli_ti_coclass_stdfont)
             if (nm) {
                 if (!lstrcmpW(nm, L"IFont")) sawIFont = 1;
                 if (!lstrcmpW(nm, L"Font")) { sawFont = 1; CHECKF(fl & IMPLTYPEFLAG_FDEFAULT, "Font must be default (flags %d)", fl); }
-                if (fl & IMPLTYPEFLAG_FDEFAULT) defaults++;
+                if (fl & IMPLTYPEFLAG_FDEFAULT) { if (fl & IMPLTYPEFLAG_FSOURCE) srcdefaults++; else defaults++; }
                 t_note("StdFont impl %u: %ls flags %d", i, nm, fl);
             }
             tl_freebstr(nm);
@@ -677,7 +677,8 @@ TEST(tlli_ti_coclass_stdfont)
         }
     }
     CHECK(sawIFont && sawFont);
-    TEQ(defaults, 1);
+    TEQ(defaults, 1);                                        /* one default interface (Font) ... */
+    TEQ(srcdefaults, 1);                                     /* ... and one default source interface (FontEvents, flags 3) */
     END_LIB(ti);
 }
 

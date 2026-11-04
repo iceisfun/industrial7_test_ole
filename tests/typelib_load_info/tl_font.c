@@ -61,6 +61,18 @@ static HRESULT inv_put(ITypeInfo *ti, void *inst, DISPID id, VARIANT *arg, UINT 
     return ITypeInfo_Invoke(ti, inst, id, DISPATCH_PROPERTYPUT, &dp, NULL, &ei, argerr);
 }
 
+static int font_dpi(void)
+{
+    HDC (WINAPI *gdc)(HWND) = (void *)t_proc_in("user32.dll", "GetDC");
+    int (WINAPI *rdc)(HWND, HDC) = (void *)t_proc_in("user32.dll", "ReleaseDC");
+    int (WINAPI *gcaps)(HDC, int) = (void *)t_proc_in("gdi32.dll", "GetDeviceCaps");
+    if (!gdc || !rdc || !gcaps) return 96;
+    HDC dc = gdc(NULL);
+    int dpi = dc ? gcaps(dc, 90 /* LOGPIXELSY */) : 96;
+    if (dc) rdc(NULL, dc);
+    return dpi > 0 ? dpi : 96;
+}
+
 static BSTR mkbstr(const WCHAR *s)
 {
     BSTR (WINAPI *f)(const OLECHAR *) = (void *)t_proc_in("oleaut32.dll", "SysAllocString");
@@ -134,9 +146,10 @@ TEST(tlli_font_idispatch_gettypeinfo)
     }
     ti = (ITypeInfo *)SENT_PTR;
     HRESULT hr = IDispatch_GetTypeInfo(disp, 1, 0x409, &ti);       /* only index 0 exists */
-    WCHECK(hr == DISP_E_BADINDEX);
+    TEQ(hr, DISP_E_BADINDEX);
     CHECK(FAILED(hr));
-    WCHECK(ti == NULL);
+    /* Windows leaves *ppTInfo untouched on a bad index; Wine nulls it. Both are acceptable. */
+    CHECK(ti == NULL || ti == (ITypeInfo *)SENT_PTR);
     IDispatch_Release(disp);
     FONT_TEARDOWN(font, tl, ifti, fdti);
 }
@@ -147,16 +160,16 @@ TEST(tlli_font_invoke_name_roundtrip_via_ifont_typeinfo)
     DISPID id = id_of(ifti, L"Name");
     VARIANT arg, res; UINT ae;
     VariantInit(&arg);
-    V_VT(&arg) = VT_BSTR; V_BSTR(&arg) = mkbstr(L"Olet Test Face");
+    V_VT(&arg) = VT_BSTR; V_BSTR(&arg) = mkbstr(L"Arial");
     TEQ(inv_put(ifti, font, id, &arg, &ae), S_OK);
     VariantClear(&arg);
     TEQ(inv_get(ifti, font, id, &res), S_OK);
     TEQ(V_VT(&res), VT_BSTR);
-    WCHECK(V_VT(&res) == VT_BSTR && V_BSTR(&res) && !lstrcmpW(V_BSTR(&res), L"Olet Test Face"));
+    WCHECK(V_VT(&res) == VT_BSTR && V_BSTR(&res) && !lstrcmpW(V_BSTR(&res), L"Arial"));
     VariantClear(&res);
     BSTR direct = NULL;                                          /* same value through the vtable */
     TEQ(IFont_get_Name(font, &direct), S_OK);
-    WCHECK(direct && !lstrcmpW(direct, L"Olet Test Face"));
+    WCHECK(direct && !lstrcmpW(direct, L"Arial"));
     tl_freebstr(direct);
     FONT_TEARDOWN(font, tl, ifti, fdti);
 }
@@ -169,17 +182,17 @@ TEST(tlli_font_invoke_name_roundtrip_via_dispinterface)
     REQUIRE(disp);
     VARIANT arg, res; UINT ae;
     VariantInit(&arg);
-    V_VT(&arg) = VT_BSTR; V_BSTR(&arg) = mkbstr(L"Olet Disp Face");
+    V_VT(&arg) = VT_BSTR; V_BSTR(&arg) = mkbstr(L"Tahoma");
     /* the library's Font dispinterface type info with the instance's IDispatch as pvInstance */
     HRESULT hrp = inv_put(fdti, disp, DISPID_FONT_NAME, &arg, &ae);
     t_note("ITypeInfo(Font)::Invoke(put Name, IDispatch instance) -> 0x%08lx", (unsigned long)hrp);
     VariantClear(&arg);
     if (hrp == S_OK) {
         TEQ(inv_get(fdti, disp, DISPID_FONT_NAME, &res), S_OK);
-        CHECK(V_VT(&res) == VT_BSTR && V_BSTR(&res) && !lstrcmpW(V_BSTR(&res), L"Olet Disp Face"));
+        CHECK(V_VT(&res) == VT_BSTR && V_BSTR(&res) && !lstrcmpW(V_BSTR(&res), L"Tahoma"));
         VariantClear(&res);
     } else {
-        V_VT(&arg) = VT_BSTR; V_BSTR(&arg) = mkbstr(L"Olet Disp Face");
+        V_VT(&arg) = VT_BSTR; V_BSTR(&arg) = mkbstr(L"Tahoma");
         DISPPARAMS dp2; DISPID named = DISPID_PROPERTYPUT; EXCEPINFO ei2; memset(&ei2, 0, sizeof ei2);
         dp2.cArgs = 1; dp2.cNamedArgs = 1; dp2.rgdispidNamedArgs = &named; dp2.rgvarg = &arg;
         TEQ(IDispatch_Invoke(disp, DISPID_FONT_NAME, &TL_GUID_ZERO, 0x409, DISPATCH_PROPERTYPUT, &dp2, NULL, &ei2, &ae), S_OK);
@@ -188,7 +201,7 @@ TEST(tlli_font_invoke_name_roundtrip_via_dispinterface)
     /* and direct IDispatch::Invoke */
     DISPPARAMS dp = {0}; EXCEPINFO ei; memset(&ei, 0, sizeof ei); VariantInit(&res);
     TEQ(IDispatch_Invoke(disp, DISPID_FONT_NAME, &TL_GUID_ZERO, 0x409, DISPATCH_PROPERTYGET, &dp, &res, &ei, &ae), S_OK);
-    WCHECK(V_VT(&res) == VT_BSTR && V_BSTR(&res) && !lstrcmpW(V_BSTR(&res), L"Olet Disp Face"));
+    WCHECK(V_VT(&res) == VT_BSTR && V_BSTR(&res) && !lstrcmpW(V_BSTR(&res), L"Tahoma"));
     VariantClear(&res);
     IDispatch_Release(disp);
     FONT_TEARDOWN(font, tl, ifti, fdti);
@@ -206,11 +219,28 @@ TEST(tlli_font_size_currency_roundtrip)
         TEQ(inv_put(ifti, font, id, &arg, &ae), S_OK);
         TEQ(inv_get(ifti, font, id, &res), S_OK);
         TEQ(V_VT(&res), VT_CY);
-        if (!t_is_wine()) CHECKF(V_CY(&res).int64 == sizes[i], "size %lld -> %lld", sizes[i], V_CY(&res).int64);
+        /* Windows StdFont stores the size as a whole pixel height at the screen DPI, so the value read back is
+           the requested size quantised to a pixel: round(size * dpi / 720000) * 720000 / dpi (8pt -> 8.25pt at 96 dpi). */
+        int dpi = font_dpi();
+        LONGLONG px = (sizes[i] * dpi + 360000) / 720000;
+        LONGLONG want = (px * 720000 + dpi / 2) / dpi;
+        if (!t_is_wine()) CHECKF(V_CY(&res).int64 == want, "size %lld -> %lld (want %lld at %d dpi)", sizes[i], V_CY(&res).int64, want, dpi);
         CY direct; direct.int64 = 0;
         TEQ(IFont_get_Size(font, &direct), S_OK);
-        WCHECK(direct.int64 == sizes[i]);
+        WCHECK(direct.int64 == V_CY(&res).int64);
     }
+    FONT_TEARDOWN(font, tl, ifti, fdti);
+}
+
+TEST(tlli_font_name_unknown_face_ignored)
+{
+    FONT_SETUP(font, tl, ifti, fdti);
+    BSTR bogus = mkbstr(L"Olet Test Face"), g = NULL;
+    TEQ(IFont_put_Name(font, bogus), S_OK);                  /* accepted, but the face is not installed */
+    TEQ(IFont_get_Name(font, &g), S_OK);
+    t_note("Name after put of a nonexistent face reads '%ls'", g ? g : L"(null)");
+    WCHECK(g && lstrcmpW(g, L"Olet Test Face"));             /* Windows reports a face that exists, never the requested one */
+    tl_freebstr(g); tl_freebstr(bogus);
     FONT_TEARDOWN(font, tl, ifti, fdti);
 }
 
@@ -227,7 +257,9 @@ TEST(tlli_font_bool_properties_roundtrip)
             V_VT(&arg) = VT_BOOL; V_BOOL(&arg) = vals[k];
             TEQ(inv_put(ifti, font, id, &arg, &ae), S_OK);
             TEQ(inv_get(ifti, font, id, &res), S_OK);
-            if (!t_is_wine()) CHECKF(V_VT(&res) == VT_BOOL && V_BOOL(&res) == vals[k], "%ls round trip %d", props[p], k);
+            /* IFont declares BOOL (int): Windows reports TRUE as 1 (not VARIANT_TRUE) in a VT_BOOL result. */
+            if (!t_is_wine()) CHECKF(V_VT(&res) == VT_BOOL && (V_BOOL(&res) != 0) == (vals[k] != 0), "%ls round trip %d", props[p], k);
+            if (!t_is_wine() && vals[k] == VARIANT_TRUE) t_note("%ls TRUE reads back as %d", props[p], V_BOOL(&res));
         }
     }
     FONT_TEARDOWN(font, tl, ifti, fdti);
@@ -248,7 +280,13 @@ TEST(tlli_font_bold_weight_coupling)
     TEQ(IFont_get_Bold(font, &b), S_OK);
     CHECK(b != FALSE);
     TEQ(IFont_get_Weight(font, &w), S_OK);
-    TEQ(w, 900);
+    TEQ(w, 700);                                              /* Windows keeps only 400 or 700 (weight > 550 is bold) */
+    TEQ(IFont_put_Weight(font, 550), S_OK);
+    TEQ(IFont_get_Weight(font, &w), S_OK);
+    TEQ(w, 400);
+    TEQ(IFont_put_Weight(font, 551), S_OK);
+    TEQ(IFont_get_Weight(font, &w), S_OK);
+    TEQ(w, 700);
     TEQ(IFont_put_Weight(font, 400), S_OK);
     TEQ(IFont_get_Bold(font, &b), S_OK);
     CHECK(b == FALSE);
@@ -268,11 +306,17 @@ TEST(tlli_font_weight_charset_via_invoke)
     TEQ(inv_put(ifti, font, id_of(ifti, L"Charset"), &arg, &ae), S_OK);
     TEQ(inv_get(ifti, font, id_of(ifti, L"Charset"), &res), S_OK);
     WCHECK(V_VT(&res) == VT_I2 && V_I2(&res) == 2);
-    /* a VT_I4 argument is coerced to the declared short parameter */
+    /* a VT_I4 argument is coerced to the declared short parameter (0 = ANSI_CHARSET, accepted by the default face) */
+    V_VT(&arg) = VT_I4; V_I4(&arg) = 0;
+    TEQ(inv_put(ifti, font, id_of(ifti, L"Charset"), &arg, &ae), S_OK);
+    TEQ(inv_get(ifti, font, id_of(ifti, L"Charset"), &res), S_OK);
+    WCHECK(V_VT(&res) == VT_I2 && V_I2(&res) == 0);
+    /* Windows silently ignores charsets the current face cannot supply (3 here): put succeeds, the value is unchanged */
     V_VT(&arg) = VT_I4; V_I4(&arg) = 3;
     TEQ(inv_put(ifti, font, id_of(ifti, L"Charset"), &arg, &ae), S_OK);
     TEQ(inv_get(ifti, font, id_of(ifti, L"Charset"), &res), S_OK);
-    WCHECK(V_VT(&res) == VT_I2 && V_I2(&res) == 3);
+    t_note("Charset after put 3 reads %d", V_VT(&res) == VT_I2 ? V_I2(&res) : -1);
+    WCHECK(V_VT(&res) == VT_I2 && V_I2(&res) != 3);
     FONT_TEARDOWN(font, tl, ifti, fdti);
 }
 
