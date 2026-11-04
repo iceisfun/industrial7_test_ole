@@ -83,7 +83,8 @@ TEST(mr_comp_basic_properties) {
         p = NULL; EXPECT_EQ(IMoniker_QueryInterface(c, &mr_IID_IROTData, &p), S_OK); if (p) IUnknown_Release((IUnknown *)p);
         p = NULL; EXPECT_EQ(IMoniker_QueryInterface(c, &mr_IID_IMarshal, &p), S_OK); if (p) IUnknown_Release((IUnknown *)p);
         p = NULL; EXPECT_EQ(IMoniker_QueryInterface(c, &mr_IID_IPersistStream, &p), S_OK); if (p) IUnknown_Release((IUnknown *)p);
-        p = NULL; EXPECT_EQ(IMoniker_QueryInterface(c, &mr_IID_IPersist, &p), S_OK); if (p) IUnknown_Release((IUnknown *)p);
+        /* Windows 10: the composite moniker does not answer IPersist directly */
+        p = (void *)1; EXPECT_EQ(IMoniker_QueryInterface(c, &mr_IID_IPersist, &p), E_NOINTERFACE); EXPECT_EQ(p, NULL);
         p = NULL; EXPECT_EQ(IMoniker_QueryInterface(c, &mr_CLSID_CompositeMoniker, &p), S_OK); EXPECT_EQ(p, c); if (p) IMoniker_Release(c);
         IMoniker_Release(c);
     }
