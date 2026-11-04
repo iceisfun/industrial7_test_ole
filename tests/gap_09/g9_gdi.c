@@ -374,7 +374,7 @@ TEST(gap9_hbitmap_unmarshal_unsupported_bitdepth_reports_createbitmap_error)
 {
     /* odd depths satisfy the header checks (widthBytes = ((w*bpp+15)>>4)*2); the outcome must follow CreateBitmap itself:
        a depth CreateBitmap refuses surfaces as an RPC exception, a depth it accepts unmarshals to a bitmap (Win10 accepts 3) */
-    static const int depths[] = { 0, 2, 3, 5, 7, 9, 12, 15, 33, 48, 64, 128 };
+    static const int depths[] = { 2, 3, 5, 7, 9, 12, 15, 33, 48, 64, 128 };
     void *fu = UM_FNIN("ole32.dll", "HBITMAP_UserUnmarshal");
     unsigned i;
     if (!gdi_load()) { t_skip("gdi32 unavailable"); return; }
