@@ -178,7 +178,7 @@ TEST(ncalrpc_raw_mgr_type_routing) {
     ho = rx_bind_obj(ep, &obj); hn = rx_bind(ep);
     st = rx_raw_call(ho, &f.r, 4, NULL, 0, NULL, 0, &n); EQ(st, RPC_S_OK);
     st = rx_raw_call(hn, &f.r, 4, NULL, 0, NULL, 0, &n);
-    CHECK(st == RPC_S_UNKNOWN_MGR_TYPE || st == RPC_S_UNKNOWN_IF);
+    EQ(st, RPC_S_UNSUPPORTED_TYPE);
     t_note("nil-object call to an interface registered for a specific manager type -> %lu", (unsigned long)st);
     EQ(U(RpcObjectSetType)(&obj, NULL), RPC_S_OK);       /* object back to nil type */
     st = rx_raw_call(ho, &f.r, 4, NULL, 0, NULL, 0, &n);
@@ -214,8 +214,13 @@ TEST(ncalrpc_raw_two_managers_same_if) {
     rx_unbind(h1); rx_unbind(h2);
     rx_server_down((RPC_IF_HANDLE)&f.r.si, &m2);
 }
+struct ot_call { int set; UUID *obj; UUID *type; RPC_STATUS st; };
+static void ot_run(void *p) {
+    struct ot_call *c = p;
+    c->st = c->set ? U(RpcObjectSetType)(c->obj, c->type) : U(RpcObjectInqType)(c->obj, c->type);
+}
 TEST(ncalrpc_raw_objecttype_inq) {
-    UUID obj, mt, got, nil; memset(&nil, 0, sizeof nil);
+    UUID obj, mt, got, nil; struct ot_call c; DWORD x; memset(&nil, 0, sizeof nil);
     REQUIRE(U(RpcObjectInqType));
     if (t_is_wine()) { t_skip("RpcObjectInqType is a stub in wine"); return; }
     rx_raw_uuid(&obj, 0x6c); rx_raw_uuid(&mt, 0x6d);
@@ -223,11 +228,17 @@ TEST(ncalrpc_raw_objecttype_inq) {
     memset(&got, 0xcc, sizeof got);
     EQ(U(RpcObjectInqType)(&obj, &got), RPC_S_OK); CHECK(!memcmp(&got, &mt, sizeof mt));
     EQ(U(RpcObjectSetType)(&obj, NULL), RPC_S_OK);
-    EQ(U(RpcObjectInqType)(&obj, &got), RPC_S_OK); CHECK(!memcmp(&got, &nil, sizeof nil));    /* unregistered object -> nil type */
-    EQ(U(RpcObjectInqType)(NULL, &got), RPC_S_OK); CHECK(!memcmp(&got, &nil, sizeof nil));
-    /* the nil object cannot be given a type */
-    EQ(U(RpcObjectSetType)(&nil, &mt), RPC_S_INVALID_OBJECT);
-    EQ(U(RpcObjectSetType)(NULL, &mt), RPC_S_INVALID_OBJECT);
+    memset(&got, 0xcc, sizeof got);
+    EQ(U(RpcObjectInqType)(&obj, &got), RPC_S_OBJECT_NOT_FOUND);     /* an object without a registered type is not found */
+    /* NULL / nil object arguments: no validation on Windows, record what happens */
+    c.set = 0; c.obj = NULL; c.type = &got; c.st = 0xdead; x = rx_guarded(ot_run, &c);
+    t_note("RpcObjectInqType(NULL object) -> exception 0x%lx status %lu", (unsigned long)x, (unsigned long)c.st);
+    c.set = 0; c.obj = &nil; c.type = &got; c.st = 0xdead; x = rx_guarded(ot_run, &c);
+    t_note("RpcObjectInqType(nil object) -> exception 0x%lx status %lu", (unsigned long)x, (unsigned long)c.st);
+    c.set = 1; c.obj = &nil; c.type = &mt; c.st = 0xdead; x = rx_guarded(ot_run, &c);
+    t_note("RpcObjectSetType(nil object, type) -> exception 0x%lx status %lu", (unsigned long)x, (unsigned long)c.st);
+    c.set = 1; c.obj = NULL; c.type = &mt; c.st = 0xdead; x = rx_guarded(ot_run, &c);
+    t_note("RpcObjectSetType(NULL object, type) -> exception 0x%lx status %lu", (unsigned long)x, (unsigned long)c.st);
 }
 
 /* ---- stopping from inside a call ----------------------------------------- */
@@ -243,30 +254,35 @@ TEST(ncalrpc_raw_server_stops_itself_from_call) {
 }
 
 /* ---- cancel --------------------------------------------------------------- */
-typedef struct { RPC_BINDING_HANDLE h; rx_raw *r; DWORD reply; RPC_STATUS st; HANDLE self_ready; } cancel_job;
-static volatile HANDLE g_cancel_thread;
+typedef struct { RPC_BINDING_HANDLE h; rx_raw *r; DWORD reply[3]; RPC_STATUS st; DWORD tid; } cancel_job;
+static volatile DWORD g_cancel_tid;
 static DWORD WINAPI cancel_client(void *p) {
     cancel_job *j = p; ULONG n = 0;
-    DuplicateHandle(GetCurrentProcess(), GetCurrentThread(), GetCurrentProcess(), (HANDLE *)&g_cancel_thread, 0, FALSE, DUPLICATE_SAME_ACCESS);
-    j->st = rx_raw_call(j->h, j->r, 7, NULL, 0, &j->reply, 4, &n);
+    j->tid = GetCurrentThreadId(); g_cancel_tid = j->tid;
+    j->st = rx_raw_call(j->h, j->r, 7, NULL, 0, j->reply, sizeof j->reply, &n);
     return 0;
 }
 TEST(ncalrpc_raw_cancel_thread_reaches_server) {
-    rawfx f; cancel_job j; HANDLE th; DWORD t0; RPC_STATUS cst;
+    rawfx f; cancel_job j; HANDLE th, tt; DWORD t0; RPC_STATUS cst;
     REQUIRE(U(RpcCancelThread));
     if (t_is_wine()) { t_skip("RpcServerTestCancel unimplemented in wine"); return; }
     RUP(f, 0x73, 1, 0);
-    j.h = f.h; j.r = &f.r; j.reply = 0xdead; j.st = 0xdead; g_cancel_thread = NULL;
+    memset(&j, 0, sizeof j); j.h = f.h; j.r = &f.r; j.reply[0] = 0xdead; j.st = 0xdead; g_cancel_tid = 0;
     th = rx_thread(cancel_client, &j);
-    for (t0 = GetTickCount(); !g_cancel_thread && GetTickCount() - t0 < 5000; ) Sleep(5);
+    for (t0 = GetTickCount(); !g_cancel_tid && GetTickCount() - t0 < 5000; ) Sleep(5);
     Sleep(300);                                   /* let the call reach the server */
-    cst = U(RpcCancelThread)((HANDLE)g_cancel_thread);
+    tt = OpenThread(THREAD_ALL_ACCESS, FALSE, g_cancel_tid);
+    CHECK(tt != NULL);
+    cst = tt ? U(RpcCancelThread)(tt) : 0xdead;
+    t_note("RpcCancelThread on the thread inside the call -> %lu (GLE %lu)", (unsigned long)cst, (unsigned long)GetLastError());
     EQ(cst, RPC_S_OK);
     CHECK(rx_join(th, 10000));
-    CloseHandle((HANDLE)g_cancel_thread);
-    t_note("cancelled call: client status %lu, server TestCancel status %lu", (unsigned long)j.st, (unsigned long)j.reply);
-    CHECK(j.st == RPC_S_OK || j.st == RPC_S_CALL_CANCELLED);
-    if (j.st == RPC_S_OK) EQ(j.reply, RPC_S_CALL_CANCELLED);     /* server polled RpcServerTestCancel and saw the cancel */
+    if (tt) CloseHandle(tt);
+    t_note("cancelled call: client status %lu, server TestCancel last %lu first %lu after %lu ms", (unsigned long)j.st,
+           (unsigned long)j.reply[0], (unsigned long)j.reply[1], (unsigned long)j.reply[2]);
+    EQ(j.st, RPC_S_OK);                           /* the cancel is delivered to the server routine; the call itself completes normally */
+    EQ(j.reply[1], RPC_S_CALL_IN_PROGRESS);       /* not cancelled at the first poll */
+    EQ(j.reply[0], RPC_S_OK);                     /* RpcServerTestCancel reported the cancel (OK = cancelled) */
     raw_down(&f);
 }
 TEST(ncalrpc_raw_cancel_thread_no_call_active) {
@@ -278,21 +294,21 @@ TEST(ncalrpc_raw_cancel_thread_no_call_active) {
     CHECK(st == RPC_S_OK);
     st = U(RpcTestCancel)();
     t_note("RpcTestCancel after RpcCancelThread(self) -> %lu", (unsigned long)st);
-    CHECK(st == RPC_S_OK || st == RPC_S_CALL_CANCELLED);
+    EQ(st, RPC_S_NO_CALL_ACTIVE);                 /* the thread is not inside a client call, so the queued cancel is not observed */
     st = U(RpcTestCancel)();
     t_note("second RpcTestCancel -> %lu", (unsigned long)st);
 }
 TEST(ncalrpc_raw_test_cancel_uncancelled_server_call) {
-    rawfx f; DWORD reply = 0xdead; ULONG n; RPC_STATUS st; DWORD t0, t1;
+    rawfx f; DWORD reply[3] = { 0xdead, 0xdead, 0 }; ULONG n; RPC_STATUS st;
     REQUIRE(U(RpcServerTestCancel));
     if (t_is_wine()) { t_skip("RpcServerTestCancel unimplemented in wine"); return; }
     RUP(f, 0x74, 1, 0);
-    /* nobody cancels: the server polls for 5 s (bounded) and reports RPC_S_OK for every poll */
-    t0 = GetTickCount();
-    st = rx_raw_call(f.h, &f.r, 7, NULL, 0, &reply, 4, &n);
-    t1 = GetTickCount();
-    EQ(st, RPC_S_OK); EQ(reply, RPC_S_OK);
-    CHECK(t1 - t0 >= 4000);                       /* sanity: the handler really polled the whole window */
+    /* nobody cancels: the server polls RpcServerTestCancel(NULL) for at most 5 s */
+    st = rx_raw_call(f.h, &f.r, 7, NULL, 0, reply, sizeof reply, &n);
+    EQ(st, RPC_S_OK);
+    EQ(reply[0], RPC_S_CALL_IN_PROGRESS);         /* RpcServerTestCancel: OK = cancelled, CALL_IN_PROGRESS = not cancelled */
+    CHECK(reply[2] >= 4000);                      /* the handler polled the whole window */
+    t_note("uncancelled call: TestCancel first %lu last %lu after %lu ms", (unsigned long)reply[1], (unsigned long)reply[0], (unsigned long)reply[2]);
     raw_down(&f);
 }
 TEST(ncalrpc_raw_servertestcancel_outside_call) {
@@ -301,7 +317,7 @@ TEST(ncalrpc_raw_servertestcancel_outside_call) {
     if (t_is_wine()) { t_skip("RpcServerTestCancel unimplemented in wine"); return; }
     st = U(RpcServerTestCancel)(NULL);
     t_note("RpcServerTestCancel(NULL) outside any call -> %lu", (unsigned long)st);
-    CHECK(st != RPC_S_OK);
+    EQ(st, RPC_S_NO_CALL_ACTIVE);
 }
 TEST(ncalrpc_raw_cancel_timeout_setting) {
     REQUIRE(U(RpcMgmtSetCancelTimeout));

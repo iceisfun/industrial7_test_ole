@@ -1,5 +1,14 @@
 /* Shared fixtures for the ncalrpc tests: see rpcx.h. */
 #include "rpcx.h"
+#include <setjmp.h>
+#ifndef RPC_QUERY_CLIENT_PID
+#define RPC_QUERY_CLIENT_PID 0x10
+#endif
+#ifndef RPC_QUERY_IS_CLIENT_LOCAL
+#define RPC_QUERY_IS_CLIENT_LOCAL 0x20
+#endif
+/* ClientPID and IsClientLocal are only filled in when asked for through Flags */
+#define RX_QF_PID_LOCAL (RPC_QUERY_CLIENT_PID | RPC_QUERY_IS_CLIENT_LOCAL)
 #include "rpcx_fmt.h"
 
 /* ------------------------------------------------------------------ unique names */
@@ -49,7 +58,7 @@ static void s_ctx_close(void **h) { InterlockedIncrement(&rx_calls); Interlocked
 static void s_info(int *pid, int *level, int *islocal, int *authn) {
     RPC_CALL_ATTRIBUTES_V2_W a; RPC_STATUS st;
     InterlockedIncrement(&rx_calls);
-    memset(&a, 0, sizeof a); a.Version = 2; a.Flags = 0;
+    memset(&a, 0, sizeof a); a.Version = 2; a.Flags = RX_QF_PID_LOCAL;
     st = t_is_wine() ? (RPC_STATUS)0xFFFF : U(RpcServerInqCallAttributesW)(NULL, &a);
     if (st) { *pid = -1; *level = (int)st; *islocal = -1; *authn = -1; return; }
     *pid = (int)(ULONG_PTR)a.ClientPID; *level = (int)a.AuthenticationLevel;
@@ -161,7 +170,7 @@ RPC_STATUS RPC_ENTRY rx_sec_cb(RPC_IF_HANDLE ifh, void *ctx) {
     rx_cb_last_if = ifh; rx_cb_last_ctx = ctx;
     rx_cb_attr_st = 0xFFFF;
     if (!t_is_wine() && ctx) {
-        RPC_CALL_ATTRIBUTES_V2_W a; memset(&a, 0, sizeof a); a.Version = 2;
+        RPC_CALL_ATTRIBUTES_V2_W a; memset(&a, 0, sizeof a); a.Version = 2; a.Flags = RX_QF_PID_LOCAL;
         rx_cb_attr_st = U(RpcServerInqCallAttributesW)(ctx, &a);
         rx_cb_attr_pid = (LONG)(ULONG_PTR)a.ClientPID; rx_cb_attr_level = (LONG)a.AuthenticationLevel; rx_cb_attr_local = (LONG)a.IsClientLocal;
     }
@@ -179,7 +188,7 @@ static void RPC_ENTRY raw_sleep(RPC_MESSAGE *m) { int ms = *(int *)m->Buffer; In
 static void RPC_ENTRY raw_whoami(RPC_MESSAGE *m) {
     RPC_CALL_ATTRIBUTES_V2_W a; DWORD r[11]; RPC_STATUS st;
     InterlockedIncrement(&rx_raw_calls);
-    memset(&a, 0, sizeof a); a.Version = 2;
+    memset(&a, 0, sizeof a); a.Version = 2; a.Flags = RX_QF_PID_LOCAL;
     st = t_is_wine() ? (RPC_STATUS)0xFFFF : U(RpcServerInqCallAttributesW)(NULL, &a);
     r[0] = (DWORD)(ULONG_PTR)a.ClientPID; r[1] = a.AuthenticationLevel; r[2] = a.IsClientLocal; r[3] = a.AuthenticationService;
     r[4] = a.OpNum; r[5] = st; r[6] = a.ProtocolSequence; r[7] = a.CallStatus; r[8] = a.CallType; r[9] = a.NullSession; r[10] = a.KernelMode;
@@ -193,11 +202,13 @@ static void RPC_ENTRY raw_inqobject(RPC_MESSAGE *m) {
     raw_reply(m, &r, sizeof r);
 }
 static void RPC_ENTRY raw_stop(RPC_MESSAGE *m) { DWORD st; InterlockedIncrement(&rx_raw_calls); st = U(RpcMgmtStopServerListening)(NULL); raw_reply(m, &st, 4); }
+/* reply: DWORD last status, first status, elapsed ms (polls RpcServerTestCancel for at most 5 s, stops when it reports a cancel: RPC_S_OK means cancelled, RPC_S_CALL_IN_PROGRESS means not cancelled) */
 static void RPC_ENTRY raw_waitcancel(RPC_MESSAGE *m) {
-    DWORD st = 0, t0 = GetTickCount(); InterlockedIncrement(&rx_raw_calls);
-    if (t_is_wine()) { st = 0xFFFF; raw_reply(m, &st, 4); return; }
-    while (GetTickCount() - t0 < 5000) { st = U(RpcServerTestCancel)(NULL); if (st != RPC_S_OK) break; Sleep(10); }
-    raw_reply(m, &st, 4);
+    DWORD r[3], st = 0, t0 = GetTickCount(), first = 0xdead; InterlockedIncrement(&rx_raw_calls);
+    if (t_is_wine()) { r[0] = r[1] = 0xFFFF; r[2] = 0; raw_reply(m, r, sizeof r); return; }
+    while (GetTickCount() - t0 < 5000) { st = U(RpcServerTestCancel)(NULL); if (first == 0xdead) first = st; if (st != RPC_S_CALL_IN_PROGRESS) break; Sleep(10); }
+    r[0] = st; r[1] = first; r[2] = GetTickCount() - t0;
+    raw_reply(m, r, sizeof r);
 }
 static void RPC_ENTRY raw_inqmsg(RPC_MESSAGE *m) {
     DWORD r[4]; InterlockedIncrement(&rx_raw_calls);
@@ -224,9 +235,11 @@ static void RPC_ENTRY raw_authclient(RPC_MESSAGE *m) {
 /* request: DWORD version, DWORD flags.  reply: DWORD status, level, namelen(bytes, incl NUL), then client principal name chars */
 static void RPC_ENTRY raw_attrs(RPC_MESSAGE *m) {
     struct { DWORD st, level, svc, namelen; WCHAR name[256]; } r; DWORD *q = (DWORD *)m->Buffer;
-    RPC_CALL_ATTRIBUTES_V2_W a; WCHAR sbuf[256], cbuf[256];
+    union { RPC_CALL_ATTRIBUTES_V2_W v2; char pad[512]; } au;   /* room for a newer (Version 3) layout */
+    RPC_CALL_ATTRIBUTES_V2_W *pa = &au.v2; WCHAR sbuf[256], cbuf[256];
     InterlockedIncrement(&rx_raw_calls);
-    memset(&r, 0, sizeof r); memset(&a, 0, sizeof a); memset(sbuf, 0, sizeof sbuf); memset(cbuf, 0, sizeof cbuf);
+    memset(&r, 0, sizeof r); memset(&au, 0, sizeof au); memset(sbuf, 0, sizeof sbuf); memset(cbuf, 0, sizeof cbuf);
+#define a (*pa)
     a.Version = q[0]; a.Flags = q[1];
     a.ServerPrincipalName = sbuf; a.ServerPrincipalNameBufferLength = sizeof sbuf;
     a.ClientPrincipalName = cbuf; a.ClientPrincipalNameBufferLength = sizeof cbuf;
@@ -234,6 +247,7 @@ static void RPC_ENTRY raw_attrs(RPC_MESSAGE *m) {
     r.level = a.AuthenticationLevel; r.svc = a.AuthenticationService;
     r.namelen = a.ClientPrincipalNameBufferLength;
     memcpy(r.name, cbuf, sizeof cbuf);
+    #undef a
     raw_reply(m, &r, sizeof r);
 }
 /* reply: DWORD status, then the string binding of RpcBindingServerFromClient(NULL) as WCHARs */
@@ -320,6 +334,21 @@ void rx_unbind(RPC_BINDING_HANDLE h) { if (h) U(RpcBindingFree)(&h); }
 int rx_listening(void) { return U(RpcMgmtIsServerListening)(NULL) == RPC_S_OK; }
 
 static DWORD WINAPI wait_thread(void *p) { (void)p; return U(RpcMgmtWaitServerListen)(); }
+static jmp_buf g_gjb; static volatile int g_garmed; static volatile DWORD g_gcode;
+static LONG CALLBACK rx_gveh(PEXCEPTION_POINTERS ep) {
+    if (!g_garmed) return EXCEPTION_CONTINUE_SEARCH;
+    g_gcode = ep->ExceptionRecord->ExceptionCode; g_garmed = 0;
+    longjmp(g_gjb, 1);
+    return EXCEPTION_CONTINUE_SEARCH;
+}
+DWORD rx_guarded(void (*fn)(void *), void *arg) {
+    static int inst; DWORD c = 0;
+    if (!inst) { AddVectoredExceptionHandler(1, rx_gveh); inst = 1; }
+    g_gcode = 0;
+    if (!setjmp(g_gjb)) { g_garmed = 1; fn(arg); g_garmed = 0; } else c = g_gcode;
+    g_garmed = 0;
+    return c;
+}
 HANDLE rx_thread(LPTHREAD_START_ROUTINE fn, void *arg) { return CreateThread(NULL, 0, fn, arg, 0, NULL); }
 BOOL rx_join(HANDLE th, DWORD ms) {
     BOOL ok;
@@ -393,7 +422,8 @@ int rx_wait_server_ready(const WCHAR *ep, DWORD ms) {
     DWORD t0 = GetTickCount(); RPC_BINDING_HANDLE h = rx_bind(ep);
     int ok = 0;
     while (h && GetTickCount() - t0 < ms) {
-        if (rx_ndr_h(h, RX_VOID, 0, 0, 0, 0, NULL) == 0) { ok = 1; break; }
+        DWORD e = rx_ndr_h(h, RX_VOID, 0, 0, 0, 0, NULL);
+        if (e == 0 || e == RPC_S_ACCESS_DENIED) { ok = 1; break; }   /* a denying security callback still proves the server answers */
         Sleep(50);
     }
     rx_unbind(h);
