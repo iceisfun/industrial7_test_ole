@@ -46,7 +46,7 @@ TEST(psdn_proxy_initialize_connected) {
     UIN("rpcrt4.dll", NdrProxyFreeBuffer)(r.iface, &sm);     /* nothing valid to free; drops the channel reference */
     EQ(r.chan->ref, 2);
     CHECK(sm.pRpcChannelBuffer == NULL);
-    EQ(r.chan->n_freebuf, 0);
+    EQ(r.chan->n_freebuf, 1);                                /* only the final successful call frees its buffer */
     psd_rig_down(&r); PSD_DONE();
 }
 
