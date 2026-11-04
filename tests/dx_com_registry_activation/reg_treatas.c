@@ -44,7 +44,7 @@ TEST(dxtreat_set_get_roundtrip) {
     CHECK(IsEqualGUID(&out, &n));
     /* registry layout: CLSID\{old}\TreatAs  (default value) = "{NEW}" */
     snprintf(s, sizeof s, "%s\\TreatAs", ko); dx_guidstr(&n, ns);
-    CHECK(dx_get(s, NULL, v, sizeof v) == 0);
+    CHECK(dx_get_merged(s, NULL, v, sizeof v) == 0);
     EXPECT_STR(v, ns);
     /* the new class is not modified */
     EQ(U(CoGetTreatAsClass)(&n, &out), S_FALSE);
@@ -60,9 +60,9 @@ TEST(dxtreat_set_null_removes) {
     REQUIRE(U(CoGetTreatAsClass)); DX_BEGIN(); if (!HAVE_TREAT()) { t_skip("no CoTreatAsClass"); return; }
     GUID o, n, out; char ko[128], s[200]; mkcls(&o, ko); mkcls(&n, NULL);
     EQ(treat(&o, &n), S_OK);
-    snprintf(s, sizeof s, "%s\\TreatAs", ko); CHECK(dx_exists(s));
+    snprintf(s, sizeof s, "%s\\TreatAs", ko); CHECK(dx_exists_merged(s));
     EQ(treat(&o, &NULLG), S_OK);
-    CHECK(!dx_exists(s));
+    CHECK(!dx_exists_merged(s));
     memset(&out, 0xcc, sizeof out);
     EQ(U(CoGetTreatAsClass)(&o, &out), S_FALSE);
     CHECK(IsEqualGUID(&out, &o));
@@ -189,10 +189,10 @@ TEST(dxconv_set_get_roundtrip) {
     EQ(U(OleGetAutoConvert)(&o, &out), S_OK);
     CHECK(IsEqualGUID(&out, &n));
     snprintf(s, sizeof s, "%s\\AutoConvertTo", ko); dx_guidstr(&n, ns);
-    CHECK(dx_get(s, NULL, v, sizeof v) == 0);
+    CHECK(dx_get_merged(s, NULL, v, sizeof v) == 0);
     EXPECT_STR(v, ns);
     /* TreatAs is a different, untouched mechanism */
-    snprintf(s, sizeof s, "%s\\TreatAs", ko); CHECK(!dx_exists(s));
+    snprintf(s, sizeof s, "%s\\TreatAs", ko); CHECK(!dx_exists_merged(s));
 }
 TEST(dxconv_set_overwrites) {
     REQUIRE(U(OleGetAutoConvert)); REQUIRE(U(OleSetAutoConvert)); DX_BEGIN();
@@ -204,9 +204,9 @@ TEST(dxconv_set_null_deletes_key) {
     REQUIRE(U(OleGetAutoConvert)); REQUIRE(U(OleSetAutoConvert)); DX_BEGIN();
     GUID o, n, out; char ko[128], s[200]; mkcls(&o, ko); mkcls(&n, NULL);
     snprintf(s, sizeof s, "%s\\AutoConvertTo", ko);
-    EQ(U(OleSetAutoConvert)(&o, &n), S_OK); CHECK(dx_exists(s));
+    EQ(U(OleSetAutoConvert)(&o, &n), S_OK); CHECK(dx_exists_merged(s));
     EQ(U(OleSetAutoConvert)(&o, &NULLG), S_OK);
-    CHECK(!dx_exists(s));
+    CHECK(!dx_exists_merged(s));
     EQ(U(OleGetAutoConvert)(&o, &out), REGDB_E_KEYMISSING);
     /* decomp ignores the RegDeleteKeyEx result: deleting a missing key still succeeds */
     EQ(U(OleSetAutoConvert)(&o, &NULLG), S_OK);

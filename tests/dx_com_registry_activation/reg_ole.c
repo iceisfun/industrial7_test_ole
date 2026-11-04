@@ -140,7 +140,9 @@ TEST(dxole_enumverbs_class_without_verb_key) {
     REQUIRE(U(OleRegEnumVerbs)); DX_BEGIN();
     GUID c; mkcls(&c, NULL, "no verbs"); IEnumOLEVERB *e = (IEnumOLEVERB *)(ULONG_PTR)1;
     HRESULT hr = U(OleRegEnumVerbs)(&c, &e);
-    EQ(hr, REGDB_E_CLASSNOTREG);   /* decomp: failure to open CLSID\{..}\Verb maps to REGDB_E_CLASSNOTREG */
+    /* Win10 (verified): the class key exists but has no Verb key -> OLEOBJ_E_NOVERBS (same as an empty Verb key);
+     * an unregistered class (no CLSID key at all) is REGDB_E_CLASSNOTREG, see the previous test */
+    EQ(hr, OLEOBJ_E_NOVERBS);
     CHECK(e == NULL);
 }
 TEST(dxole_enumverbs_empty_verb_key) {

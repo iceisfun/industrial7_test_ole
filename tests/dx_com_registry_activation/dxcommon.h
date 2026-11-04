@@ -22,6 +22,8 @@ LONG dx_setdw(const char *subkey, const char *name, DWORD val);
 LONG dx_mkkey(const char *subkey);
 int  dx_get(const char *subkey, const char *name, char *out, size_t cap);  /* 0 = ok */
 int  dx_exists(const char *subkey);
+int  dx_get_merged(const char *subkey, const char *name, char *out, size_t cap);   /* via HKCR */
+int  dx_exists_merged(const char *subkey);
 void dx_del(const char *subkey);             /* delete tree, ignore errors */
 void dx_track(const char *subkey);           /* delete at cleanup */
 void dx_cleanup(void);
