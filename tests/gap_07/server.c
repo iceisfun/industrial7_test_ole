@@ -477,19 +477,24 @@ TEST(gap7_useprotseqa_dynamic_ncalrpc_endpoint_appears_in_server_bindings)
 }
 
 /* ======================= RpcCertGeneratePrincipalName{A,W} ======================= */
-TEST(gap7_certgenerateprincipalname_null_context_fails_consistently)
+typedef struct { RPC_STATUS w, a; RPC_WSTR ws; RPC_CSTR as; DWORD flags; } cgp_arg;
+static void cgp_w(void *p) { cgp_arg *g = p; g->w = UN(RpcCertGeneratePrincipalNameW)(NULL, g->flags, &g->ws); }
+static void cgp_a(void *p) { cgp_arg *g = p; g->a = UN(RpcCertGeneratePrincipalNameA)(NULL, g->flags, &g->as); }
+TEST(gap7_certgenerateprincipalname_null_context_faults_in_the_validator)
 {
-    RPC_STATUS w, a; RPC_WSTR ws = (RPC_WSTR)(ULONG_PTR)0x77; RPC_CSTR as = (RPC_CSTR)(ULONG_PTR)0x77; static const DWORD flags[] = { 0, 1, 0xffffffffu };
+    cgp_arg g; static const DWORD flags[] = { 0, 1, 0xffffffffu };
     unsigned i;
     REQUIRE(UN(RpcCertGeneratePrincipalNameW)); REQUIRE(UN(RpcCertGeneratePrincipalNameA));
     if (t_is_wine()) { t_skip("wine returns a different status for a NULL certificate context"); return; }
+    /* Win10: the wrappers hand the NULL CERT_CONTEXT straight to the principal-name generator, which dereferences it:
+     * an access violation propagates out of both exports (no status is returned). Each call runs on its own thread. */
     for (i = 0; i < NELEM(flags); i++) {
-        ws = (RPC_WSTR)(ULONG_PTR)0x77; as = (RPC_CSTR)(ULONG_PTR)0x77;
-        w = UN(RpcCertGeneratePrincipalNameW)(NULL, flags[i], &ws);
-        a = UN(RpcCertGeneratePrincipalNameA)(NULL, flags[i], &as);
-        CHECKF(w != 0, "W succeeded for a NULL certificate context (flags 0x%lx)", (unsigned long)flags[i]);
-        CHECKF(a == w, "A status %lu vs W status %lu", (unsigned long)a, (unsigned long)w);
-        CHECK(as == (RPC_CSTR)(ULONG_PTR)0x77);          /* the A wrapper writes its output only on success */
-        t_note("RpcCertGeneratePrincipalNameW(NULL, 0x%lx) -> %lu (1764 = RPC_S_CANNOT_SUPPORT when the API set is absent)", (unsigned long)flags[i], (unsigned long)w);
+        DWORD xw, xa;
+        g.flags = flags[i]; g.w = g.a = 0x7777; g.ws = (RPC_WSTR)(ULONG_PTR)0x77; g.as = (RPC_CSTR)(ULONG_PTR)0x77;
+        xw = g7_run(cgp_w, &g);
+        xa = g7_run(cgp_a, &g);
+        t_note("RpcCertGeneratePrincipalName{W,A}(NULL, 0x%lx): exception 0x%lx / 0x%lx, status %lu / %lu", (unsigned long)flags[i], (unsigned long)xw, (unsigned long)xa, (unsigned long)g.w, (unsigned long)g.a);
+        EQ(xw, 0xc0000005u); EQ(xa, 0xc0000005u);
+        CHECK(g.as == (RPC_CSTR)(ULONG_PTR)0x77);          /* the A wrapper writes its output only on success */
     }
 }
