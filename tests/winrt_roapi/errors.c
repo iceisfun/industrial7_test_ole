@@ -444,11 +444,12 @@ RO_TEST(winrt_roapi_matching_returns_existing_when_hr_matches) {
     IRErrInfo *ri = NULL;
     RO_EQ(UN(RoGetMatchingRestrictedErrorInfo)(E_NOTIMPL, (void **)&ri), S_OK);
     CHECK(ri != NULL);
-    if (ri) { BSTR d = NULL, r = NULL; HRESULT e = 0;
-        RO_EQ(ri->lpVtbl->GetErrorDetails(ri, &d, &e, &r, NULL), S_OK); RO_EQ(e, E_NOTIMPL);
+    if (ri) { BSTR d = NULL, r = NULL, s = NULL; HRESULT e = 0;
+        /* Windows dereferences every out pointer of GetErrorDetails: passing NULL crashes, so supply all four */
+        RO_EQ(ri->lpVtbl->GetErrorDetails(ri, &d, &e, &r, &s), S_OK); RO_EQ(e, E_NOTIMPL);
         int kept = (d && wcsstr(d, L"match-me-777")) || (r && wcsstr(r, L"match-me-777"));
         t_note("existing error object reused (message preserved)=%d", kept);
-        if (d) U(SysFreeString)(d); if (r) U(SysFreeString)(r); }
+        if (d) U(SysFreeString)(d); if (r) U(SysFreeString)(r); if (s) U(SysFreeString)(s); }
     RO_RELEASE(ri);
     ro_hs_free(m); flags_restore();
 }
