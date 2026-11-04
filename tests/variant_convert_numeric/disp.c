@@ -11,6 +11,15 @@
 static const GUID vcn_IID_IUnknown = {0x00000000, 0, 0, {0xC0, 0, 0, 0, 0, 0, 0, 0x46}};
 static const GUID vcn_IID_IDispatch = {0x00020400, 0, 0, {0xC0, 0, 0, 0, 0, 0, 0, 0x46}};
 static const GUID vcn_GUID_NULL = {0, 0, 0, {0, 0, 0, 0, 0, 0, 0, 0}};
+/* Win10 oleaut32 VarXFromDisp passes an UNINITIALISED stack VARIANT as the destination of VariantChangeTypeEx,
+ * which validates the (garbage) vt of that destination: the result is DISP_E_BADVARTYPE whenever the stack
+ * slot below the caller holds a leftover non-zero vt.  Zero the stack region the callee frame will occupy so
+ * the checks see the documented behaviour instead of leftovers of earlier calls. */
+static void __attribute__((noinline)) scrub_stack(void)
+{
+    volatile char buf[2048];
+    for (unsigned i = 0; i < sizeof buf; i++) buf[i] = 0;
+}
 static HRESULT vclear(VARIANT *v) { return U(VariantClear)(v); }
 static HRESULT vcopy(VARIANT *d, VARIANT *s) { return U(VariantCopy)(d, s); }
 
@@ -27,6 +36,13 @@ typedef struct {
     BOOL ei_null, argerr_null, res_empty;
     LCID lcid;
 } FakeDisp;
+
+typedef HRESULT (WINAPI *disp_fn)(IDispatch *, LCID, void *);
+static HRESULT __attribute__((noinline)) dcall(disp_fn fn, IDispatch *p, void *out)
+{
+    scrub_stack();
+    return fn(p, 0x409, out);
+}
 
 static FakeDisp *impl(IDispatch *i) { return (FakeDisp *)i; }
 
@@ -77,7 +93,6 @@ static void fd_init(FakeDisp *d)
 
 /* ---- destination descriptors; resolved by name through the module list */
 enum kind { K_INT, K_UINT, K_R4, K_R8, K_CY, K_DATE, K_BOOL, K_DEC };
-typedef HRESULT (WINAPI *disp_fn)(IDispatch *, LCID, void *);
 static const struct dst {
     const char *fn; enum kind k; unsigned size; double lo, hi;   /* ints: inclusive range */
 } dsts[] = {
@@ -202,7 +217,7 @@ TEST(vcn_disp_default_value_matrix)
             double want = 0;
             HRESULT whr = expect_for(d, c, &want);
             unsigned char out[32]; memset(out, 0xCC, sizeof out);
-            HRESULT hr = fn(&fd.iface, 0x409, out);
+            HRESULT hr = dcall(fn, &fd.iface, out);
             if (hr == DISP_E_BADVARTYPE && fd.invokes == 0) { t_note("%s: BADVARTYPE without Invoke (old oleaut32 behaviour)", d->fn); vclear(&fd.ret); continue; }
             CHECKF(fd.invokes == 1, "%s case %s: Invoke called %d times", d->fn, c->name, fd.invokes);
             /* sign-changing integer coercions through VariantChangeTypeEx are not covered by the decomp read */
@@ -231,7 +246,7 @@ TEST(vcn_disp_invoke_arguments)
         FakeDisp fd; fd_init(&fd);
         V_VT(&fd.ret) = VT_I4; V_I4(&fd.ret) = 3;
         unsigned char out[32];
-        HRESULT hr = fn(&fd.iface, 0x409, out);
+        HRESULT hr = dcall(fn, &fd.iface, out);
         if (hr == DISP_E_BADVARTYPE && fd.invokes == 0) { t_note("%s: no Invoke performed", d->fn); continue; }
         CHECKF(fd.invokes == 1, "%s: invokes=%d", d->fn, fd.invokes);
         CHECKF(fd.dispid == DISPID_VALUE, "%s: dispid=%ld", d->fn, (long)fd.dispid);
@@ -259,7 +274,7 @@ TEST(vcn_disp_invoke_failure)
             FakeDisp fd; fd_init(&fd);
             fd.fail = fails[fi];
             unsigned char out[32]; memset(out, 0xCC, sizeof out);
-            HRESULT hr = fn(&fd.iface, 0x409, out);
+            HRESULT hr = dcall(fn, &fd.iface, out);
             if (fi == 0) {
                 CHECKF(hr == DISP_E_TYPEMISMATCH, "%s: hr 0x%08lx want TYPEMISMATCH", d->fn, (unsigned long)hr);
                 CHECKF(fd.invokes == 1, "%s: invokes=%d", d->fn, fd.invokes);
@@ -279,7 +294,7 @@ TEST(vcn_disp_null_dispatch)
         disp_fn fn = (disp_fn)t_proc(d->fn);
         if (!fn) { t_skip("missing export: %s", d->fn); return; }
         unsigned char out[32]; memset(out, 0xCC, sizeof out);
-        HRESULT hr = fn(NULL, 0x409, out);
+        HRESULT hr = dcall(fn, NULL, out);
         t_note("%s(NULL dispatch) -> 0x%08lx, out %s", d->fn, (unsigned long)hr, vcn_untouched(out, d->size) ? "untouched" : "written");
         CHECKF(FAILED(hr) || hr == S_OK, "%s: hr sanity", d->fn);
     }
