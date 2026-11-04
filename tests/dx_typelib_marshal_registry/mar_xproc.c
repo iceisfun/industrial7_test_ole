@@ -106,6 +106,7 @@ CHILD(tm_xp)
     const char *scen = argc > 1 ? argv[1] : "basic"; const char *apt = argc > 2 ? argv[2] : "M"; const char *file = argc > 3 ? argv[3] : "";
     HRESULT hr; HANDLE h; DWORD n = 0, got = 0; HGLOBAL hg; void *mem; IStream *stm = NULL; void *itf = NULL; const GUID *iid;
     iid = (scen[0] == 'd') ? &TM_IID_IOletDual : &TM_IID_IOletCustom;
+    if (argc > 4) { WCHAR w[64]; static GUID gi; MultiByteToWideChar(CP_ACP, 0, argv[4], -1, w, 64); if (U(CLSIDFromString)(w, &gi) == S_OK) iid = &gi; }
     hr = U(CoInitializeEx)(NULL, apt[0] == 'S' ? COINIT_APARTMENTTHREADED : COINIT_MULTITHREADED);
     if (FAILED(hr)) return 90;
     h = CreateFileA(file, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, NULL);
@@ -135,6 +136,17 @@ CHILD(tm_xp)
     return g_cfails > 80 ? 80 : g_cfails;
 }
 
+static DWORD xp_run(const char *scen, const char *apt, tm_new_fn mk, const GUID *iid, int unregister_before_child, int check_release);
+static const GUID *g_child_iid, *g_mini_iid;
+static IUnknown *mk_mini_g(void) { return (IUnknown *)tm_new_mini(g_mini_iid); }
+/* a fresh process unmarshals a marshaled IOletMini for iid: returns 0 when its unmarshal failed, 1 when it worked */
+DWORD tm_xp_fresh_unmarshal(const GUID *iid)
+{
+    DWORD c; g_mini_iid = iid; g_child_iid = iid;
+    c = xp_run("noreg", "M", mk_mini_g, iid, 0, 0);
+    g_child_iid = NULL;
+    return c;
+}
 /* returns the child's exit code, or -1 when the parent side failed */
 static DWORD xp_run(const char *scen, const char *apt, tm_new_fn mk, const GUID *iid, int unregister_before_child, int check_release)
 {
@@ -154,6 +166,7 @@ static DWORD xp_run(const char *scen, const char *apt, tm_new_fn mk, const GUID 
         GlobalUnlock(hg);
         if (unregister_before_child) tm_end();
         snprintf(extra, sizeof extra, "%s %s \"%s\"", scen, apt, file);
+        if (g_child_iid) { WCHAR w[40]; size_t l = strlen(extra); tm_guid_str(g_child_iid, w); snprintf(extra + l, sizeof extra - l, " %ls", w); }
         code = t_run_child("tm_xp", extra, 30000);
         DeleteFileA(file);
     }

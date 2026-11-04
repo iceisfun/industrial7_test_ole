@@ -204,13 +204,15 @@ static const FN fn_disp[] = {
 static const FN fn_plain[] = { { "Ping", 1, INVOKE_FUNC, 0, "x:in:i4" } };
 static const FN fn_proxyflag[] = { { "Ping", 1, INVOKE_FUNC, 0, "x:in:i4" } };
 
-HRESULT tm_build_main(const WCHAR *path)
+static HRESULT build_main_flags(const WCHAR *path, WORD libflags);
+HRESULT tm_build_main(const WCHAR *path) { return build_main_flags(path, LIBFLAG_FRESTRICTED | LIBFLAG_FHIDDEN); }
+static HRESULT build_main_flags(const WCHAR *path, WORD libflags)
 {
     Ctx *c = calloc(1, sizeof *c); HRESULT hr; VARIANT v; ICreateTypeInfo *cti; int i;
     if (!c) return E_OUTOFMEMORY;
     hr = open_ctx(c, path, SYS_WIN64);
     if (FAILED(hr)) { t_note("open_ctx failed 0x%lx", (long)hr); goto done; }
-    CK(lib_header(c, &TM_LIBID_Main, TM_MAIN_MAJ, TM_MAIN_MIN, 0, LIBFLAG_FRESTRICTED | LIBFLAG_FHIDDEN, L"OletLib", L"Olet typelib marshal test library", NULL));
+    CK(lib_header(c, &TM_LIBID_Main, TM_MAIN_MAJ, TM_MAIN_MIN, 0, libflags, L"OletLib", L"Olet typelib marshal test library", NULL));
 
     /* enum OletColor */
     CK(start_type(c, "OletColor", TKIND_ENUM, NULL, 0)); cti = c->cur;
@@ -323,7 +325,11 @@ done:
 }
 
 /* --------------------------------------------------------------------- on-demand files */
-static WCHAR g_main[MAX_PATH]; static int g_main_state;   /* 0 unbuilt, 1 ok, -1 failed */
+static WCHAR g_main[MAX_PATH], g_inv[MAX_PATH]; static int g_main_state;   /* 0 unbuilt, 1 ok, -1 failed */
+/* Same interfaces and IIDs as the main library but without LIBFLAG_FRESTRICTED: Windows' ITypeInfo::Invoke (and so
+   DispInvoke) refuses every member of a restricted library with DISP_E_MEMBERNOTFOUND, so servers that dispatch
+   through a type info take it from this unregistered copy. NULL when the main library could not be built. */
+const WCHAR *tm_invoke_path(void) { return tm_main_path() ? g_inv : NULL; }
 const WCHAR *tm_main_path(void)
 {
     if (g_main_state == 0) {
@@ -332,7 +338,13 @@ const WCHAR *tm_main_path(void)
         MultiByteToWideChar(CP_ACP, 0, a, -1, g_main, MAX_PATH);
         hr = tm_build_main(g_main);
         if (FAILED(hr)) { t_note("tm_build_main failed 0x%lx", (long)hr); g_main_state = -1; DeleteFileW(g_main); }
-        else g_main_state = 1;
+        else {
+            t_tmpfile(a, sizeof a, "olet_inv.tlb");
+            MultiByteToWideChar(CP_ACP, 0, a, -1, g_inv, MAX_PATH);
+            hr = build_main_flags(g_inv, LIBFLAG_FHIDDEN);
+            if (FAILED(hr)) { t_note("build of the invocable library copy failed 0x%lx", (long)hr); g_main_state = -1; DeleteFileW(g_main); DeleteFileW(g_inv); }
+            else g_main_state = 1;
+        }
     }
     return g_main_state > 0 ? g_main : NULL;
 }

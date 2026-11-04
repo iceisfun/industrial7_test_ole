@@ -329,7 +329,8 @@ static HRESULT get_ti(Dual *d)
 {
     ITypeLib *tl = NULL; HRESULT hr;
     if (d->ti) return S_OK;
-    hr = U(LoadRegTypeLib)(&TM_LIBID_Main, TM_MAIN_MAJ, TM_MAIN_MIN, 0, &tl);
+    { const WCHAR *p = tm_invoke_path(); if (!p) return TYPE_E_CANTLOADLIBRARY;
+      hr = U(LoadTypeLibEx)(p, REGKIND_NONE, &tl); }
     if (FAILED(hr)) return hr;
     hr = ITypeLib_GetTypeInfoOfGuid(tl, &TM_IID_IOletDual, &d->ti);
     ITypeLib_Release(tl);
@@ -356,7 +357,8 @@ static HRESULT TM_CALL d_Invoke(IOletDual *i, DISPID id, REFIID riid, LCID lcid,
 {
     Dual *d = (Dual *)i; HRESULT hr = get_ti(d);
     if (FAILED(hr)) return hr;
-    return U(DispInvoke)(&d->d, d->ti, id, fl, dp, res, ei, argerr);
+    hr = U(DispInvoke)(&d->d, d->ti, id, fl, dp, res, ei, argerr);
+    return hr;
 }
 static HRESULT TM_CALL d_Add(IOletDual *i, LONG a, LONG b, LONG *r) { note_call(); *r = a + b; return S_OK; }
 static HRESULT TM_CALL d_Concat(IOletDual *i, BSTR a, BSTR b, BSTR *r)
