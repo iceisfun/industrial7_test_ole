@@ -208,7 +208,10 @@ TEST(vc_change_same_type_copies) {
         VARIANT s, d; fill_src(&s, vts[i], NULL, NULL); mark_dest(&d);
         HR_EQ(conv(&d, &s, (VARTYPE)vts[i], 0), S_OK);
         EXPECT_EQ(V_VT(&d), vts[i]);
-        CHECKF(!memcmp(&V_I8(&d), &V_I8(&s), 8) || vts[i] == 14, "vt %u payload differs", vts[i]);
+        /* Windows copies only the value width of the type (2 bytes for I2/BOOL), not the whole 8-byte union */
+        size_t w = (vts[i] == 2 || vts[i] == 11 || vts[i] == 18) ? 2 : (vts[i] == 16 || vts[i] == 17) ? 1
+                 : (vts[i] == 3 || vts[i] == 4 || vts[i] == 19 || vts[i] == 22 || vts[i] == 23) ? 4 : 8;
+        CHECKF(!memcmp(&V_I8(&d), &V_I8(&s), w) || vts[i] == 14, "vt %u payload differs", vts[i]);
     }
 }
 TEST(vc_change_same_type_bstr_deep_copy) {
