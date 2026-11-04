@@ -45,8 +45,11 @@ static void sweep(void) {
         if (U(RpcMgmtEpEltInqNextW)(ctx, &got, &b, &obj, &ann) != RPC_S_OK) break;
         if (memcmp(&got.Uuid, &g_uuid, sizeof(UUID)) == 0 && b) {
             struct { ULONG Count; RPC_BINDING_HANDLE BindingH[1]; } v1;      /* RPC_BINDING_VECTOR layout */
+            UUID_VECTOR uv; static const UUID nil;
             v1.Count = 1; v1.BindingH[0] = b;
-            U(RpcEpUnregister)((RPC_IF_HANDLE)&g_si, (RPC_BINDING_VECTOR *)&v1, NULL);
+            /* an entry registered with an object uuid is only removed when that object uuid is passed too */
+            if (memcmp(&obj, &nil, sizeof nil)) { uv.Count = 1; uv.Uuid[0] = &obj; }
+            U(RpcEpUnregister)((RPC_IF_HANDLE)&g_si, (RPC_BINDING_VECTOR *)&v1, memcmp(&obj, &nil, sizeof nil) ? &uv : NULL);
         }
         if (b) U(RpcBindingFree)(&b);
         if (ann) U(RpcStringFreeW)(&ann);
@@ -82,7 +85,13 @@ static BOOL up(void) {
 }
 static void down(void) {
     HANDLE th;
-    if (g_vec) { U(RpcEpUnregister)((RPC_IF_HANDLE)&g_si, g_vec, NULL); g_vec = NULL; }
+    if (g_vec) {
+        UUID_VECTOR uv; UUID *u[1];
+        U(RpcEpUnregister)((RPC_IF_HANDLE)&g_si, g_vec, NULL);
+        uv.Count = 1; u[0] = (UUID *)&g_obj1; uv.Uuid[0] = u[0];     /* entries registered with an object uuid need it to unregister */
+        U(RpcEpUnregister)((RPC_IF_HANDLE)&g_si, g_vec, &uv);
+        g_vec = NULL;
+    }
     if (g_all) { U(RpcBindingVectorFree)(&g_all); g_all = NULL; }
     U(RpcMgmtStopServerListening)(NULL);
     th = CreateThread(NULL, 0, wait_thread, NULL, 0, NULL);
