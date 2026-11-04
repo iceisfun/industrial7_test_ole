@@ -19,7 +19,7 @@ TEST(dtd_exc_chained_object_exception_reaches_caller)
     EXPECT_EQ(hr, DISP_E_EXCEPTION);
     if (hr != DISP_E_EXCEPTION) { ITypeInfo_Release(ti); return; }
     CHECK(m.last_ex == &ex);       /* the very same EXCEPINFO pointer is forwarded */
-    EXPECT_EQ(ex.scode, 0x80040201); EXPECT_EQ(ex.wCode, 0);
+    EXPECT_EQ((ULONG)ex.scode, 0x80040201UL); EXPECT_EQ(ex.wCode, 0);
     CHECK(bs_eq(ex.bstrSource, L"Mock.Source")); CHECK(bs_eq(ex.bstrDescription, L"mock failure"));
     CHECK(ex.bstrHelpFile == NULL); EXPECT_EQ(ex.dwHelpContext, 77);
     CHECK(ex.pfnDeferredFillIn == Mock_DeferredFillIn);
@@ -67,7 +67,7 @@ TEST(dtd_exc_stddisp_forwards_exception_info)
     hr = IDispatch_Invoke(disp, DD_CHILD, &DI_NULL, 0x409, DISPATCH_PROPERTYGET, &dp, &r, &ex, NULL);
     EXPECT_EQ(hr, DISP_E_EXCEPTION);
     if (hr != DISP_E_EXCEPTION) { IDispatch_Release(disp); ITypeInfo_Release(ti); return; }
-    CHECK(bs_eq(ex.bstrDescription, L"mock failure")); EXPECT_EQ(ex.scode, 0x80040201);
+    CHECK(bs_eq(ex.bstrDescription, L"mock failure")); EXPECT_EQ((ULONG)ex.scode, 0x80040201UL);
     if (hr == DISP_E_EXCEPTION) free_ex(&ex);
     IDispatch_Release(disp); ITypeInfo_Release(ti);
 }
