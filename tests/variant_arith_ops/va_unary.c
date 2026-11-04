@@ -59,7 +59,7 @@ TEST(variant_arith_ops_abs_vt_gate)
             hr = U(VarAbs)(&v, &res);
             want = abs_expect(vt);
             CHECKF(hr == want, "VarAbs(vt 0x%x) hr 0x%lx want 0x%lx", vt, (long)hr, (long)want);
-            if (want != S_OK) CHECKF(V_VT(&res) == VT_EMPTY, "VarAbs(vt 0x%x) failed result vt %u want EMPTY", vt, V_VT(&res));
+            if (want != S_OK) CHECKF(VA_FAILRES_OK(V_VT(&res)), "VarAbs(vt 0x%x) failed result vt %u want EMPTY", vt, V_VT(&res));
         }
 }
 
@@ -116,7 +116,7 @@ TEST(variant_arith_ops_abs_values)
 /* Not: exact codes, following the type sets in the oleaut32 VarNot gate */
 TEST(variant_arith_ops_not_vt_gate)
 {
-    unsigned b; size_t f;
+    unsigned b; size_t f; static char byref_buf[32];
     REQUIRE(U(VarNot));
     for (f = 0; f < NFLAGS; f++)
         for (b = 0; b <= 36; b++) {
@@ -126,7 +126,14 @@ TEST(variant_arith_ops_not_vt_gate)
             if (b > 31) continue;
             fill_sample(&v, b, 1); V_VT(&v) = (VARTYPE)vt;
             memset(&res, 0, sizeof(res)); V_VT(&res) = 15;
+            /* a BYREF operand is dereferenced by VarNot before the type is judged (a NULL pointer faults on Win10):
+             * point it at valid zeroed storage */
+            if (vt & VT_BYREF) { memset(byref_buf, 0, sizeof(byref_buf)); V_BYREF(&v) = byref_buf; }
             hr = U(VarNot)(&v, &res);
+            if (FLAGS[f] == VT_BYREF && hr == S_OK) {
+                t_note("VarNot(vt 0x%x) with a valid BYREF pointer succeeds (result vt 0x%x)", vt, V_VT(&res));
+                continue;
+            }
             if (!FLAGS[f]) {
                 switch (b) {
                 case VT_I1: case VT_UI1: case VT_I2: case VT_UI2: case VT_INT: case VT_UINT: case VT_I4: case VT_UI4: case VT_R4: case VT_R8:
@@ -146,7 +153,7 @@ TEST(variant_arith_ops_not_vt_gate)
                 if (b == VT_RECORD && (fl & VT_ARRAY)) want = DISP_E_TYPEMISMATCH;
             }
             CHECKF(hr == want, "VarNot(vt 0x%x) hr 0x%lx want 0x%lx", vt, (long)hr, (long)want);
-            if (want != S_OK) CHECKF(V_VT(&res) == VT_EMPTY, "VarNot(vt 0x%x) failed result vt %u want EMPTY", vt, V_VT(&res));
+            if (want != S_OK) CHECKF(VA_FAILRES_OK(V_VT(&res)), "VarNot(vt 0x%x) failed result vt %u want EMPTY", vt, V_VT(&res));
         }
 }
 
@@ -208,7 +215,7 @@ TEST(variant_arith_ops_neg_fix_int_vt_gate)
                 if (ok) CHECKF(hr == S_OK, "%s(vt 0x%x) hr 0x%lx want S_OK", names[k], vt, (long)hr);
                 else {
                     CHECKF(hr == DISP_E_TYPEMISMATCH || hr == DISP_E_BADVARTYPE, "%s(vt 0x%x) hr 0x%lx want a type error", names[k], vt, (long)hr);
-                    CHECKF(V_VT(&res) == VT_EMPTY, "%s(vt 0x%x) failed result vt %u want EMPTY", names[k], vt, V_VT(&res));
+                    CHECKF(VA_FAILRES_OK(V_VT(&res)), "%s(vt 0x%x) failed result vt %u want EMPTY", names[k], vt, V_VT(&res));
                 }
             }
 }
@@ -216,7 +223,8 @@ TEST(variant_arith_ops_neg_fix_int_vt_gate)
 TEST(variant_arith_ops_neg_values)
 {
     REQUIRE(U(VarNeg)); REQUIRE(U(SysAllocString));
-    N1(VA_NEG, C_UI1(0), S_OK, C_I2(0));
+    /* Win10: Neg of UI1 0 stays UI1 (non-zero bytes widen to I2) */
+    N1(VA_NEG, C_UI1(0), S_OK, C_UI1(0));
     N1(VA_NEG, C_UI1(255), S_OK, C_I2(-255));
     N1(VA_NEG, C_I2(-32768), S_OK, C_I4(32768));
     N1(VA_NEG, C_I2(32767), S_OK, C_I2(-32767));
@@ -325,7 +333,7 @@ TEST(variant_arith_ops_round_vt_gate)
             hr = U(VarRound)(&v, 2, &res);
             want = round_expect(vt);
             CHECKF(hr == want, "VarRound(vt 0x%x) hr 0x%lx want 0x%lx", vt, (long)hr, (long)want);
-            if (want != S_OK) CHECKF(V_VT(&res) == VT_EMPTY, "VarRound(vt 0x%x) failed result vt %u want EMPTY", vt, V_VT(&res));
+            if (want != S_OK) CHECKF(VA_FAILRES_OK(V_VT(&res)), "VarRound(vt 0x%x) failed result vt %u want EMPTY", vt, V_VT(&res));
             else if (vt == VT_EMPTY || vt == VT_BOOL) CHECKF(V_VT(&res) == VT_I2, "VarRound(vt %u) result vt %u want I2", vt, V_VT(&res));
             else CHECKF(V_VT(&res) == vt, "VarRound(vt %u) result vt %u want same", vt, V_VT(&res));
         }
@@ -345,7 +353,7 @@ TEST(variant_arith_ops_round_negative_decimals)
             memset(&res, 0, sizeof(res)); V_VT(&res) = 15;
             hr = U(VarRound)(&v, nd[i], &res);
             CHECKF(hr == E_INVALIDARG, "VarRound(%s, %d) hr 0x%lx want E_INVALIDARG", va_vtname(vts[j]), nd[i], (long)hr);
-            CHECKF(V_VT(&res) == VT_EMPTY, "VarRound(%s, %d) result vt %u want EMPTY", va_vtname(vts[j]), nd[i], V_VT(&res));
+            CHECKF(VA_FAILRES_OK(V_VT(&res)), "VarRound(%s, %d) result vt %u want EMPTY", va_vtname(vts[j]), nd[i], V_VT(&res));
         }
 }
 

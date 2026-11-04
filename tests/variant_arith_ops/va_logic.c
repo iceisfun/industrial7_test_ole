@@ -76,7 +76,8 @@ TEST(variant_arith_ops_logic_coercions)
     BC(VA_OR,  C_DEC(0, 0, 0, 9), C_I4(6), S_OK, C_I4(15));
     /* numeric strings are parsed as numbers, boolean strings as BOOL */
     BC(VA_AND, C_BSTR(L"12"), C_I4(10), S_OK, C_I4(8));
-    BC(VA_AND, C_BSTR(L"12"), C_I2(10), S_OK, C_I2(8));
+    /* Win10: a numeric string widens an I2 partner to I4 */
+    BC(VA_AND, C_BSTR(L"12"), C_I2(10), S_OK, C_I4(8));
     BC(VA_OR,  C_BSTR(L"#TRUE#"), C_BOOL(0), S_OK, C_BOOL(-1));
     BC(VA_AND, C_BSTR(L"#TRUE#"), C_BOOL(-1), S_OK, C_BOOL(-1));
     BC(VA_AND, C_BSTR(L"#FALSE#"), C_BOOL(-1), S_OK, C_BOOL(0));
@@ -135,6 +136,8 @@ TEST(variant_arith_ops_logic_vt_matrix)
                 unsigned l = vts[a], r = vts[b]; int fail; unsigned want;
                 VARIANT L, R, res; HRESULT hr; vcell lc, rc;
                 want = logic_vt(l, r, &fail);
+                /* Win10: VarImp(INT, I8) succeeds with an I8 result (the other And/Or/Imp INT/I8 orders fail) */
+                if (LOGIC[op] == VA_IMP && l == VT_INT && r == VT_I8) { fail = 0; want = VT_I8; }
                 if (((l == VT_I8 && r == VT_INT) || (l == VT_INT && r == VT_I8)) && (LOGIC[op] == VA_XOR || LOGIC[op] == VA_EQV)) continue;
                 memset(&lc, 0, sizeof(lc)); memset(&rc, 0, sizeof(rc));
                 lc.vt = (unsigned short)l; rc.vt = (unsigned short)r;
@@ -149,7 +152,7 @@ TEST(variant_arith_ops_logic_vt_matrix)
                 hr = va_bin(LOGIC[op], &L, &R, &res);
                 if (fail) {
                     CHECKF(FAILED(hr), "%s(%s,%s) unexpectedly succeeded", LNAME[op], va_vtname(l), va_vtname(r));
-                    CHECKF(V_VT(&res) == VT_EMPTY, "%s(%s,%s) failed result vt %u want EMPTY", LNAME[op], va_vtname(l), va_vtname(r), V_VT(&res));
+                    CHECKF(VA_FAILRES_OK(V_VT(&res)), "%s(%s,%s) failed result vt %u want EMPTY", LNAME[op], va_vtname(l), va_vtname(r), V_VT(&res));
                 } else {
                     long long x = (l == VT_BOOL) ? -1 : (l == VT_EMPTY ? 0 : 12), y = (r == VT_BOOL) ? -1 : (r == VT_EMPTY ? 0 : 10), z = 0, got = 0;
                     CHECKF(hr == S_OK, "%s(%s,%s) hr 0x%lx", LNAME[op], va_vtname(l), va_vtname(r), (long)hr);
@@ -188,7 +191,8 @@ TEST(variant_arith_ops_logic_type_errors)
         /* I8 with INT is not a supported combination of And / Or / Imp */
         if (ops[k] == VA_AND || ops[k] == VA_OR || ops[k] == VA_IMP) {
             B(ops[k], C_I8(1), C_INT(1), HR_TYPEERR, C_NONE);
-            B(ops[k], C_INT(1), C_I8(1), HR_TYPEERR, C_NONE);
+            if (ops[k] == VA_IMP) B(ops[k], C_INT(1), C_I8(1), S_OK, C_I8(-1)); /* Win10: succeeds */
+            else B(ops[k], C_INT(1), C_I8(1), HR_TYPEERR, C_NONE);
         }
     }
 }

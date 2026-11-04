@@ -56,6 +56,8 @@ typedef struct { unsigned short vt; long long i; double d; const WCHAR *s; } vce
 #define VARIANT_TRUE_ ((VARIANT_BOOL)-1)
 
 #define HR_TYPEERR ((HRESULT)0x7fff0001L) /* expect DISP_E_TYPEMISMATCH or DISP_E_BADVARTYPE */
+/* On failure Windows either zeroes the result (VT_EMPTY) or leaves it untouched (the tests poison it with vt 15) depending on the code path */
+#define VA_FAILRES_OK(vt) ((vt) == VT_EMPTY || (vt) == 15)
 typedef struct { int wl; int n; vcell l, r, e; long hr; } vrow;
 typedef struct { int wl; vcell l, r; long res[4]; } vcmprow;
 
