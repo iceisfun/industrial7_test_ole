@@ -122,8 +122,8 @@ static inline void exp_check_negatives(const char *dll, const char *any_name, un
     SetLastError(0); CHECK(GetProcAddress(m, "") == NULL); EXPECT_ERR(ERROR_PROC_NOT_FOUND);
     SetLastError(0); CHECK(GetProcAddress(m, (LPCSTR)(ULONG_PTR)(maxord + 1)) == NULL); EXPECT_ERR(ERROR_INVALID_ORDINAL);
     SetLastError(0); CHECK(GetProcAddress(m, (LPCSTR)(ULONG_PTR)0xFFFF) == NULL); EXPECT_ERR(ERROR_INVALID_ORDINAL);
-    SetLastError(0); CHECK(GetProcAddress(m, (LPCSTR)(ULONG_PTR)0) == NULL); EXPECT_ERR(ERROR_INVALID_ORDINAL);
-    SetLastError(0); CHECK(GetProcAddress(m, NULL) == NULL); EXPECT_ERR(ERROR_INVALID_ORDINAL);
+    SetLastError(0); CHECK(GetProcAddress(m, (LPCSTR)(ULONG_PTR)0) == NULL); EXPECT_ERR(ERROR_INVALID_PARAMETER); /* Win10: ordinal 0 is rejected before lookup */
+    SetLastError(0); CHECK(GetProcAddress(m, NULL) == NULL); EXPECT_ERR(ERROR_INVALID_PARAMETER);
     /* lookup is case sensitive, exact length */
     char buf[256]; size_t l = strlen(any_name);
     memcpy(buf, any_name, l + 1);
@@ -224,9 +224,9 @@ static inline void exp_check_ldr(const char *dll, const exp_ent *t, int n, unsig
         CHECKF(out == (PVOID)t_proc_ord(dll, t[i].ord), "Ldr %s ord %u differs from GetProcAddress", dll, t[i].ord);
         lim++;
     }
-    /* unknown name: STATUS_PROCEDURE_NOT_FOUND (0xC000007A) */
+    /* unknown name: STATUS_ENTRYPOINT_NOT_FOUND (0xC0000139) on Win10 22H2 */
     { PVOID out = NULL; const char *nm = "NoSuchExport_olet"; exp_astr s = { (USHORT)strlen(nm), (USHORT)strlen(nm) + 1, (PCHAR)nm };
-      LONG st = ldr(m, &s, 0, &out); CHECK((ULONG)st == 0xC000007Au); }
+      LONG st = ldr(m, &s, 0, &out); CHECKF((ULONG)st == 0xC0000139u, "unknown name status 0x%lx", (unsigned long)st); }
     /* ordinal beyond the table: STATUS_ORDINAL_NOT_FOUND (0xC0000138) */
     { PVOID out = NULL; LONG st = ldr(m, NULL, maxord + 1, &out); CHECK((ULONG)st == 0xC0000138u); }
     /* neither name nor ordinal: STATUS_INVALID_PARAMETER (0xC000000D) */
