@@ -155,9 +155,16 @@ TEST(usr_hglobal_marshal_inproc_pointer_form)
         CHECK(*(HGLOBAL *)(b + p) == h);          /* the handle value itself travels, no data copy */
         o = NULL;
         um_init(&c, b, (ULONG)(e - b), C_INPROC);
-        XEQ(um_x_mar(fu, UMF(&c), b + off, &o, &e), 0);
-        CHECKF(o == h, "inproc unmarshal returns the same handle");
-        CHECK(e == b + p + 8);
+        if (off % 4) {
+            /* Win10: the unmarshal helper does not realign an unaligned start; it fails with RPC_X_BAD_STUB_DATA
+             * (the marshal helper aligns to 4 first). */
+            XEQ(um_x_mar(fu, UMF(&c), b + off, &o, &e), X_BADSTUB);
+            if (off == 1) t_note("HGLOBAL_UserUnmarshal at a buffer start not 4-aligned: RPC_X_BAD_STUB_DATA");
+        } else {
+            XEQ(um_x_mar(fu, UMF(&c), b + off, &o, &e), 0);
+            CHECKF(o == h, "inproc unmarshal returns the same handle");
+            CHECK(e == b + p + 8);
+        }
         CHECK(GlobalSize(h) >= 40);               /* still alive */
         um_buf_free(b);
     }

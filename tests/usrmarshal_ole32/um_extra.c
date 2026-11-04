@@ -235,8 +235,8 @@ TEST(usr_hglobal64_inproc_roundtrip)
     REQUIRE(fm); REQUIRE(fu);
     h = GlobalAlloc(GMEM_MOVEABLE, 24);
     um_init(&c, b, 64, C_INPROC); XEQ(um_x_mar(fm, UMF(&c), b + 3, &h, &e1), 0);
-    CHECK(e1 == b + 16);
-    um_init(&c, b, 16, C_INPROC); XEQ(um_x_mar(fu, UMF(&c), b + 3, &o, &e2), 0);
+    CHECK(e1 == b + 24);                      /* Win10: 8-aligned tag at +8, 8-byte handle at +16 */
+    um_init(&c, b, 24, C_INPROC); XEQ(um_x_mar(fu, UMF(&c), b + 3, &o, &e2), 0);
     CHECK(o == h && e2 == e1);
     CHECK(GlobalSize(h) >= 24);
     GlobalFree(h);
