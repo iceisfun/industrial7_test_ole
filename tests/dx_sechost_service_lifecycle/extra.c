@@ -106,9 +106,10 @@ TEST(dx_svc_x_delete_then_recreate_same_name) {
     fx_t f; if (!fx_begin(&f, 1)) return;
     CHECK(S(DeleteService)(f.svc));
     S(CloseServiceHandle)(f.svc); f.svc = NULL;
-    SC_HANDLE s = S(CreateServiceW)(f.scm, f.name, f.disp, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
-        SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, FX_BIN, NULL, NULL, NULL, NULL, NULL);
-    CHECKF(s != NULL, "recreate after full delete failed %lu", GetLastError());
+    /* Deletion completes asynchronously in the SCM: retry only on MARKED_FOR_DELETE. */
+    DWORD le = 0;
+    SC_HANDLE s = fx_create_retry(f.scm, f.name, f.disp, &le);
+    CHECKF(s != NULL, "recreate after full delete failed %lu", le);
     f.svc = s;
     fx_end(&f);
 }
