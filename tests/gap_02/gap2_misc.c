@@ -268,10 +268,10 @@ TEST(gap2_isaccel_single_entry_tables)
     if (!modifiers_idle()) { t_skip("a modifier key is held"); return; }
     for (k = 0; k < 4; k++) {
         static const WORD keys[4] = { 'A', VK_RETURN, VK_ESCAPE, 0x41 + 25 };
-        ACCEL a; WORD cmd = SENT;
+        __attribute__((aligned(4))) ACCEL a; WORD cmd = SENT;   /* Win10 rejects a 2-byte-aligned ACCEL array with ERROR_NOACCESS (998) */
         a.fVirt = FVIRTKEY; a.key = keys[k]; a.cmd = (WORD)(300 + k);
         h = mk_table(&a, 1);
-        if (!h) { t_skip("CreateAcceleratorTableW failed"); return; }
+        if (!h) { t_skip("CreateAcceleratorTableW failed k=%u key=0x%x err=%lu", k, keys[k], GetLastError()); return; }
         EXPECT_EQ(run(h, 1, mkmsg(WM_KEYDOWN, keys[k], 0), &cmd), 1);
         EXPECT_EQ(cmd, 300 + k);
         cmd = SENT;

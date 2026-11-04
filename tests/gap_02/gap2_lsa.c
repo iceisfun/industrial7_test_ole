@@ -125,7 +125,7 @@ TEST(gap2_lsa_lookupsids_closed_handle)
     REQUIRE(LSIDS); REQUIRE(LOPEN); REQUIRE(LCLOSE); NOWINE();
     h = open_policy(&st, POLICY_LOOKUP_NAMES);
     if (!h) { t_skip("LsaOpenPolicy failed 0x%lx", st); return; }
-    EXPECT_EQ(LCLOSE(h), 0);
+    r = LCLOSE(h); EXPECT_EQ(r, 0);        /* EXPECT_EQ evaluates its operands twice: never put a side-effecting call inside */
     r = LSIDS(h, 1, &sid, &dom, &names);
     t_note("LsaLookupSids on a closed handle -> 0x%lx", r);          /* the handle block is freed; the outcome is a use-after-close, only record it */
 }
@@ -183,8 +183,8 @@ TEST(gap2_lsa_lookupsids_well_known_each)
             if (names[0].Name.Length)
                 CHECK((BYTE *)names[0].Name.Buffer >= (BYTE *)(names + 1));
         }
-        if (names) EXPECT_EQ(LFREE(names), 0);
-        if (dom) EXPECT_EQ(LFREE(dom), 0);
+        if (names) { NTSTATUS f_ = LFREE(names); EXPECT_EQ(f_, 0); }
+        if (dom) { NTSTATUS f_ = LFREE(dom); EXPECT_EQ(f_, 0); }
     }
     LCLOSE(h);
 }
@@ -281,7 +281,7 @@ TEST(gap2_lsa_enumrights_builtin_administrators)
             CHECKF(rights[i].Length > 0 && rights[i].Buffer != NULL, "right %lu empty", i);
             CHECKF(rights[i].MaximumLength >= rights[i].Length, "right %lu max<len", i);
         }
-        EXPECT_EQ(LFREE(rights), 0);
+        r = LFREE(rights); EXPECT_EQ(r, 0);
     } else {
         CHECKF(cnt == 0 && rights == NULL, "failure must zero the outputs (cnt %lu)", cnt);
     }
@@ -317,7 +317,7 @@ TEST(gap2_lsa_enumaccounts_interactive_logon)
             CHECKF(e[i].Sid != NULL, "entry %lu has no SID", i);
             if (e[i].Sid) CHECK(sid_len(e[i].Sid) >= 12);
         }
-        EXPECT_EQ(LFREE(buf), 0);
+        r = LFREE(buf); EXPECT_EQ(r, 0);
     } else {
         CHECKF(buf == NULL && cnt == 0, "failure zeroes the outputs");
     }
