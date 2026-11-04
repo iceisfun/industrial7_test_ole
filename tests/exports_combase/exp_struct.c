@@ -53,7 +53,8 @@ TEST(exports_combase_pe_headers) {
     CHECK(nt->FileHeader.Characteristics & IMAGE_FILE_DLL);
     CHECK(nt->FileHeader.Characteristics & IMAGE_FILE_EXECUTABLE_IMAGE);
     CHECK(nt->OptionalHeader.SizeOfImage > 0x100000);
-    EXPECT_EQ(nt->OptionalHeader.Subsystem, IMAGE_SUBSYSTEM_WINDOWS_GUI);
+    /* Win10 22H2: combase.dll is a console-subsystem image (3), not GUI (2) */
+    EXPECT_EQ(nt->OptionalHeader.Subsystem, IMAGE_SUBSYSTEM_WINDOWS_CUI);
 }
 TEST(exports_combase_export_dir_present) {
     NEED();
@@ -162,10 +163,19 @@ TEST(exports_combase_all_targets_in_executable_section) {
     if (!nt || !e) { t_skip("no headers"); return; }
     const IMAGE_SECTION_HEADER *s = IMAGE_FIRST_SECTION(nt);
     const DWORD *f = (const DWORD *)((const char *)m + e->AddressOfFunctions);
+    const DWORD *nm = (const DWORD *)((const char *)m + e->AddressOfNames);
+    const WORD *no = (const WORD *)((const char *)m + e->AddressOfNameOrdinals);
     for (DWORD i = 0; i < e->NumberOfFunctions; i++) {
-        int ok = 0;
+        int ok = 0, anysec = 0, named = 0;
+        for (DWORD q = 0; q < e->NumberOfNames; q++) if (no[q] == i) named = 1;
+        (void)nm;
         for (WORD k = 0; k < nt->FileHeader.NumberOfSections; k++)
-            if (f[i] >= s[k].VirtualAddress && f[i] < s[k].VirtualAddress + s[k].Misc.VirtualSize && (s[k].Characteristics & IMAGE_SCN_MEM_EXECUTE)) ok = 1;
+            if (f[i] >= s[k].VirtualAddress && f[i] < s[k].VirtualAddress + s[k].Misc.VirtualSize) {
+                anysec = 1;
+                if (s[k].Characteristics & IMAGE_SCN_MEM_EXECUTE) ok = 1;
+            }
+        /* Win10: a nameless ordinal (183) is a data export living in a non-executable section; every named export is code */
+        if (!ok && !named && anysec) { t_note("ordinal %lu is a data export (rva 0x%x)", (unsigned long)(i + e->Base), (unsigned)f[i]); continue; }
         CHECKF(ok, "ordinal %lu rva 0x%x not in an executable section", (unsigned long)(i + e->Base), (unsigned)f[i]);
     }
 }
