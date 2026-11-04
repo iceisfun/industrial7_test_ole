@@ -43,7 +43,7 @@ TEST(psdp_proxy_buffer_qi) {
         CHECKF(hr == E_NOINTERFACE, "bad %d hr=0x%lx", i, hr);
         CHECK(pv == NULL);
     }
-    EQ(IRpcProxyBuffer_AddRef(r.pb), 2);
+    EQ(IRpcProxyBuffer_AddRef(r.pb), 3);                  /* the buffer and the interface pointer hold one count each */
     IRpcProxyBuffer_Release(r.pb);
     psd_rig_down(&r); PSD_DONE();
 }
@@ -195,7 +195,9 @@ TEST(psdp_final_release_disconnects) {
     IUnknown_Release(i);
     EQ(c->ref, 2);
     EQ(IRpcProxyBuffer_Release(pb), 0);
-    EQ(c->ref, 1);                                         /* destroying a connected proxy releases the channel */
+    /* Win10: the final Release frees the object and releases the factory but does not Disconnect, so the channel
+     * reference taken by Connect is still held (the proxy buffer leaks it); only an explicit Disconnect releases it */
+    EQ(c->ref, 2);
     HeapFree(GetProcessHeap(), 0, c);
     IPSFactoryBuffer_Release(psf);
     PSD_DONE();
