@@ -41,15 +41,16 @@ TEST(gap5_r4cmpr8_table)
     }
 }
 
-TEST(gap5_r4cmpr8_nan_is_lt)
+TEST(gap5_r4cmpr8_nan_is_eq)
 {
-    /* decomp: result is 0 unless (float)right <= left; any NaN makes both comparisons false -> 0 (VARCMP_LT) */
+    /* Windows 10 returns VARCMP_EQ for an unordered (NaN) operand on either side: the compiled compare treats
+     * "unordered" as <= and not <, so the result is 0 + ... = 1. (Wine returned VARCMP_LT.) */
     HRESULT a, b;
     REQUIRE(U(VarR4CmpR8));
     a = U(VarR4CmpR8)(NAN, 1.0);
     b = U(VarR4CmpR8)(1.0f, NAN);
-    EXPECT_EQ(a, VC_LT);
-    EXPECT_EQ(b, VC_LT);
+    EXPECT_EQ(a, VC_EQ);
+    EXPECT_EQ(b, VC_EQ);
 }
 
 TEST(gap5_r4cmpr8_never_returns_null)

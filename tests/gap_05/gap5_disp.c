@@ -42,6 +42,21 @@ static HRESULT WINAPI md_invoke(IDispatch *p, DISPID id, REFIID riid, LCID lcid,
     if (res) { VariantInit(res); VariantCopy(res, &m->value); }
     return S_OK;
 }
+/* Windows 10 VarBstrFromDisp hands VariantChangeTypeEx an UNINITIALISED stack VARIANT as the destination, and
+ * VariantChangeTypeEx first clears whatever the destination holds: stack garbage in its vt gives DISP_E_BADVARTYPE.
+ * Zero the stack below the caller right before the call so the result is deterministic. */
+static void __attribute__((noinline)) g5_scrub_stack(void)
+{
+    volatile unsigned char buf[2048];
+    unsigned i;
+    for (i = 0; i < sizeof buf; i++) buf[i] = 0;
+}
+static HRESULT __attribute__((noinline)) g5_vbfd(IDispatch *d, LCID l, ULONG f, BSTR *o)
+{
+    g5_scrub_stack();
+    return U(VarBstrFromDisp)(d, l, f, o);
+}
+
 static const IDispatchVtbl md_vtbl = { md_qi, md_addref, md_release, md_gtic, md_gti, md_gids, md_invoke };
 
 static void md_init(MockDisp *m) { memset(m, 0, sizeof *m); m->iface.lpVtbl = (IDispatchVtbl *)&md_vtbl; m->ref = 1; VariantInit(&m->value); m->invoke_hr = S_OK; }
@@ -52,7 +67,7 @@ TEST(gap5_bstrfromdisp_bstr_default_property)
     REQUIRE(U(VarBstrFromDisp)); REQUIRE(U(SysAllocString)); REQUIRE(U(SysFreeString));
     md_init(&m);
     V_VT(&m.value) = VT_BSTR; V_BSTR(&m.value) = U(SysAllocString)(L"hello disp");
-    hr = U(VarBstrFromDisp)(&m.iface, 0x409, 0, &out);
+    hr = g5_vbfd(&m.iface, 0x409, 0, &out);
     EXPECT_EQ(hr, S_OK);
     CHECK(out && !lstrcmpW(out, L"hello disp"));
     CHECK(m.invokes == 1);
@@ -74,7 +89,7 @@ TEST(gap5_bstrfromdisp_lcid_passed_to_invoke)
     for (i = 0; i < 3; i++) {
         MockDisp m; BSTR out = NULL;
         md_init(&m); V_VT(&m.value) = VT_I4; V_I4(&m.value) = 5;
-        EXPECT_EQ(U(VarBstrFromDisp)(&m.iface, l[i], 0, &out), S_OK);
+        EXPECT_EQ(g5_vbfd(&m.iface, l[i], 0, &out), S_OK);
         EXPECT_EQ(m.last_lcid, l[i]);
         U(SysFreeString)(out);
     }
@@ -92,7 +107,7 @@ TEST(gap5_bstrfromdisp_numeric_defaults)
         md_init(&m); V_VT(&m.value) = t[i].vt;
         switch (t[i].vt) { case VT_I4: V_I4(&m.value) = (LONG)t[i].v; break; case VT_I2: V_I2(&m.value) = (SHORT)t[i].v; break;
                            case VT_UI1: V_UI1(&m.value) = (BYTE)t[i].v; break; default: V_I8(&m.value) = t[i].v; }
-        hr = U(VarBstrFromDisp)(&m.iface, 0x409, 0, &out);
+        hr = g5_vbfd(&m.iface, 0x409, 0, &out);
         t_check(hr == S_OK && out && !lstrcmpW(out, t[i].want), __FILE__, __LINE__, t[i].n, "hr 0x%lx", (unsigned long)hr);
         U(SysFreeString)(out);
     }
@@ -103,13 +118,13 @@ TEST(gap5_bstrfromdisp_bool_and_empty)
     MockDisp m; BSTR out = NULL; HRESULT hr;
     REQUIRE(U(VarBstrFromDisp)); REQUIRE(U(SysFreeString));
     md_init(&m); V_VT(&m.value) = VT_BOOL; V_BOOL(&m.value) = VARIANT_TRUE;
-    hr = U(VarBstrFromDisp)(&m.iface, 0x409, 0, &out);
+    hr = g5_vbfd(&m.iface, 0x409, 0, &out);
     EXPECT_EQ(hr, S_OK); CHECK(out && !lstrcmpW(out, L"-1")); U(SysFreeString)(out);
     out = NULL; V_BOOL(&m.value) = VARIANT_FALSE;
-    hr = U(VarBstrFromDisp)(&m.iface, 0x409, 0, &out);
+    hr = g5_vbfd(&m.iface, 0x409, 0, &out);
     EXPECT_EQ(hr, S_OK); CHECK(out && !lstrcmpW(out, L"0")); U(SysFreeString)(out);
     out = NULL; V_VT(&m.value) = VT_EMPTY;
-    hr = U(VarBstrFromDisp)(&m.iface, 0x409, 0, &out);
+    hr = g5_vbfd(&m.iface, 0x409, 0, &out);
     t_note("default property VT_EMPTY -> hr 0x%lx bstr %ls", (unsigned long)hr, out ? out : L"(null)");
     U(SysFreeString)(out);
 }
@@ -122,7 +137,7 @@ TEST(gap5_bstrfromdisp_invoke_failure_propagates)
     for (i = 0; i < 4; i++) {
         MockDisp m; BSTR out = (BSTR)(ULONG_PTR)0x1234; HRESULT hr;
         md_init(&m); m.invoke_hr = h[i];
-        hr = U(VarBstrFromDisp)(&m.iface, 0x409, 0, &out);
+        hr = g5_vbfd(&m.iface, 0x409, 0, &out);
         t_note("Invoke returned 0x%lx -> VarBstrFromDisp 0x%lx", (unsigned long)h[i], (unsigned long)hr);
         CHECKF(FAILED(hr), "failure must propagate as failure, got 0x%lx", (unsigned long)hr);
         /* decomp: *pbstrOut is written only when VariantChangeTypeEx succeeds */
@@ -135,7 +150,7 @@ TEST(gap5_bstrfromdisp_null_dispatch)
 {
     BSTR out = (BSTR)(ULONG_PTR)0x1234; HRESULT hr;
     REQUIRE(U(VarBstrFromDisp));
-    hr = U(VarBstrFromDisp)(NULL, 0x409, 0, &out);
+    hr = g5_vbfd(NULL, 0x409, 0, &out);
     t_note("VarBstrFromDisp(NULL) -> 0x%lx", (unsigned long)hr);
     CHECK(FAILED(hr));
     CHECK(out == (BSTR)(ULONG_PTR)0x1234);
@@ -150,7 +165,7 @@ TEST(gap5_bstrfromdisp_flags_ignored)
     for (i = 0; i < 5; i++) {
         MockDisp m; BSTR out = NULL; HRESULT hr;
         md_init(&m); V_VT(&m.value) = VT_I4; V_I4(&m.value) = 9;
-        hr = U(VarBstrFromDisp)(&m.iface, 0x409, f[i], &out);
+        hr = g5_vbfd(&m.iface, 0x409, f[i], &out);
         t_check(hr == S_OK && out && !lstrcmpW(out, L"9"), __FILE__, __LINE__, "flags", "flags 0x%lx hr 0x%lx", (unsigned long)f[i], (unsigned long)hr);
         U(SysFreeString)(out);
     }
@@ -161,7 +176,7 @@ TEST(gap5_bstrfromdisp_matches_variantchangetypeex)
     MockDisp m; BSTR a = NULL; VARIANT src, dst; HRESULT h1, h2;
     REQUIRE(U(VarBstrFromDisp)); REQUIRE(U(VariantChangeTypeEx)); REQUIRE(U(SysFreeString)); REQUIRE(U(VariantClear));
     md_init(&m); V_VT(&m.value) = VT_R8; V_R8(&m.value) = 3.5;
-    h1 = U(VarBstrFromDisp)(&m.iface, 0x409, 0, &a);
+    h1 = g5_vbfd(&m.iface, 0x409, 0, &a);
     VariantInit(&src); VariantInit(&dst);
     V_VT(&src) = VT_DISPATCH; V_DISPATCH(&src) = &m.iface;
     h2 = U(VariantChangeTypeEx)(&dst, &src, 0x409, 0, VT_BSTR);

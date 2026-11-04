@@ -52,6 +52,7 @@ static void scalar_roundtrip(int v64)
         t_check(g5_rd32(w + 4) == 0, __FILE__, __LINE__, "rpcReserved", "v64=%d %s", v64, scs[i].n);
         t_check(g5_rd32(w) == (len + 7) / 8, __FILE__, __LINE__, "clSize", "v64=%d %s clSize %lu len %lu", v64, scs[i].n, g5_rd32(w), len);
         memset(&dst, 0x77, sizeof dst);
+        V_VT(&dst) = VT_EMPTY;   /* a real stub hands the unmarshaler an initialised VARIANT; a vt with VT_BYREF set means "unmarshal in place" */
         e = unm(&a, g5_ctxs[k], w, len, &dst, NULL, &off);
         t_check(e == 0, __FILE__, __LINE__, "unmarshal", "v64=%d %s exc 0x%lx", v64, scs[i].n, e);
         if (!e) {
@@ -200,7 +201,7 @@ static void byref_rt(int v64)
                 CHECK(V_VT(&dst) == (VT_I4 | VT_BYREF));
                 CHECK(V_I4REF(&dst) && V_I4REF(&dst) != &val && *V_I4REF(&dst) == 0x12345678);
                 g5_init(&fc, 0, MSHCTX_LOCAL, USER_MARSHAL_CB_FREE);
-                EXPECT_EQ(g5_call_free(&a, &fc, &dst), 0);
+                { DWORD fe = g5_call_free(&a, &fc, &dst); EXPECT_EQ(fe, 0); }
                 g5_free_ctx(&fc);
             }
             free(w);
@@ -243,14 +244,17 @@ static void invalid_vt(int v64)
     if (t_is_wine()) { t_skip("emulator lacks these RPC exceptions"); return; }
     unsigned i;
     for (i = 0; i < G5_N(t); i++) {
-        VARIANT v; G5Ctx s, m; ULONG sz; unsigned char *r; DWORD e;
+        VARIANT v; G5Ctx s, m; ULONG sz; unsigned char *r; DWORD e, want;
         memset(&v, 0, sizeof v); V_VT(&v) = t[i];
         g5_init(&s, 0, MSHCTX_LOCAL, USER_MARSHAL_CB_BUFFER_SIZE);
         e = g5_call_size(&a, &s, 0, &v, &sz); g5_free_ctx(&s);
-        t_check(e == G5_BADVARTYPE, __FILE__, __LINE__, "UserSize invalid vt", "v64=%d vt %x exc 0x%lx", v64, t[i], e);
+        /* Windows 10 checks the BYREF pointer before the base type: a NULL ref pointer raises RPC_X_NULL_REF_POINTER
+         * even when the base type (EMPTY/NULL) is not one a BYREF variant may carry. */
+        want = (t[i] == (VT_EMPTY|VT_BYREF) || t[i] == (VT_NULL|VT_BYREF)) ? G5_NULL_REF_POINTER : G5_BADVARTYPE;
+        t_check(e == want, __FILE__, __LINE__, "UserSize invalid vt", "v64=%d vt %x exc 0x%lx", v64, t[i], e);
         g5_init(&m, 256, MSHCTX_LOCAL, USER_MARSHAL_CB_MARSHALL);
         e = g5_call_marshal(&a, &m, m.buf, &v, &r);
-        t_check(e == G5_BADVARTYPE, __FILE__, __LINE__, "UserMarshal invalid vt", "v64=%d vt %x exc 0x%lx", v64, t[i], e);
+        t_check(e == want, __FILE__, __LINE__, "UserMarshal invalid vt", "v64=%d vt %x exc 0x%lx", v64, t[i], e);
         g5_free_ctx(&m);
     }
 }
@@ -354,7 +358,7 @@ static void array_rt(int v64)
                 if (U(SafeArrayAccessData)(V_ARRAY(&dst), (void **)&q) == S_OK) { CHECK(q[0] == 11 && q[1] == 22 && q[2] == 33 && q[3] == 44); U(SafeArrayUnaccessData)(V_ARRAY(&dst)); }
             }
             g5_init(&fc, 0, MSHCTX_LOCAL, USER_MARSHAL_CB_FREE);
-            EXPECT_EQ(g5_call_free(&a, &fc, &dst), 0);
+            { DWORD fe = g5_call_free(&a, &fc, &dst); EXPECT_EQ(fe, 0); }
             g5_free_ctx(&fc);
         }
         free(w);
@@ -380,7 +384,7 @@ static void vtvariant_rt(int v64)
             CHECK(V_VT(&dst) == (VT_VARIANT | VT_BYREF) && V_VARIANTREF(&dst));
             if (V_VARIANTREF(&dst)) CHECK(V_VT(V_VARIANTREF(&dst)) == VT_I4 && V_I4(V_VARIANTREF(&dst)) == 99);
             g5_init(&fc, 0, MSHCTX_LOCAL, USER_MARSHAL_CB_FREE);
-            EXPECT_EQ(g5_call_free(&a, &fc, &dst), 0);
+            { DWORD fe = g5_call_free(&a, &fc, &dst); EXPECT_EQ(fe, 0); }
             g5_free_ctx(&fc);
         }
         free(w);
