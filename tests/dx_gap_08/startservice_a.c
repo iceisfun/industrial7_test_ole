@@ -101,8 +101,10 @@ TEST(dx_gap8_starta_deleted_service_marked_for_delete)
     if (!fx_begin(&f)) return;
     CHECK(UIN(SH, DeleteService)(f.svc));
     e = start_a(f.svc, 0, NULL);                                   /* the handle is still open, the service only marked for deletion */
-    CHECKF(e == ERROR_SERVICE_MARKED_FOR_DELETE, "start after DeleteService -> %lu", e);
+    /* Windows 10 reports ERROR_SERVICE_DISABLED (1058), not ERROR_SERVICE_MARKED_FOR_DELETE (1072), for a delete-pending service */
+    CHECKF(e == ERROR_SERVICE_DISABLED, "start after DeleteService -> %lu", e);
+    t_note("StartServiceA on a delete-pending service -> %lu (documented MARKED_FOR_DELETE=1072 is not returned)", e);
     e = start_w(f.svc, 0, NULL);
-    CHECKF(e == ERROR_SERVICE_MARKED_FOR_DELETE, "StartServiceW after DeleteService -> %lu", e);
+    CHECKF(e == ERROR_SERVICE_DISABLED, "StartServiceW after DeleteService -> %lu", e);
     fx_end(&f);
 }
