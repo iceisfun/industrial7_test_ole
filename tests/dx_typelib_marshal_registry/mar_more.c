@@ -181,7 +181,8 @@ TMTEST(dxtm_mar_call_on_disconnected_object_fails)
         r = 0;
         hr = M(c, AddLong, 1, 2, &r);
         CHECK(FAILED(hr));
-        t_note("call on a disconnected object: hr=0x%lx (RPC_E_DISCONNECTED=0x%lx)", (long)hr, (long)RPC_E_DISCONNECTED);
+        /* the exact failure code depends on timing/version (e.g. RPC_E_DISCONNECTED or RPC_E_SERVER_DIED_DNE...), so the note carries only the class */
+        t_note("call on a disconnected object fails with an RPC error: %s", HRESULT_FACILITY(hr) == FACILITY_RPC ? "yes" : "no");
         EQ(r, 0);
         c->lpVtbl->Release(c);
     } else SetEvent(j.go);
