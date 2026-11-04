@@ -76,9 +76,13 @@ TEST(vcn_boolfromstr_localbool)
     /* a different locale does not accept French words */
     v = 0x5a5a; hr = U(VarBoolFromStr)(L"faux", LCID_PL, VARIANT_LOCALBOOL, &v);
     t_note("Polish locale, 'faux' with LOCALBOOL -> 0x%08lx (expected TYPEMISMATCH)", (unsigned long)hr);
-    /* English stays accepted under LOCALBOOL */
-    v = 0x5a5a; EXPECT_EQ(U(VarBoolFromStr)(L"true", LCID_FR, VARIANT_LOCALBOOL, &v), S_OK); EXPECT_EQ(v, VARIANT_TRUE);
-    v = 0x5a5a; EXPECT_EQ(U(VarBoolFromStr)(L"FALSE", LCID_DE, VARIANT_LOCALBOOL, &v), S_OK); EXPECT_EQ(v, VARIANT_FALSE);
+    /* Win10: with VARIANT_LOCALBOOL the English words are NOT accepted for a non-English locale (the localized
+     * names replace them); English text works in an English locale, and without the flag in any locale. */
+    v = 0x5a5a; EXPECT_EQ(U(VarBoolFromStr)(L"true", LCID_FR, VARIANT_LOCALBOOL, &v), DISP_E_TYPEMISMATCH); EXPECT_EQ(v, 0x5a5a);
+    v = 0x5a5a; EXPECT_EQ(U(VarBoolFromStr)(L"FALSE", LCID_DE, VARIANT_LOCALBOOL, &v), DISP_E_TYPEMISMATCH); EXPECT_EQ(v, 0x5a5a);
+    v = 0x5a5a; EXPECT_EQ(U(VarBoolFromStr)(L"true", LCID_EN, VARIANT_LOCALBOOL, &v), S_OK); EXPECT_EQ(v, VARIANT_TRUE);
+    v = 0x5a5a; EXPECT_EQ(U(VarBoolFromStr)(L"true", LCID_FR, 0, &v), S_OK); EXPECT_EQ(v, VARIANT_TRUE);
+    v = 0x5a5a; EXPECT_EQ(U(VarBoolFromStr)(L"FALSE", LCID_DE, 0, &v), S_OK); EXPECT_EQ(v, VARIANT_FALSE);
 }
 
 TEST(vcn_bool_results_are_canonical)
@@ -109,8 +113,9 @@ TEST(vcn_nan_inf_special_destinations)
     EXPECT_EQ(U(VarR4FromR8)(NAN, &f), DISP_E_OVERFLOW);
     EXPECT_EQ(U(VarR4FromR8)(INFINITY, &f), DISP_E_OVERFLOW);
     EXPECT_EQ(U(VarR4FromR8)(-INFINITY, &f), DISP_E_OVERFLOW);
-    EXPECT_EQ(U(VarCyFromR8)(NAN, &c), DISP_E_OVERFLOW);
-    EXPECT_EQ(U(VarDateFromR8)(NAN, &d), DISP_E_OVERFLOW);
+    /* Win10: the Cy and Date range checks are written as "out of range" tests, so NaN passes them (S_OK) */
+    EXPECT_EQ(U(VarCyFromR8)(NAN, &c), S_OK);
+    EXPECT_EQ(U(VarDateFromR8)(NAN, &d), S_OK);
     EXPECT_EQ(U(VarDateFromR8)(INFINITY, &d), DISP_E_OVERFLOW);
     EXPECT_EQ(U(VarDecFromR8)(NAN, &dec), DISP_E_OVERFLOW);
     EXPECT_EQ(U(VarDecFromR8)(-INFINITY, &dec), DISP_E_OVERFLOW);
