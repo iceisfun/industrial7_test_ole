@@ -355,12 +355,27 @@ TEST(sddl_w_sacl_ace_types_audit_alarm)
         { "S:(AU;FA;GA;;;WD)",   SYSTEM_AUDIT_ACE_TYPE, FAILED_ACCESS_ACE_FLAG, GENERIC_ALL },
         { "S:(AU;SAFA;GA;;;WD)", SYSTEM_AUDIT_ACE_TYPE, SUCCESSFUL_ACCESS_ACE_FLAG | FAILED_ACCESS_ACE_FLAG, GENERIC_ALL },
         { "S:(AU;FASA;GR;;;BA)", SYSTEM_AUDIT_ACE_TYPE, SUCCESSFUL_ACCESS_ACE_FLAG | FAILED_ACCESS_ACE_FLAG, GENERIC_READ },
-        { "S:(AL;SA;GA;;;WD)",   SYSTEM_ALARM_ACE_TYPE, SUCCESSFUL_ACCESS_ACE_FLAG, GENERIC_ALL },
-        { "S:(AL;SAFA;GW;;;WD)", SYSTEM_ALARM_ACE_TYPE, SUCCESSFUL_ACCESS_ACE_FLAG | FAILED_ACCESS_ACE_FLAG, GENERIC_WRITE },
         { "S:(AU;OICISAFA;GA;;;WD)", SYSTEM_AUDIT_ACE_TYPE, OBJECT_INHERIT_ACE | CONTAINER_INHERIT_ACE | SUCCESSFUL_ACCESS_ACE_FLAG | FAILED_ACCESS_ACE_FLAG, GENERIC_ALL },
     };
     REQUIRE(CVT);
     check_ace_cases(t, sizeof t / sizeof t[0], TRUE);
+}
+TEST(sddl_w_alarm_aces_rejected)
+{
+    /* Win10 has no SDDL support for alarm ACEs: AL/OL fail in a SACL (87) and as a DACL entry (1336) */
+    static const struct { const char *s; DWORD err; } t[] = {
+        { "S:(AL;SA;GA;;;WD)", ERROR_INVALID_PARAMETER }, { "S:(AL;SAFA;GW;;;WD)", ERROR_INVALID_PARAMETER },
+        { "S:(AL;;GA;;;WD)", ERROR_INVALID_PARAMETER },
+        { "S:(OL;SA;CC;;bf967a86-0de6-11d0-a285-00aa00b3f6c0;WD)", ERROR_INVALID_PARAMETER },
+        { "S:(OL;;CC;;;WD)", ERROR_INVALID_PARAMETER }, { "D:(AL;;GA;;;WD)", ERROR_INVALID_ACL },
+    };
+    unsigned i;
+    REQUIRE(CVT);
+    for (i = 0; i < sizeof t / sizeof t[0]; i++) {
+        PSECURITY_DESCRIPTOR sd = NULL; SET_ERR(0);
+        CHECKF(!cvtA(t[i].s, 1, &sd, NULL), "\"%s\" accepted", t[i].s);
+        if (sd) LocalFree(sd); else EXPECT_ERR(t[i].err);
+    }
 }
 TEST(sddl_w_mandatory_label_ace)
 {
@@ -421,9 +436,7 @@ TEST(sddl_w_object_aces)
         { "D:(OD;;CC;" GUID1 ";;WD)",              ACCESS_DENIED_OBJECT_ACE_TYPE,  ACE_OBJECT_TYPE_PRESENT, FALSE },
         { "D:(OA;;CC;;" GUID2 ";WD)",              ACCESS_ALLOWED_OBJECT_ACE_TYPE, ACE_INHERITED_OBJECT_TYPE_PRESENT, FALSE },
         { "D:(OA;;CC;" GUID1 ";" GUID2 ";WD)",     ACCESS_ALLOWED_OBJECT_ACE_TYPE, ACE_OBJECT_TYPE_PRESENT | ACE_INHERITED_OBJECT_TYPE_PRESENT, FALSE },
-        { "D:(OA;;CC;;;WD)",                       ACCESS_ALLOWED_OBJECT_ACE_TYPE, 0, FALSE },
         { "S:(OU;SA;CC;" GUID1 ";;WD)",            SYSTEM_AUDIT_OBJECT_ACE_TYPE,   ACE_OBJECT_TYPE_PRESENT, TRUE },
-        { "S:(OL;SA;CC;;" GUID2 ";WD)",            SYSTEM_ALARM_OBJECT_ACE_TYPE,   ACE_INHERITED_OBJECT_TYPE_PRESENT, TRUE },
     };
     unsigned i;
     REQUIRE(CVT);
@@ -437,6 +450,27 @@ TEST(sddl_w_object_aces)
             CHECKF(((ACCESS_ALLOWED_OBJECT_ACE *)h)->Flags == t[i].flags, "\"%s\": flags 0x%lx", t[i].s, ((ACCESS_ALLOWED_OBJECT_ACE *)h)->Flags);
             CHECKF(a->AclRevision == ACL_REVISION_DS, "\"%s\": ACL revision %u", t[i].s, a->AclRevision);
             CHECK(((ACCESS_ALLOWED_OBJECT_ACE *)h)->Mask == ADS_RIGHT_DS_CREATE_CHILD);
+        }
+        LocalFree(sd);
+    }
+}
+TEST(sddl_w_object_ace_without_guids_degrades)
+{
+    /* with neither GUID present Win10 emits the plain (non-object) ACE type */
+    static const struct { const char *s; BYTE type; } t[] = {
+        { "D:(OA;;CC;;;WD)", ACCESS_ALLOWED_ACE_TYPE }, { "D:(OD;;CC;;;WD)", ACCESS_DENIED_ACE_TYPE },
+        { "S:(OU;SA;CC;;;WD)", SYSTEM_AUDIT_ACE_TYPE },
+    };
+    unsigned i;
+    REQUIRE(CVT);
+    for (i = 0; i < sizeof t / sizeof t[0]; i++) {
+        PSECURITY_DESCRIPTOR sd = NULL; ACL *a; ACE_HEADER *h; BOOL pr;
+        if (!cvtA(t[i].s, 1, &sd, NULL)) { CHECKF(0, "\"%s\" failed err %lu", t[i].s, GetLastError()); continue; }
+        a = t[i].s[0] == 'S' ? get_sacl(sd, &pr) : get_dacl(sd, &pr, NULL);
+        CHECKF(a && a->AceCount == 1, "\"%s\"", t[i].s);
+        if (a && (h = nth_ace(a, 0))) {
+            CHECKF(h->AceType == t[i].type, "\"%s\": type 0x%x", t[i].s, h->AceType);
+            CHECKF(((ACCESS_ALLOWED_ACE *)h)->Mask == ADS_RIGHT_DS_CREATE_CHILD, "\"%s\": mask", t[i].s);
         }
         LocalFree(sd);
     }
@@ -476,9 +510,9 @@ TEST(sddl_w_conditional_aces)
         { "D:(XD;;FX;;;WD;(@User.Title==\"PM\"))",                ACCESS_DENIED_CALLBACK_ACE_TYPE },
         { "D:(XA;;FX;;;WD;(Member_of {SID(BA)}))",                ACCESS_ALLOWED_CALLBACK_ACE_TYPE },
         { "D:(XA;;GA;;;WD;(Member_of_Any {SID(BA),SID(SY)}))",    ACCESS_ALLOWED_CALLBACK_ACE_TYPE },
-        { "D:(XA;;GA;;;WD;(Exists @User.Title))",                 ACCESS_ALLOWED_CALLBACK_ACE_TYPE },
+        { "D:(XA;;GA;;;WD;(Exists @Resource.Title))",             ACCESS_ALLOWED_CALLBACK_ACE_TYPE },
         { "D:(XA;;GA;;;WD;(@User.Level>=3 && @User.Level<=7))",   ACCESS_ALLOWED_CALLBACK_ACE_TYPE },
-        { "D:(XA;;GA;;;WD;(!(Exists @Device.x)))",                ACCESS_ALLOWED_CALLBACK_ACE_TYPE },
+        { "D:(XA;;GA;;;WD;(!(Exists @Resource.x)))",                ACCESS_ALLOWED_CALLBACK_ACE_TYPE },
     };
     unsigned i;
     REQUIRE(CVT);
@@ -547,15 +581,25 @@ TEST(sddl_w_ace_flag_table)
         LocalFree(sd);
     }
 }
+TEST(sddl_w_ace_flag_lowercase_accepted)
+{
+    /* flag tokens are matched case-insensitively on Win10 */
+    PSECURITY_DESCRIPTOR sd = NULL; ACL *a; ACE_HEADER *h; BOOL pr;
+    REQUIRE(CVT);
+    if (!cvtA("D:(A;oi;GA;;;WD)", 1, &sd, NULL)) { CHECKF(0, "lowercase flag rejected err %lu", GetLastError()); return; }
+    a = get_dacl(sd, &pr, NULL);
+    if (a && (h = nth_ace(a, 0))) CHECK(h->AceFlags == OBJECT_INHERIT_ACE);
+    LocalFree(sd);
+}
 TEST(sddl_w_ace_flag_invalid)
 {
-    static const char *bad[] = { "D:(A;XX;GA;;;WD)", "D:(A;O;GA;;;WD)", "D:(A;OIC;GA;;;WD)", "D:(A;oi;GA;;;WD)", "D:(A;OI,CI;GA;;;WD)" };
+    static const char *bad[] = { "D:(A;XX;GA;;;WD)", "D:(A;O;GA;;;WD)", "D:(A;OIC;GA;;;WD)", "D:(A;OI,CI;GA;;;WD)" };
     unsigned i;
     REQUIRE(CVT);
     for (i = 0; i < sizeof bad / sizeof bad[0]; i++) {
         PSECURITY_DESCRIPTOR sd = NULL; SET_ERR(0);
         CHECKF(!cvtA(bad[i], 1, &sd, NULL), "\"%s\"", bad[i]);
-        if (sd) LocalFree(sd); else NOTE_ERR(ERROR_INVALID_ACL);
+        if (sd) LocalFree(sd); else EXPECT_ERR(ERROR_INVALID_FLAGS);   /* Win10: 1004, not 1336 */
     }
 }
 

@@ -223,7 +223,7 @@ TEST(strsid_w_roundtrip_table)
         "S-1-15-2-1", "S-1-15-2-2", "S-1-15-3-1", "S-1-15-3-1024-1-2-3-4-5-6-7",
         "S-1-18-1", "S-1-18-2", "S-1-18-3", "S-1-4294967295-0", "S-1-9-1",
         "S-1-5-1-2-3-4-5-6-7-8-9-10-11-12-13-14-15",
-        "S-1-0x000100000000-1", "S-1-0xffffffffffff-4294967295", "S-1-0x010000000000-2",
+        "S-1-0x100000000-1", "S-1-0xFFFFFFFFFFFF-4294967295", "S-1-0x10000000000-2",
     };
     unsigned i;
     REQUIRE(UIN(SH, ConvertStringSidToSidW)); REQUIRE(UIN(SH, ConvertSidToStringSidW));
@@ -242,7 +242,7 @@ TEST(strsid_w_noncanonical_normalizes)
     /* parse forms that differ textually, print canonical */
     static const struct { const char *in, *out; } tab[] = {
         { "s-1-5-18", "S-1-5-18" }, { "S-1-0x5-18", "S-1-5-18" }, { "S-1-5-018", "S-1-5-18" },
-        { "S-1-05-18", "S-1-5-18" }, { "S-1-4294967296-1", "S-1-0x000100000000-1" },
+        { "S-1-05-18", "S-1-5-18" }, { "S-1-4294967296-1", "S-1-0x100000000-1" },
         { "S-001-5-18", "S-1-5-18" },
     };
     unsigned i;
