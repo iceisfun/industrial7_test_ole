@@ -9,9 +9,13 @@
 
 static BOOL is_elevated(void)
 {
-    HANDLE tok; TOKEN_ELEVATION e; DWORD n; BOOL r = FALSE;
+    /* integrity level, not TokenIsElevated: a restricted-admin Medium token can still report elevated */
+    HANDLE tok; BYTE buf[64]; DWORD n; BOOL r = FALSE;
     if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &tok)) {
-        if (GetTokenInformation(tok, TokenElevation, &e, sizeof e, &n)) r = e.TokenIsElevated;
+        if (GetTokenInformation(tok, TokenIntegrityLevel, buf, sizeof buf, &n)) {
+            PSID sid = ((TOKEN_MANDATORY_LABEL *)buf)->Label.Sid;
+            r = *GetSidSubAuthority(sid, *GetSidSubAuthorityCount(sid) - 1) >= SECURITY_MANDATORY_HIGH_RID;
+        }
         CloseHandle(tok);
     }
     return r;
@@ -132,7 +136,12 @@ TEST(scl_openscm_generic_and_maximum_allowed)
                    SC_MANAGER_CONNECT | SC_MANAGER_QUERY_LOCK_STATUS};
     for (int i = 0; i < 5; i++) {
         SC_HANDLE h = SH(OpenSCManagerW)(NULL, NULL, acc[i]);
-        CHECKF(h != NULL, "access 0x%lx err %lu", acc[i], GetLastError());
+        DWORD le = GetLastError();
+        if (!h && acc[i] == GENERIC_EXECUTE && !is_elevated()) {   /* maps to rights (SC_MANAGER_LOCK) a non-admin lacks */
+            t_note("GENERIC_EXECUTE denied for a non-elevated token, err %lu", le);
+            continue;
+        }
+        CHECKF(h != NULL, "access 0x%lx err %lu", acc[i], le);
         if (h) SH(CloseServiceHandle)(h);
     }
 }
@@ -143,7 +152,10 @@ TEST(scl_openscm_all_access_needs_admin)
     REQUIRE(SH(OpenSCManagerW));
     SET_ERR(0);
     SC_HANDLE h = SH(OpenSCManagerW)(NULL, NULL, SC_MANAGER_ALL_ACCESS);
-    if (is_elevated()) {
+    DWORD le = GetLastError();
+    BOOL el = is_elevated();   /* may reset the last error */
+    SetLastError(le);
+    if (el) {
         t_note("elevated: SC_MANAGER_ALL_ACCESS %s", h ? "granted" : "denied");
         CHECK(h != NULL);
     } else {
@@ -413,7 +425,9 @@ TEST(scl_typeconf_service_handle_to_getservicedisplayname)
     WCHAR buf[128]; DWORD n = 128;
     SET_ERR(0);
     BOOL r = SH(GetServiceDisplayNameW)(svc, L"RpcSs", buf, &n);
-    EXPECT_FAIL(!r, ERROR_INVALID_HANDLE);
+    /* Win10 22H2: a service handle is accepted where an SCM handle is expected (no handle-type check) */
+    t_note("GetServiceDisplayNameW(service handle) %s, err %lu", r ? "succeeded" : "failed", GetLastError());
+    CHECK(r);
     close_both(scm, svc);
 }
 
@@ -610,7 +624,8 @@ TEST(scl_status_ex_size_protocol)
     EXPECT_EQ(sp.dwCurrentState, SERVICE_RUNNING);
     CHECK(sp.dwProcessId != 0);
     SET_ERR(0);
-    r = SH(QueryServiceStatusEx)(svc, SC_STATUS_PROCESS_INFO, (LPBYTE)&sp, sizeof sp + 100, &need);   /* larger is fine */
+    union { SERVICE_STATUS_PROCESS sp; BYTE pad[sizeof(SERVICE_STATUS_PROCESS) + 100]; } big;   /* the buffer must really be that large */
+    r = SH(QueryServiceStatusEx)(svc, SC_STATUS_PROCESS_INFO, big.pad, sizeof big.pad, &need);   /* larger is fine */
     CHECK(r);
     close_both(scm, svc);
 }
@@ -788,7 +803,11 @@ TEST(scl_displayname_buffer_protocol)
     if (!UIN("advapi32.dll", GetServiceDisplayNameA)) { close_both(scm, NULL); return; }
     r = UIN("advapi32.dll", GetServiceDisplayNameA)(scm, "RpcSs", ad, &an);
     CHECK(r);
-    if (r) EXPECT_EQ(an, (DWORD)lstrlenA(ad));
+    if (r) {
+        /* Win10 leaves *an at the input size on success for the A variant */
+        t_note("GetServiceDisplayNameA success count %lu (string length %d)", an, lstrlenA(ad));
+        CHECK(lstrlenA(ad) == lstrlenW(tmp));
+    }
     close_both(scm, NULL);
 }
 
