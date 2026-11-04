@@ -389,7 +389,10 @@ TEST(rus_binding_null_handle_errors)
     CHECK(t == 0x55);
     ULONG_PTR v = 0x55;
     EXPECT_EQ(p_RpcBindingInqOption(NULL, 1, &v), RUS_INVALID_BINDING);
-    EXPECT_EQ(p_RpcBindingSetOption(NULL, 1, 1), RUS_INVALID_BINDING);
+    /* Win10: a NULL handle with an option other than DONT_LINGER(0) is not rejected up front; it is handed to the
+     * context-handle lookup, which reads the handle without a NULL check and faults (access violation).
+     * Only the DONT_LINGER/NULL answer is stable, see rus_binding_setoption_dont_linger_zero_checked_first. */
+    t_note("RpcBindingSetOption(NULL, option!=DONT_LINGER) faults on Win10 (no NULL check); not called");
     RPC_BINDING_HANDLE n = NULL;
     EXPECT_EQ(p_RpcBindingFree(&n), RUS_INVALID_BINDING);
 }
