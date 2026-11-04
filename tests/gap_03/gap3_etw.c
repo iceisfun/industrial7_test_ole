@@ -1,7 +1,7 @@
 /* gap_03: sechost ETW consumer-side exports SetTraceCallback / RemoveTraceCallback / QueryTraceProcessingHandle.
  * All expectations come from the Win10 sechost decomp: the callback list is a process-global list keyed by the
  * 16-byte GUID, guarded by a lock; errors are returned AND stored with RtlSetLastWin32Error. */
-#include "t.h"
+#include "g3once.h"
 #include <evntrace.h>
 
 #define WSKIP() do { if (t_is_wine()) { t_skip("wine: sechost trace-callback exports are unimplemented (abort)"); return; } } while (0)

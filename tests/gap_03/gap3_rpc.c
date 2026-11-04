@@ -1,7 +1,7 @@
 /* gap_03: rpcrt4 RpcBindingSetAuthInfoExA (ANSI thunk over ...ExW) and RpcAsyncRegisterInfo (obsolete no-op).
  * Verified in the Win10 decomp: ExA converts ServerPrincName with CHeapUnicode, thunks the QOS (ThunkSecurityQOS) into a
  * V5 wide structure and forwards to ExW; ExW rejects a QOS Version outside 1..5 with 87 BEFORE it looks at the binding. */
-#include "t.h"
+#include "g3once.h"
 #include <rpc.h>
 #include <rpcasync.h>
 
@@ -73,7 +73,8 @@ TEST(gap3_rpc_setauthinfoexa_roundtrip_with_principal_name) {
         RPC_WSTR pn = NULL; unsigned long lvl = 0, svc = 0, authz = 99;
         RPC_STATUS qs = U(RpcBindingInqAuthInfoExW)(h, &pn, &lvl, &svc, NULL, &authz, 0, NULL);
         EXPECT_EQ(qs, RPC_S_OK);
-        EXPECT_EQ(lvl, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY);
+        /* Win10: an ncalrpc binding stores every authenticated level as PKT_PRIVACY (see the level probe test) */
+        EXPECT_EQ(lvl, RPC_C_AUTHN_LEVEL_PKT_PRIVACY);
         EXPECT_EQ(svc, RPC_C_AUTHN_WINNT);
         EXPECT_EQ(authz, RPC_C_AUTHZ_NONE);
         CHECK(pn != NULL && !lstrcmpW((WCHAR *)pn, L"olet/gap3.example"));
@@ -96,6 +97,22 @@ TEST(gap3_rpc_setauthinfoexa_a_and_w_agree_on_levels_and_services) {
         CHECKF(a == w, "level %u svc 0x%x: A %lu W %lu", t[i].lvl, t[i].svc, (unsigned long)a, (unsigned long)w);
         t_note("SetAuthInfoEx level %u svc 0x%x -> %lu", t[i].lvl, t[i].svc, (unsigned long)a);
         U(RpcBindingFree)(&ha); U(RpcBindingFree)(&hw);
+    }
+}
+TEST(gap3_rpc_setauthinfoexa_ncalrpc_stores_authenticated_levels_as_privacy) {
+    NEEDA(); REQUIRE(U(RpcBindingInqAuthInfoExW));
+    for (unsigned l = 0; l <= 7; l++) {
+        RPC_BINDING_HANDLE h = mkb(); CHECK(h != NULL); if (!h) return;
+        RPC_STATUS st = SETA(h, NULL, l, RPC_C_AUTHN_WINNT, NULL, RPC_C_AUTHZ_NONE, NULL);
+        unsigned long lvl = 99, svc = 99;
+        RPC_STATUS qs = st ? 0xffff : U(RpcBindingInqAuthInfoExW)(h, NULL, &lvl, &svc, NULL, NULL, 0, NULL);
+        t_note("ncalrpc WINNT set level %u -> %lu, inq %lu level %lu svc %lu", l, (unsigned long)st, (unsigned long)qs, lvl, svc);
+        /* Win10 22H2: DEFAULT(0) and CONNECT..PKT_PRIVACY(2..6) are all stored as PKT_PRIVACY on ncalrpc; NONE(1) is
+         * accepted but the binding then has no auth info (inquiry -> RPC_S_BINDING_HAS_NO_AUTH 1746); 7 is rejected (1748). */
+        if (l == 1) CHECKF(st == 0 && qs == 1746, "level 1: set %lu inq %lu", (unsigned long)st, (unsigned long)qs);
+        else if (l == 7) CHECKF(st == 1748, "level 7: set %lu", (unsigned long)st);
+        else CHECKF(st == 0 && qs == 0 && lvl == 6 && svc == 10, "level %u: set %lu inq %lu stored level %lu svc %lu", l, (unsigned long)st, (unsigned long)qs, lvl, svc);
+        U(RpcBindingFree)(&h);
     }
 }
 TEST(gap3_rpc_setauthinfoexa_unknown_authn_service_is_rejected) {
@@ -153,7 +170,7 @@ TEST(gap3_rpc_setauthinfoexa_binding_unchanged_after_rejected_call) {
     EXPECT_EQ(SETA(h, NULL, RPC_C_AUTHN_LEVEL_PKT_PRIVACY, RPC_C_AUTHN_WINNT, NULL, RPC_C_AUTHZ_NONE, &b.q), RPC_S_INVALID_ARG);
     unsigned long lvl = 0, svc = 0;
     EXPECT_EQ(U(RpcBindingInqAuthInfoExW)(h, NULL, &lvl, &svc, NULL, NULL, 0, NULL), RPC_S_OK);
-    EXPECT_EQ(lvl, RPC_C_AUTHN_LEVEL_CONNECT);
+    EXPECT_EQ(lvl, RPC_C_AUTHN_LEVEL_PKT_PRIVACY);        /* ncalrpc promotes CONNECT to PKT_PRIVACY; the point is that the rejected call did not change it */
     U(RpcBindingFree)(&h);
 }
 
