@@ -222,7 +222,8 @@ TEST(epm_binding_auth_info_set_inq_roundtrip_w) {
     if (st == RPC_S_OK) {
         st = U(RpcBindingInqAuthInfoW)(h, &pn, &lvl, &svc, &id, &az);
         EXPECT_EQ(st, RPC_S_OK);
-        EXPECT_EQ(lvl, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY);
+        /* Win10 reports PKT_PRIVACY for a requested PKT_INTEGRITY on this ncalrpc binding (levels below privacy are raised) */
+        EXPECT_EQ(lvl, RPC_C_AUTHN_LEVEL_PKT_PRIVACY);
         EXPECT_EQ(svc, RPC_C_AUTHN_WINNT);
         EXPECT_EQ(az, RPC_C_AUTHZ_NONE);
         CHECK(pn != NULL);
@@ -242,7 +243,7 @@ TEST(epm_binding_auth_info_a_w_parity) {
     EXPECT_EQ(st, RPC_S_OK);
     if (st == RPC_S_OK) {
         EQ(U(RpcBindingInqAuthInfoA)(h, &pn, &lvl, &svc, NULL, &az), RPC_S_OK);
-        EXPECT_EQ(lvl, RPC_C_AUTHN_LEVEL_CONNECT);
+        EXPECT_EQ(lvl, RPC_C_AUTHN_LEVEL_PKT_PRIVACY);    /* Win10: CONNECT is raised to PKT_PRIVACY on an ncalrpc binding */
         EXPECT_EQ(svc, RPC_C_AUTHN_WINNT);
         CHECK(pn != NULL);
         if (pn) { EXPECT_STR((char *)pn, "olet/princ_a"); U(RpcStringFreeA)(&pn); }
@@ -458,8 +459,10 @@ TEST(epm_binding_protect_level_unknown_service) {
     WINE_STUB();
     for (i = 0; i < sizeof svc / sizeof svc[0]; i++) {
         lvl = 0xAA;
-        EQ(U(RpcMgmtInqDefaultProtectLevel)(svc[i], &lvl), EPX_UNKNOWN_AUTHN_SERVICE);
-        EXPECT_EQ(lvl, 0xAA);
+        /* Win10 does not validate the service id here: any id other than DCE_PRIVATE reports CONNECT (the unknown-service
+           error exists only on the register/inquire-principal paths, see epm_binding_server_register_auth_info_unknown_service) */
+        EQ(U(RpcMgmtInqDefaultProtectLevel)(svc[i], &lvl), RPC_S_OK);
+        EXPECT_EQ(lvl, RPC_C_AUTHN_LEVEL_CONNECT);
     }
     lvl = 0xAA;
     {
@@ -494,11 +497,12 @@ CHILD(epm_princ) {
     st = U(RpcMgmtInqServerPrincNameA)(NULL, RPC_C_AUTHN_WINNT, &a);
     if (st != 0 || !a || strcmp((char *)a, "olet/child_princ")) fail |= 32;
     if (a) U(RpcStringFreeA)(&a);
-    /* re-registering replaces the name */
+    /* Win10: re-registering the same service succeeds but keeps the first principal name */
     if (U(RpcServerRegisterAuthInfoA)((RPC_CSTR)"olet/second", RPC_C_AUTHN_WINNT, NULL, NULL) != 0) fail |= 64;
     w = NULL;
     st = U(RpcMgmtInqServerPrincNameW)(NULL, RPC_C_AUTHN_WINNT, &w);
-    if (st != 0 || !w || lstrcmpW((WCHAR *)w, L"olet/second")) fail |= 128;
+    t_note("child: after re-registration name = \"%ls\" (st %lu)", st == 0 && w ? (WCHAR *)w : L"", (unsigned long)st);
+    if (st != 0 || !w || lstrcmpW((WCHAR *)w, L"olet/child_princ")) fail |= 128;
     if (w) U(RpcStringFreeW)(&w);
     return fail;
 }
