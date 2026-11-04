@@ -49,7 +49,8 @@ TEST(dxg3_lsa_private_data_store_retrieve_delete) {
         if (st == 0 && out) { CHECK(out->Length == v2.Length && !memcmp(out->Buffer, v2.Buffer, v2.Length)); U(LsaFreeMemory)(out); }
         else CHECKF(0, "second retrieve -> 0x%lx", (unsigned long)st);
         /* NULL PrivateData deletes */
-        EXPECT_EQ(U(LsaStorePrivateData)(h, &key, NULL), 0);
+        st = U(LsaStorePrivateData)(h, &key, NULL);   /* once: a second delete reports name-not-found */
+        EXPECT_EQ(st, 0);
         out = NULL;
         st = U(LsaRetrievePrivateData)(h, &key, &out);
         CHECKF(st == ST_NAME_NOT_FOUND, "retrieve after delete -> 0x%lx", (unsigned long)st);
@@ -166,8 +167,10 @@ TEST(dxg3_lsa_set_information_policy_requires_set_rights_on_handle) {
     NTSTATUS st = U(LsaOpenPolicy)(NULL, &oa, POLICY_LOOKUP_NAMES, &h);
     if (st) { t_skip("cannot open the policy: 0x%lx", (unsigned long)st); return; }
     /* a handle opened for POLICY_LOOKUP_NAMES only cannot change audit settings: the server refuses, nothing is modified */
+    /* Win10 validates the buffer first: a NULL option array is STATUS_INVALID_PARAMETER, so pass a well-formed one */
     POLICY_AUDIT_EVENTS_INFO ai; memset(&ai, 0, sizeof ai);
-    ai.AuditingMode = FALSE; ai.EventAuditingOptions = NULL; ai.MaximumAuditEventCount = 0;
+    DWORD opts[9]; memset(opts, 0, sizeof opts);
+    ai.AuditingMode = FALSE; ai.EventAuditingOptions = opts; ai.MaximumAuditEventCount = 9;
     st = U(LsaSetInformationPolicy)(h, PolicyAuditEventsInformation, &ai);
     CHECKF(st == ST_ACCESS_DENIED, "-> 0x%lx", (unsigned long)st);
     U(LsaClose)(h);

@@ -39,6 +39,7 @@ static void sweep(HKEY root, const WCHAR *parent) {
     for (int i = 0; i < n; i++) del_tlb(root, parent, names[i]);
 }
 
+
 CHILD(dxg3_tlib_reg) {
     typedef void (WINAPI *oa_fn)(void);
     int per_user = argc > 1 && argv[1][0] == '1';
@@ -66,7 +67,12 @@ CHILD(dxg3_tlib_reg) {
     if (key_exists(HKEY_CURRENT_USER, (wsprintfW(path, L"Software\\Classes\\%s", sub), path))) bits |= 1;
     if (key_exists(HKEY_LOCAL_MACHINE, path)) bits |= 2;
     if (key_exists(HKEY_CLASSES_ROOT, sub)) bits |= 4; else rc = 5;
-    if (U(UnRegisterTypeLib)(&g, 1, 0, LANG_NEUTRAL, SYS_WIN64) != S_OK) rc = rc ? rc : 6;
+    /* Win10 registers the library under the LCID stored in the typelib (the creating thread's default, not 0), and
+       UnRegisterTypeLib only finds it under that exact LCID: LANG_NEUTRAL gives TYPE_E_REGISTRYACCESS */
+    LCID lcid = 0;
+    { TLIBATTR *ta = NULL; if (SUCCEEDED(ITypeLib_GetLibAttr(tl, &ta)) && ta) { lcid = ta->lcid; ITypeLib_ReleaseTLibAttr(tl, ta); } }
+    HRESULT uhr = U(UnRegisterTypeLib)(&g, 1, 0, lcid, SYS_WIN64);
+    if (uhr != S_OK) rc = rc ? rc : 6;
     if (key_exists(HKEY_CLASSES_ROOT, sub)) rc = rc ? rc : 7;
 done:
     if (tl) ITypeLib_Release(tl);
