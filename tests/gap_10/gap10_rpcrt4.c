@@ -253,9 +253,12 @@ TEST(gap10_towerexplode_invalid_tower) {
 }
 
 /* ---------------------------------------------------------------- misc process-state-free helpers */
-TEST(gap10_i_rpcmgmt_dedicated_threadpool_default_off) {
+TEST(gap10_i_rpcmgmt_dedicated_threadpool_state) {
     FN(unsigned char, I_RpcMgmtQueryDedicatedThreadPool, (void));
-    EXPECT_EQ(I_RpcMgmtQueryDedicatedThreadPool_(), 0);
+    /* reports whether a private RPC thread pool exists: Windows 10 has one in an ordinary process */
+    unsigned char v = I_RpcMgmtQueryDedicatedThreadPool_();
+    t_note("I_RpcMgmtQueryDedicatedThreadPool = %u", v);
+    EXPECT_EQ(v, 1);
 }
 TEST(gap10_i_rpcverifiercorruptionexpected_default) {
     FN(int, I_RpcVerifierCorruptionExpected, (void));

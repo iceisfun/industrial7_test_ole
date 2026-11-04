@@ -320,9 +320,11 @@ TEST(gap10_credparseusername_errors) {
     EXPECT_EQ(type, 4);
     in[0x100] = L'a'; in[0x101] = 0;
     EXPECT_EQ(CredParseUserNameWithType_(in, &user, &dom, &type), (LONG)0xC0000062);
+    /* a successful split overwrites the separator in place: rebuild the buffer before each probe */
     for (int i = 0; i < 0x201; i++) in[i] = L'a'; in[0x201] = 0; in[0x100] = L'\\';
     EXPECT_EQ(CredParseUserNameWithType_(in, &user, &dom, &type), 0);
-    in[0x201] = L'a'; in[0x202] = 0;
+    for (int i = 0; i < 0x202; i++) in[i] = L'a'; 
+    in[0x202] = 0; in[0x100] = L'\\';
     EXPECT_EQ(CredParseUserNameWithType_(in, &user, &dom, &type), (LONG)0xC0000062);
 }
 
@@ -352,7 +354,7 @@ TEST(gap10_querylocaluserservicename_invalid_args) {
     if (!scm) { t_skip("no SCM access (%lu)", GetLastError()); return; }
     CloseServiceHandle(scm);
     EXPECT_EQ(QueryLocalUserServiceName_(NULL, buf, &n), ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(QueryLocalUserServiceName_(L"svc", buf, NULL), ERROR_INVALID_PARAMETER);
+    /* a NULL size pointer is rejected but then dereferenced by the final size write-back: it faults on Windows, so it is not probed */
     n = 9;
     EXPECT_EQ(QueryLocalUserServiceName_(L"svc", NULL, &n), ERROR_INVALID_PARAMETER);
 }
