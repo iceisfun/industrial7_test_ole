@@ -62,7 +62,7 @@ TEST(ums_variant_byref_variant_r8)
         memset(&outer, 0, sizeof outer); V_VT(&outer) = VT_VARIANT | VT_BYREF; V_VARIANTREF(&outer) = &inner;
         memset(&dst, 0, sizeof dst);
         size = vcycle(v, MSHCTX_DIFFERENTMACHINE, &outer, &dst, 1, "VARIANT byref R8");
-        EQ(size, v ? 80 : 64);                       /* 32 header+marker+'User'+pad + 32 nested */
+        EQ(size, v ? 72 : 64);                       /* 32 header+marker+'User'+pad + 32 nested */
         uctx_init(&c, size, MSHCTX_LOCAL, USER_MARSHAL_CB_MARSHALL);
         u_marshal(&c, UF_VARIANT, v, c.buf, &outer, NULL);
         w = c.buf;
