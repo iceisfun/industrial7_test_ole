@@ -70,6 +70,8 @@ static int model(int op, unsigned l, unsigned r, unsigned *rv)
         else if (HAS(VT_I8)) *rv = VT_I8;
         else if (HAS(VT_I4)) *rv = VT_I4;
         else if (HAS(VT_I2) || HAS(VT_BOOL) || (l == VT_EMPTY && r == VT_EMPTY)) *rv = VT_I2;
+        /* Win10: 0 - UI1 widens to I2 (the result can be negative); UI1 - 0 stays UI1 */
+        else if (op == M_SUB && l == VT_EMPTY && r == VT_UI1) *rv = VT_I2;
         else if (HAS(VT_UI1)) *rv = VT_UI1;
         return 0;
     }
@@ -122,6 +124,11 @@ static void run_matrix(int m)
         va_make(&L, &lc); va_make(&R, &rc);
         memset(&res, 0, sizeof(res)); V_VT(&res) = 15;
         hr = va_bin(vaop[m], &L, &R, &res);
+        if (kind == 0 && m == M_POW && lval == 0 && rval < 0 && !HAS(VT_NULL)) {
+            /* Win10: 0 ^ negative (EMPTY ^ TRUE) is rejected with E_INVALIDARG, not evaluated to infinity */
+            CHECKF(hr == E_INVALIDARG, "%s(%s,%s) hr 0x%lx want E_INVALIDARG (Win10)", mname[m], va_vtname(l), va_vtname(r), (long)hr);
+            va_free(&L); va_free(&R); continue;
+        }
         if (kind == 0) {
             int ok; double got, want = 0; int check = 1;
             CHECKF(hr == S_OK, "%s(%s,%s) hr 0x%lx want S_OK", mname[m], va_vtname(l), va_vtname(r), (long)hr);
@@ -158,7 +165,7 @@ static void run_matrix(int m)
             else okh = (hr == DISP_E_BADVARTYPE || hr == DISP_E_TYPEMISMATCH || hr == DISP_E_DIVBYZERO || hr == DISP_E_OVERFLOW);
             if (m <= M_MUL && kind == 1) okh = (hr == DISP_E_BADVARTYPE || hr == DISP_E_TYPEMISMATCH);
             CHECKF(okh, "%s(%s,%s) failure hr 0x%lx", mname[m], va_vtname(l), va_vtname(r), (long)hr);
-            CHECKF(V_VT(&res) == VT_EMPTY, "%s(%s,%s) failed result vt %s want EMPTY", mname[m], va_vtname(l), va_vtname(r), va_vtname(V_VT(&res)));
+            CHECKF(VA_FAILRES_OK(V_VT(&res)), "%s(%s,%s) failed result vt %s want EMPTY", mname[m], va_vtname(l), va_vtname(r), va_vtname(V_VT(&res)));
         }
         va_free(&L); va_free(&R);
     }

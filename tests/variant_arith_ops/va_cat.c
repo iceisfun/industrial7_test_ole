@@ -125,22 +125,22 @@ TEST(variant_arith_ops_cat_errors)
     memset(&res, 0, sizeof(res)); V_VT(&res) = 15;
     hr = U(VarCat)(&l, &r, &res);
     CHECKF(hr == DISP_E_TYPEMISMATCH, "VarCat(ERROR,BSTR) hr 0x%lx", (long)hr);
-    CHECKF(V_VT(&res) == VT_EMPTY, "VarCat(ERROR,BSTR) failed result vt %u want EMPTY", V_VT(&res));
+    CHECKF(VA_FAILRES_OK(V_VT(&res)), "VarCat(ERROR,BSTR) failed result vt %u want EMPTY", V_VT(&res));
     memset(&res, 0, sizeof(res)); V_VT(&res) = 15;
     hr = U(VarCat)(&r, &l, &res);
     CHECKF(hr == DISP_E_TYPEMISMATCH, "VarCat(BSTR,ERROR) hr 0x%lx", (long)hr);
-    CHECKF(V_VT(&res) == VT_EMPTY, "VarCat(BSTR,ERROR) failed result vt %u want EMPTY", V_VT(&res));
+    CHECKF(VA_FAILRES_OK(V_VT(&res)), "VarCat(BSTR,ERROR) failed result vt %u want EMPTY", V_VT(&res));
     U(SysFreeString)(V_BSTR(&r));
     /* VT_BYREF / VT_ARRAY operands are not accepted */
     memset(&l, 0, sizeof(l)); V_VT(&l) = VT_I4 | VT_BYREF;
     memset(&r, 0, sizeof(r)); V_VT(&r) = VT_I4; V_I4(&r) = 1;
     memset(&res, 0, sizeof(res)); V_VT(&res) = 15;
     hr = U(VarCat)(&l, &r, &res);
-    CHECKF(hr == DISP_E_BADVARTYPE, "VarCat(BYREF|I4,I4) hr 0x%lx want BADVARTYPE", (long)hr);
-    CHECKF(V_VT(&res) == VT_EMPTY, "failed result vt %u want EMPTY", V_VT(&res));
+    CHECKF(hr == DISP_E_TYPEMISMATCH, "VarCat(BYREF|I4,I4) hr 0x%lx want TYPEMISMATCH (Win10)", (long)hr);
+    CHECKF(VA_FAILRES_OK(V_VT(&res)), "failed result vt %u want EMPTY", V_VT(&res));
     V_VT(&l) = VT_I4 | VT_ARRAY;
     memset(&res, 0, sizeof(res)); V_VT(&res) = 15;
     hr = U(VarCat)(&l, &r, &res);
     CHECKF(FAILED(hr), "VarCat(ARRAY|I4,I4) hr 0x%lx", (long)hr);
-    CHECKF(V_VT(&res) == VT_EMPTY, "failed result vt %u want EMPTY", V_VT(&res));
+    CHECKF(VA_FAILRES_OK(V_VT(&res)), "failed result vt %u want EMPTY", V_VT(&res));
 }

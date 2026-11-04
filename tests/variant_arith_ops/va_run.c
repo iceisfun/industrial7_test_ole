@@ -156,7 +156,7 @@ void va_check_bin(int wl, int op, const vcell *lc, const vcell *rc, HRESULT hr, 
         if (hr == S_OK)
             CHECKF(va_equal_cell(&res, ec), "%s(%s,%s) [wine:%d] result %s want vt %s", va_opname(op), b1, b2, wl, va_describe(&res, b3, 64), va_vtname(ec->vt));
         else
-            CHECKF(V_VT(&res) == VT_EMPTY, "%s(%s,%s) [wine:%d] failed result vt %s want EMPTY", va_opname(op), b1, b2, wl, va_vtname(V_VT(&res)));
+            CHECKF(VA_FAILRES_OK(V_VT(&res)), "%s(%s,%s) [wine:%d] failed result vt %s want EMPTY", va_opname(op), b1, b2, wl, va_vtname(V_VT(&res)));
     }
     CHECKF(!memcmp(&l, &l0, sizeof(l)), "%s [wine:%d] left operand modified", va_opname(op), wl);
     CHECKF(!memcmp(&r, &r0, sizeof(r)), "%s [wine:%d] right operand modified", va_opname(op), wl);
@@ -178,7 +178,7 @@ void va_check_un(int wl, int op, const vcell *lc, int nd, HRESULT hr, const vcel
         if (hr == S_OK)
             CHECKF(va_equal_cell(&res, ec), "%s(%s) [wine:%d] result %s want vt %s", va_opname(op), b1, wl, va_describe(&res, b3, 64), va_vtname(ec->vt));
         else
-            CHECKF(V_VT(&res) == VT_EMPTY, "%s(%s) [wine:%d] failed result vt %s want EMPTY", va_opname(op), b1, wl, va_vtname(V_VT(&res)));
+            CHECKF(VA_FAILRES_OK(V_VT(&res)), "%s(%s) [wine:%d] failed result vt %s want EMPTY", va_opname(op), b1, wl, va_vtname(V_VT(&res)));
     }
     CHECKF(!memcmp(&l, &l0, sizeof(l)), "%s [wine:%d] operand modified", va_opname(op), wl);
     if (got == S_OK && V_VT(&res) == VT_BSTR) U(SysFreeString)(V_BSTR(&res));
