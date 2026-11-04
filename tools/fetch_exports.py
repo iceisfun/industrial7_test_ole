@@ -4,7 +4,8 @@ usage: fetch_exports.py <module> <out.txt> [--json out.json]
 Writes one exported name per line (sorted, unique). The JSON dump keeps ordinals and forwarder targets
 (useful for forwarder/export-table tests)."""
 import json, sys, urllib.request, os
-B = os.environ.get("CORPUS_API", "http://docker1.dev.moonlightcompanies.com:8765")
+B = os.environ.get("CORPUS_API")   # base URL of the export-listing service
+if not B: sys.exit("set CORPUS_API to the base URL of the export-listing service")
 mod, out = sys.argv[1], sys.argv[2]
 items, off = [], 0
 while True:

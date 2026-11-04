@@ -11,6 +11,10 @@ Modules searched by `U()`: ole32.dll combase.dll oleaut32.dll rpcrt4.dll sechost
     tools\run_all.bat            # everything, results\<area>.txt (add /destructive for dx_* areas)
     python tools\summarize.py results [--failures]
 
+Status: the corpus is verified on genuine Windows 10 22H2 (build 19045): 66 exes, 8504 tests, 0 failed
+(`adm` 7924 tests / 4 skipped, `std` 7924 / 18 skipped, `dx` 580 / 2 skipped); see `COVERAGE.md`. It was first written under
+Wine only; Windows 10 results are the authority and all expectations were reconciled with them.
+
 Output: `RUN/OK/FAIL/SKIP` per test, `  FAIL file:line expr (detail)` per failed check, `SUMMARY` last;
 exit code 1 if any test failed. `NOTE` lines record observed, version-dependent behaviour.
 
@@ -40,7 +44,8 @@ Every directory under `tests/` is one exe. Test names are prefixed with the area
 ## Safety model
 
 * Non-`dx_` areas must be free of system-wide side effects: they only create objects, files under `%TEMP%\olet_<pid>\`, and
-  per-process state. They never stop or reconfigure services, never write HKLM/HKCU registration, never start
+  per-process state (the one exception is a private, deleted-again `HKCU` sandbox key in `rpc_proxy_stub_dcom`). They never
+  stop or reconfigure services, never write HKLM/HKCU registration, never start
   ETW sessions, never register in the RPC endpoint mapper, never take clipboard ownership.
 * `dx_*` areas change machine or user state (HKCU\Software\Classes registrations, service create/config/delete,
   audit policy, ETW sessions, endpoint-mapper entries, OLE clipboard). They skip (`t_skip`) when the needed privilege
@@ -48,7 +53,8 @@ Every directory under `tests/` is one exe. Test names are prefixed with the area
   `tools\run_all.bat` runs them only with `/destructive`.
 * Nothing shuts down, logs off, or kills system processes; child processes are only the exe itself (`--child`)
   and are killed after a bounded wait. Waits are bounded (<= 10-20 s). No modal UI.
-* Run on disposable VMs. Under Wine use `tools/wine_run.sh` (headless, throw-away prefix) - never set DISPLAY.
+* Run on disposable VMs. Wine can still run the corpus headless (`tools/wine_run.sh`, throw-away prefix, never set DISPLAY), but Wine
+  results are not authoritative.
 
 ## Running on Windows 10
 
@@ -57,7 +63,8 @@ Every directory under `tests/` is one exe. Test names are prefixed with the area
     tools\run_all.bat /destructive    # adds dx_* (elevated)
     python tools\summarize.py build\results --failures
 
-See `HANDOFF.md` for the full procedure and triage guide.
+See `HANDOFF.md` for the full procedure and triage guide, `docs/WIN10_NOTES.md` for the packed guest runs (modes `adm`, `std`,
+`dx`) and `docs/I7_NOTES.md` for running the exes on the i7 Win10-personality kernel (imports, serial framing, bring-up order).
 
 ## NOTICE
 

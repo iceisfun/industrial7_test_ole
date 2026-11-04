@@ -1,0 +1,74 @@
+# Suggested i7 bring-up order: smallest and least dependent first. One area per line; '#' starts a comment.
+# Tiers: 0 loader/exports only, 1 pure in-process oleaut32/rpcrt4/combase logic, 2 in-process COM/storage/typelib,
+# 3 needs system services, RPC endpoints, ROT, registry, child processes, windows or GDI, 4 dx (state-changing).
+# tier 0
+core_smoke
+exports_ole32
+exports_combase
+exports_oleaut32_rpcrt4_sechost
+# tier 1
+bstr_core
+safearray_core
+variant_core
+variant_convert_numeric
+variant_format_parse
+variant_arith_ops
+com_memory_guid_strings
+rpc_uuid_strings
+usrmarshal_oleaut32
+usrmarshal_ole32
+rpc_ndr_marshal_formats
+winrt_hstring
+gap_00
+gap_02
+gap_05
+gap_10
+# tier 2
+com_init_apartments
+com_class_factories
+com_context_threading
+com_marshal_basic
+storage_elements_streams
+storage_create_open
+storage_lockbytes_misc
+propvariant_propstg
+typelib_load_info
+typelib_create_roundtrip
+dispatch_typeinfo_dispcall
+gap_06
+gap_09
+picture_font_ole
+ole2_core_helpers
+winrt_roapi
+# tier 3
+sechost_security_sid_sd
+rpc_proxy_stub_dcom
+rpc_ep_mgmt_misc
+rpc_server_client_ncalrpc
+gap_03
+gap_04
+gap_07
+gap_08
+monikers_rot
+com_marshal_xproc
+gap_01
+sechost_etw_trace
+sechost_services_query
+sechost_service_ctrl_local
+# tier 4 (dx)
+dx_com_class_factories
+dx_gap_00
+dx_gap_02
+dx_gap_04
+dx_gap_06
+dx_gap_09
+dx_gap_10
+dx_gap_01
+dx_gap_03
+dx_gap_07
+dx_rpc_ep_register
+dx_typelib_marshal_registry
+dx_com_registry_activation
+dx_ole2_clipboard
+dx_gap_08
+dx_sechost_service_lifecycle

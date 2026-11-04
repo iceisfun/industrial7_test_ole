@@ -16,7 +16,8 @@ packed, run on a throw-away Windows 10 guest and read back, and records what is 
 | `win10_results.py` | parse a `serial.log` into per-exe / per-test tables (tsv or json) |
 | `win10_summarize.py` | write the committed per-mode summaries (counts and failing/skipped tests only, never raw logs) |
 | `win10_compare.py` | compare several logs of the same build for determinism |
-| `test_win10_results.py` | unit test of the parser |
+| `test_win10_results.py` | unit test of the parser (including the i7 conversion) |
+| `i7_serial.py`, `i7_areas.py`, `i7_bringup.txt` | i7 serial-log conversion and area lists, see `docs/I7_NOTES.md` |
 
 ## Modes
 

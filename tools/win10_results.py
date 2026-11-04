@@ -2,6 +2,7 @@
 """Parse the COM1 log of a Windows 10 run (see win10_pack.py) into per-exe and per-test results.
 
 usage: win10_results.py <serial.log> [--format tsv|json] [--tests] [--failures] [-o FILE]
+       win10_results.py --i7 <run_dir> <area>... [same options]   (serial logs of the i7 staged-exe runner, see i7_serial.py)
 
 Grammar of the framed lines (everything else in the log, such as boot noise, is ignored):
   OLET begin ...            OLET os ...             OLET mode <adm|std>
@@ -14,7 +15,8 @@ Per (mode, exe) the table has: tests failed skipped checks_pass checks_fail rc s
   (exes with no tests, such as the identity probe, report status OUT)
 --tests prints one row per test (mode, exe, test, OK|FAIL|SKIP); --failures prints the FAIL/SKIP detail
 lines. The exit code is 0 when the run finished ("OLET done") and every exe has status OK, else 1."""
-import argparse, json, re, sys
+import argparse, json, os, re, sys
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 SUM = re.compile(r"SUMMARY tests=(\d+) failed=(\d+) skipped=(\d+) checks_pass=(\d+) checks_fail=(\d+)")
 FR = re.compile(r"OLET (begin|os|mode|start|out|rc|done)\b ?(.*)")
@@ -65,11 +67,19 @@ def parse(text):
 
 def main(argv=None):
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
-    ap.add_argument("log"); ap.add_argument("--format", choices=["tsv", "json"], default="tsv")
+    ap.add_argument("log", nargs="+"); ap.add_argument("--i7", action="store_true")
+    ap.add_argument("--format", choices=["tsv", "json"], default="tsv")
     ap.add_argument("--tests", action="store_true"); ap.add_argument("--failures", action="store_true")
     ap.add_argument("-o", dest="out")
     a = ap.parse_args(argv)
-    res = parse(open(a.log, errors="replace").read())
+    if a.i7:
+        import i7_serial
+        if len(a.log) < 2: ap.error("--i7 needs <run_dir> <area>...")
+        text_in = i7_serial.to_olet(a.log[0], a.log[1:])
+    else:
+        if len(a.log) != 1: ap.error("one serial.log expected")
+        text_in = open(a.log[0], errors="replace").read()
+    res = parse(text_in)
     out = []
     if a.format == "json":
         for r in res["runs"]: r["results"] = [list(x) for x in r["results"]]
