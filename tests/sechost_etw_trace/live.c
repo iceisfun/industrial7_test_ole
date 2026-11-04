@@ -205,8 +205,8 @@ TEST(etw_live_enable_provider_callback_and_write) {
 
     PB q; pb_init(&q, sizeof q, NULL, 0, 0, NULL);
     EXPECT_EQ(s.ct(0, s.name, &q.p, EVENT_TRACE_CONTROL_QUERY), 0);
-    t_note("after writes: nbuf=%lu free=%lu lost=%lu written=%lu logbuflost=%lu rtlost=%lu",
-           q.p.NumberOfBuffers, q.p.FreeBuffers, q.p.EventsLost, q.p.BuffersWritten, q.p.LogBuffersLost, q.p.RealTimeBuffersLost);
+    /* free/written/lost counters are timing dependent (flush thread vs. query): not printed */
+    t_note("after writes: nbuf=%lu", q.p.NumberOfBuffers);
     CHECK(q.p.NumberOfBuffers >= 2);
     if (q.p.NumberOfBuffers > q.p.MaximumBuffers) t_note("NumberOfBuffers %lu > MaximumBuffers %lu", q.p.NumberOfBuffers, q.p.MaximumBuffers);
     CHECK(q.p.FreeBuffers <= q.p.NumberOfBuffers);
