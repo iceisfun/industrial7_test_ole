@@ -146,20 +146,23 @@ TEST(usr_hglobal_marshal_inproc_pointer_form)
     HGLOBAL h = mk_block(GMEM_MOVEABLE, 40, 3), o = NULL; ULONG off;
     REQUIRE(fm); REQUIRE(fu); REQUIRE(h);
     for (off = 0; off < 9; off++) {
-        UMC c; unsigned char *b = um_buf_new(64), *e; ULONG a = UM_ALIGN(off, 4), p = UM_ALIGN(a + 4, 8);
+        UMC c; unsigned char *b = um_buf_new(64), *e, *e0; ULONG a = UM_ALIGN(off, 4), p = UM_ALIGN(a + 4, 8);
         HGLOBAL hh = h;
         um_init(&c, b, 64, C_INPROC);
         XEQ(um_x_mar(fm, UMF(&c), b + off, &hh, &e), 0);
         CHECK(e == b + p + 8);
         EXPECT_EQ(RD_U32(b, a), UM_TAG_P);
         CHECK(*(HGLOBAL *)(b + p) == h);          /* the handle value itself travels, no data copy */
-        o = NULL;
+        o = NULL; e0 = e;
         um_init(&c, b, (ULONG)(e - b), C_INPROC);
         if (off % 4) {
-            /* Win10: the unmarshal helper does not realign an unaligned start; it fails with RPC_X_BAD_STUB_DATA
-             * (the marshal helper aligns to 4 first). */
+            /* Win10 (decompilation): the length check counts the 4-alignment pad twice, so a buffer that ends exactly
+             * at the marshalled data is refused with RPC_X_BAD_STUB_DATA; with slack the same data unmarshals. */
             XEQ(um_x_mar(fu, UMF(&c), b + off, &o, &e), X_BADSTUB);
-            if (off == 1) t_note("HGLOBAL_UserUnmarshal at a buffer start not 4-aligned: RPC_X_BAD_STUB_DATA");
+            if (off == 1) t_note("HGLOBAL_UserUnmarshal with a not 4-aligned start and an exactly sized buffer: RPC_X_BAD_STUB_DATA");
+            o = NULL; um_init(&c, b, (ULONG)(e0 - b) + 8, C_INPROC);
+            XEQ(um_x_mar(fu, UMF(&c), b + off, &o, &e), 0);
+            CHECKF(o == h, "inproc unmarshal with slack returns the same handle");
         } else {
             XEQ(um_x_mar(fu, UMF(&c), b + off, &o, &e), 0);
             CHECKF(o == h, "inproc unmarshal returns the same handle");
