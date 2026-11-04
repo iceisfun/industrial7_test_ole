@@ -102,7 +102,8 @@ TEST(mbasic_git_register_unsupported_iid) {
     DWORD cookie = 0x1234;
     HRESULT hr = IGlobalInterfaceTable_RegisterInterfaceInGlobal(git, MB_UNK(0), &MB_IID_Bogus, &cookie);
     /* observed on Win10 22H2: Register does not reject an IID the object lacks (S_OK, nonzero cookie) */
-    CHECKF(SUCCEEDED(hr), "hr=0x%lx", (unsigned long)hr);
+    EQ(hr, S_OK);
+    CHECK(cookie != 0 && cookie != 0x1234);
     t_note("Register with an IID the object lacks = 0x%lx cookie=0x%lx", (unsigned long)hr, cookie);
     if (SUCCEEDED(hr)) IGlobalInterfaceTable_RevokeInterfaceFromGlobal(git, cookie);
     GIT_END();
