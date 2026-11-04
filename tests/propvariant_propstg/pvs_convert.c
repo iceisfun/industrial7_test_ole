@@ -155,18 +155,20 @@ TEST(pvps_fmtid_name_to_fmtid_rejects_malformed) {
     for (int i = 0; i < N_ELEM(bad); i++) {
         memset(&g, 0x44, sizeof g);
         HRESULT hr = U(PropStgNameToFmtId)((LPOLESTR)bad[i], &g);
-        /* Windows 10 returns S_OK for every one of these (no validation of the name); the output is observed only */
+        /* Windows 10: S_OK for the first six (output GUID left zero), STG_E_INVALIDNAME for the 32-char generic-looking one */
         t_note("PropStgNameToFmtId(bad name #%d) -> 0x%08lx guid.Data1=%08lx", i, hr, g.Data1);
-        CHECK(hr == S_OK || FAILED(hr));
+        if (i < 6) { CHECKF(hr == S_OK, "name %d hr=%08lx", i, hr); CHECK(g.Data1 == 0); }
+        else CHECKF(hr == STG_E_INVALIDNAME, "name %d hr=%08lx", i, hr);
     }
     /* one valid name with its first char changed to a non-prefix must fail */
     ipss_name(n); n[0] = 'x';
     HRESULT hr = U(PropStgNameToFmtId)(n, &g);
     t_note("name without \\005 prefix -> 0x%08lx", hr);
+    CHECKF(hr == S_OK, "no-prefix name hr=%08lx", hr); /* Windows 10 accepts it */
     /* ... and a valid name that is one character short must fail */
     ipss_name(n); n[26] = 0;
     hr = U(PropStgNameToFmtId)(n, &g);
-    /* Windows 10 accepts the short name too (S_OK) */
+    CHECKF(hr == S_OK, "short name hr=%08lx", hr); /* Windows 10 accepts the short name too */
     t_note("short generic name -> 0x%08lx", hr);
 }
 
@@ -354,19 +356,19 @@ static int pvps_ser_child(int argc, char **argv) {
     SERIALIZEDPROPERTYVALUE *r = v2p()(&v, CP_WINUNICODE, (SERIALIZEDPROPERTYVALUE *)raw, &len, 0, FALSE, NULL);
     return r ? 11 : 10;
 }
-static void pvps_ser_one(const char *vt) {
+static void pvps_ser_one(const char *vt, DWORD want) {
     DWORD ec = t_run_child("pvps_ser_unsupported", vt, 20000);
     t_note("serialize vt=0x%s in a child -> exit 0x%08lx (10 = returned NULL, 11 = returned a pointer)", vt, (unsigned long)ec);
-    CHECK(ec != 0xDEAD0000 && ec != 0xDEAD0001 && ec != 11);
+    CHECKF(ec == want, "exit 0x%08lx, Windows 10 terminates the process with 0x%08lx", (unsigned long)ec, (unsigned long)want);
 }
-TEST(pvps_serialize_unsupported_vt_dispatch) { REQUIRE_V2P(); pvps_ser_one("9"); }
-TEST(pvps_serialize_unsupported_vt_unknown) { REQUIRE_V2P(); pvps_ser_one("d"); }
-TEST(pvps_serialize_unsupported_vt_variant) { REQUIRE_V2P(); pvps_ser_one("c"); }
-TEST(pvps_serialize_unsupported_vt_void) { REQUIRE_V2P(); pvps_ser_one("18"); }
-TEST(pvps_serialize_unsupported_vt_hresult) { REQUIRE_V2P(); pvps_ser_one("19"); }
-TEST(pvps_serialize_unsupported_vt_ptr) { REQUIRE_V2P(); pvps_ser_one("1a"); }
-TEST(pvps_serialize_unsupported_vt_safearray) { REQUIRE_V2P(); pvps_ser_one("1b"); }
-TEST(pvps_serialize_unsupported_vt_userdefined) { REQUIRE_V2P(); pvps_ser_one("1d"); }
+TEST(pvps_serialize_unsupported_vt_dispatch) { REQUIRE_V2P(); pvps_ser_one("9", 0x8007000d); }
+TEST(pvps_serialize_unsupported_vt_unknown) { REQUIRE_V2P(); pvps_ser_one("d", 0xc00000bb); }
+TEST(pvps_serialize_unsupported_vt_variant) { REQUIRE_V2P(); pvps_ser_one("c", 0xc00000bb); }
+TEST(pvps_serialize_unsupported_vt_void) { REQUIRE_V2P(); pvps_ser_one("18", 0x8007000d); }
+TEST(pvps_serialize_unsupported_vt_hresult) { REQUIRE_V2P(); pvps_ser_one("19", 0x8007000d); }
+TEST(pvps_serialize_unsupported_vt_ptr) { REQUIRE_V2P(); pvps_ser_one("1a", 0x8007000d); }
+TEST(pvps_serialize_unsupported_vt_safearray) { REQUIRE_V2P(); pvps_ser_one("1b", 0x8007000d); }
+TEST(pvps_serialize_unsupported_vt_userdefined) { REQUIRE_V2P(); pvps_ser_one("1d", 0x8007000d); }
 static void pvps_register_ser_child(void) __attribute__((constructor));
 static void pvps_register_ser_child(void) { t_register_child("pvps_ser_unsupported", pvps_ser_child); }
 
@@ -528,16 +530,16 @@ static int pvps_unsupported_child(int argc, char **argv) {
     BOOLEAN rc = p2v()((const SERIALIZEDPROPERTYVALUE *)img, CP_WINUNICODE, &p, &a);
     return rc ? 11 : 10;
 }
-static void pvps_unsupported_one(const char *ty) {
+static void pvps_unsupported_one(const char *ty, DWORD want) {
     DWORD ec = t_run_child("pvps_unsupported", ty, 20000);
     t_note("deserialize dwType=0x%s in a child -> exit 0x%08lx (10 = returned FALSE, 11 = returned TRUE)", ty, (unsigned long)ec);
-    CHECK(ec != 0xDEAD0000 && ec != 0xDEAD0001);
+    CHECKF(ec == want, "exit 0x%08lx, Windows 10 terminates the process with 0x%08lx", (unsigned long)ec, (unsigned long)want);
 }
-TEST(pvps_deserialize_unsupported_7f7f) { REQUIRE(p2v()); pvps_unsupported_one("7f7f"); }
-TEST(pvps_deserialize_unsupported_18) { REQUIRE(p2v()); pvps_unsupported_one("18"); }
-TEST(pvps_deserialize_unsupported_1a) { REQUIRE(p2v()); pvps_unsupported_one("1a"); }
-TEST(pvps_deserialize_unsupported_24) { REQUIRE(p2v()); pvps_unsupported_one("24"); }
-TEST(pvps_deserialize_unsupported_0f) { REQUIRE(p2v()); pvps_unsupported_one("0f"); }
+TEST(pvps_deserialize_unsupported_7f7f) { REQUIRE(p2v()); pvps_unsupported_one("7f7f", 0x8007000d); }
+TEST(pvps_deserialize_unsupported_18) { REQUIRE(p2v()); pvps_unsupported_one("18", 0x8007000d); }
+TEST(pvps_deserialize_unsupported_1a) { REQUIRE(p2v()); pvps_unsupported_one("1a", 0x8007000d); }
+TEST(pvps_deserialize_unsupported_24) { REQUIRE(p2v()); pvps_unsupported_one("24", 0x8007000d); }
+TEST(pvps_deserialize_unsupported_0f) { REQUIRE(p2v()); pvps_unsupported_one("0f", 0xc00000bb); }
 static void pvps_register_children(void) __attribute__((constructor));
 static void pvps_register_children(void) { t_register_child("pvps_unsupported", pvps_unsupported_child); }
 
