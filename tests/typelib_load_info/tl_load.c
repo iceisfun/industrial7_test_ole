@@ -355,7 +355,9 @@ TEST(tlli_stdole2_loadtypelib_default_is_readonly_for_registered)
     TLIBATTR *x = NULL, *y = NULL;
     CHECK(SUCCEEDED(ITypeLib_GetLibAttr(a, &x)) && SUCCEEDED(ITypeLib_GetLibAttr(b, &y)));
     if (x && y) {
-        CHECK(!memcmp(x, y, sizeof *x));
+        /* field by field: the struct has trailing padding bytes that Windows does not initialise */
+        CHECK(tl_guid_eq(&x->guid, &y->guid) && x->lcid == y->lcid && x->syskind == y->syskind &&
+              x->wMajorVerNum == y->wMajorVerNum && x->wMinorVerNum == y->wMinorVerNum && x->wLibFlags == y->wLibFlags);
     }
     if (x) ITypeLib_ReleaseTLibAttr(a, x);
     if (y) ITypeLib_ReleaseTLibAttr(b, y);
@@ -438,7 +440,14 @@ TEST(tlli_queryreg_version_mismatch)
 {
     HRESULT (WINAPI *f)(const GUID *, USHORT, USHORT, LCID, LPBSTR) = UIN("oleaut32.dll", QueryPathOfRegTypeLib);
     REQUIRE(f);
-    static const struct { USHORT ma, mi; } bad[] = { {1,0}, {3,0}, {2,1}, {2,7}, {2,100}, {1,5} , {0,0} };
+    static const struct { USHORT ma, mi; } bad[] = { {3,0}, {2,1}, {2,7}, {2,100}, {1,5} , {0,0} };
+    /* Windows also registers the legacy stdole 1.0 (stdole32.tlb) next to 2.0, so 1.0 resolves */
+    {
+        BSTR p1 = (BSTR)SENTINEL;
+        HRESULT h1 = f(&TL_LIBID_StdOle, 1, 0, 0, &p1);
+        if (!t_is_wine()) { TEQ(h1, S_OK); WCHECK(p1 && p1 != (BSTR)SENTINEL); }
+        if (SUCCEEDED(h1) && p1 && p1 != (BSTR)SENTINEL) { t_note("QueryPath stdole 1.0 -> %ls", p1); tl_freebstr(p1); }
+    }
     for (unsigned i = 0; i < sizeof bad / sizeof bad[0]; i++) {
         BSTR path = (BSTR)SENTINEL;
         HRESULT hr = f(&TL_LIBID_StdOle, bad[i].ma, bad[i].mi, 0, &path);

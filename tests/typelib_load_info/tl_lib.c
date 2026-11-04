@@ -67,7 +67,8 @@ TEST(tlli_lib_attr_stable_and_independent_of_release)
     TEQ(ITypeLib_GetLibAttr(tl, &a), S_OK);
     TEQ(ITypeLib_GetLibAttr(tl, &b), S_OK);
     REQUIRE(a && b);
-    CHECK(!memcmp(a, b, sizeof *a));
+    CHECK(tl_guid_eq(&a->guid, &b->guid) && a->lcid == b->lcid && a->syskind == b->syskind &&   /* not memcmp: trailing padding */
+          a->wMajorVerNum == b->wMajorVerNum && a->wMinorVerNum == b->wMinorVerNum && a->wLibFlags == b->wLibFlags);
     ITypeLib_ReleaseTLibAttr(tl, a);
     CHECK(tl_guid_eq(&b->guid, &TL_LIBID_StdOle));      /* b stays valid after releasing a */
     ITypeLib_ReleaseTLibAttr(tl, b);
