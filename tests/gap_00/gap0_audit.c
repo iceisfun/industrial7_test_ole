@@ -156,7 +156,7 @@ TEST(gap0_audit_set_security_bad_descriptor) {
     CHECK(MakeSelfRelativeSD(&sd, rel, &len));
     SET_ERR(SENT_ERR);
     BOOLEAN r = pAuditSetSecurity(SACL_SECURITY_INFORMATION, rel);
-    if (haspriv) { t_note("self-relative descriptor accepted on Windows 10 (r=%d)", r); }
+    if (haspriv) { EXPECT_EQ(r, TRUE); t_note("self-relative descriptor accepted on Windows 10 (r=%d)", r); }
     else { EXPECT_EQ(r, FALSE); EXPECT_ERR(want); }
 }
 
