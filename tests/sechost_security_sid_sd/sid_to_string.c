@@ -26,12 +26,12 @@ static const struct { const char *name; unsigned long long auth; int n; DWORD su
     { "appcontainer",15, 2, {2, 1},             "S-1-15-2-1" },
     { "auth_asserted",18,1, {1},                "S-1-18-1" },
     { "auth_max_dec",0xFFFFFFFFull, 1, {1},     "S-1-4294967295-1" },
-    { "auth_hex_2p32",0x100000000ull, 1, {1},   "S-1-0x000100000000-1" },
-    { "auth_hex_max",0xFFFFFFFFFFFFull, 1, {7}, "S-1-0xffffffffffff-7" },
-    { "auth_hex_mid",0x123456789abcull, 2, {1, 2}, "S-1-0x123456789abc-1-2" },
-    { "auth_hex_lo", 0x010000000000ull, 1, {5}, "S-1-0x010000000000-5" },
-    { "auth_hex_b1", 0x000100000000ull, 1, {5}, "S-1-0x000100000000-5" },
-    { "auth_hex_b0", 0x010000000000ull, 1, {0}, "S-1-0x010000000000-0" },
+    { "auth_hex_2p32",0x100000000ull, 1, {1},   "S-1-0x100000000-1" },
+    { "auth_hex_max",0xFFFFFFFFFFFFull, 1, {7}, "S-1-0xFFFFFFFFFFFF-7" },
+    { "auth_hex_mid",0x123456789abcull, 2, {1, 2}, "S-1-0x123456789ABC-1-2" },
+    { "auth_hex_lo", 0x010000000000ull, 1, {5}, "S-1-0x10000000000-5" },
+    { "auth_hex_b1", 0x000100000000ull, 1, {5}, "S-1-0x100000000-5" },
+    { "auth_hex_b0", 0x010000000000ull, 1, {0}, "S-1-0x10000000000-0" },
     { "zero_subauth", 5, 0, {0},                "S-1-5" },
     { "subauth_zero_pad", 5, 3, {0, 0, 0},      "S-1-5-0-0-0" },
 };
@@ -174,17 +174,17 @@ TEST(sidstr_w_hex_authority_threshold)
     CHECK(UIN(SH, ConvertSidToStringSidW)(mk_sid(&b, 0xFFFFFFFFull, 1, 1), &w));
     narrow(w, a, sizeof a); EXPECT_STR(a, "S-1-4294967295-1"); LocalFree(w);
     CHECK(UIN(SH, ConvertSidToStringSidW)(mk_sid(&b, 0x100000000ull, 1, 1), &w));
-    narrow(w, a, sizeof a); EXPECT_STR(a, "S-1-0x000100000000-1"); LocalFree(w);
+    narrow(w, a, sizeof a); EXPECT_STR(a, "S-1-0x100000000-1"); LocalFree(w);
     CHECK(UIN(SH, ConvertSidToStringSidW)(mk_sid(&b, 0x1ull, 1, 1), &w));
     narrow(w, a, sizeof a); EXPECT_STR(a, "S-1-1-1"); LocalFree(w);
 }
 
-TEST(sidstr_w_hex_digits_lowercase)
+TEST(sidstr_w_hex_digits_uppercase)
 {
     SIDBUF b; WCHAR *w = NULL; char a[128];
     REQUIRE(UIN(SH, ConvertSidToStringSidW));
     CHECK(UIN(SH, ConvertSidToStringSidW)(mk_sid(&b, 0xABCDEF012345ull, 1, 0xABCDEF), &w));
-    narrow(w, a, sizeof a); EXPECT_STR(a, "S-1-0xabcdef012345-11259375"); LocalFree(w);
+    narrow(w, a, sizeof a); EXPECT_STR(a, "S-1-0xABCDEF012345-11259375"); LocalFree(w);
 }
 
 /* ---- A variant (advapi32 only, converts the W result) ---- */

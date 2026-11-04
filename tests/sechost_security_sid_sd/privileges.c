@@ -76,13 +76,13 @@ TEST(priv_value_w_unknown_name)
         EXPECT_ERR(ERROR_NO_SUCH_PRIVILEGE);
     }
 }
-TEST(priv_value_w_failure_leaves_luid)
+TEST(priv_value_w_failure_zeroes_luid)
 {
     LUID l = { 0x1111, 0x2222 };
     REQUIRE(LPVW);
     SET_ERR(0);
     CHECK(!LPVW(NULL, L"SeNoSuchPrivilege", &l));
-    EXPECT_EQ(l.LowPart, 0x1111); EXPECT_EQ(l.HighPart, 0x2222);
+    EXPECT_EQ(l.LowPart, 0); EXPECT_EQ(l.HighPart, 0);   /* Win10 zeroes the LUID on failure */
 }
 TEST(priv_value_w_case_insensitive)
 {

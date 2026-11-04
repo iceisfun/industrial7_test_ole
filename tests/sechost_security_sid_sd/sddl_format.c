@@ -212,13 +212,13 @@ TEST(sddlfmt_w_secinfo_attribute_scope_backup_selectors)
     PSECURITY_DESCRIPTOR sd = sd_from_str("O:BAG:SYD:(A;;GA;;;WD)S:(AU;SA;GA;;;WD)(ML;;NW;;;ME)", NULL); int ok; const char *s;
     REQUIRE(FMT);
     s = sd_to_str(sd, ATTRIBUTE_SECURITY_INFORMATION, &ok);   /* 0x20 */
-    CHECK(ok); EXPECT_STR(s, "");
+    CHECK(ok); EXPECT_STR(s, "S:");                            /* Win10: attribute/scope selectors emit the (empty) SACL header */
     s = sd_to_str(sd, SCOPE_SECURITY_INFORMATION, &ok);       /* 0x40 */
-    CHECK(ok); EXPECT_STR(s, "");
+    CHECK(ok); EXPECT_STR(s, "S:");
     s = sd_to_str(sd, BACKUP_SECURITY_INFORMATION, &ok);
     if (ok) t_note("BACKUP_SECURITY_INFORMATION only -> \"%s\"", s);
     s = sd_to_str(sd, OWNER_SECURITY_INFORMATION | ATTRIBUTE_SECURITY_INFORMATION, &ok);
-    CHECK(ok); EXPECT_STR(s, "O:BA");
+    CHECK(ok); EXPECT_STR(s, "O:BAS:");
     LocalFree(sd);
 }
 TEST(sddlfmt_w_label_requires_label_bit)

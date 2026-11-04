@@ -28,7 +28,7 @@ static SIDRES lookup_sid(PSID sid)
 static void expect_sid_lookup(PSID sid, const char *name, const char *dom, SID_NAME_USE use, BOOL name_hard)
 {
     SIDRES r = lookup_sid(sid); char n[256], d[256];
-    CHECKF(r.ok, "lookup failed err %lu", r.err);
+    CHECKF(r.ok, "lookup of %s\\%s failed err %lu", dom, name, r.err);
     if (!r.ok) return;
     narrow(r.name, n, sizeof n); narrow(r.dom, d, sizeof d);
     EXPECT_EQ(r.use, use);
@@ -65,6 +65,11 @@ TEST(lookupsid_w_wellknown_table)
     for (i = 0; i < sizeof t / sizeof t[0]; i++) {
         SIDBUF b; PISID s = (PISID)mk_sid(&b, t[i].a, 0); int k;
         s->SubAuthorityCount = (BYTE)t[i].n; for (k = 0; k < t[i].n; k++) s->SubAuthority[k] = t[i].s[k];
+        if (t[i].n == 2 && (t[i].s[1] == 547 || t[i].s[1] == 551 || t[i].s[1] == 552)) {
+            /* these BUILTIN aliases are not present in the local account database of every SKU (Win10 Home: 1332) */
+            SIDRES pr = lookup_sid(s);
+            if (!pr.ok && pr.err == ERROR_NONE_MAPPED) { t_note("%s\\%s not mapped on this SKU", t[i].dom, t[i].name); continue; }
+        }
         expect_sid_lookup(s, t[i].name, t[i].dom, t[i].use, is_english_ui());
     }
 }

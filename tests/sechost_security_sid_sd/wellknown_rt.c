@@ -16,6 +16,14 @@ TEST(wkrt_sid_string_roundtrip_all_wellknown)
         EXPECT_ERR(0);
         CHECKF(w[0] == L'S' && w[1] == L'-' && w[2] == L'1' && w[3] == L'-', "type %d bad prefix", t);
         CHECKF(LocalSize(w) >= (lstrlenW(w) + 1) * 2, "type %d allocation too small", t);
+        if (((SID *)buf)->SubAuthorityCount == 0) {
+            /* Win10 refuses to parse a SID string with no sub-authority ("S-1-5"), although it formats one */
+            BOOL rp = UIN(SH, ConvertStringSidToSidW)(w, &back);
+            t_note("type %d: zero-subauthority SID reparse -> %d (err %lu)", t, rp, rp ? 0 : GetLastError());
+            if (rp) LocalFree(back);
+            LocalFree(w); ok++;
+            continue;
+        }
         CHECKF(UIN(SH, ConvertStringSidToSidW)(w, &back), "type %d: reparse failed %lu", t, GetLastError());
         if (back) {
             CHECKF(EqualSid(back, buf), "type %d: round trip differs", t);
@@ -55,6 +63,7 @@ TEST(wkrt_sid_with_domain_sid_roundtrip)
         BYTE buf[SECURITY_MAX_SID_SIZE]; DWORD sz = sizeof buf; WCHAR *w = NULL; PSID back = NULL;
         if (!CreateWellKnownSid((WELL_KNOWN_SID_TYPE)t, dom, buf, &sz)) continue;
         if (!UIN(SH, ConvertSidToStringSidW)(buf, &w)) { CHECKF(0, "type %d fail", t); continue; }
+        if (((SID *)buf)->SubAuthorityCount == 0) { t_note("type %d: zero-subauthority SID not reparsed (Win10 rejects \"S-1-5\")", t); LocalFree(w); n++; continue; }
         if (UIN(SH, ConvertStringSidToSidW)(w, &back)) { CHECKF(EqualSid(back, buf), "type %d differs", t); LocalFree(back); }
         else CHECKF(0, "type %d reparse failed %lu", t, GetLastError());
         LocalFree(w); n++;
@@ -99,7 +108,7 @@ TEST(wkrt_sddl_single_ace_identity_table)
 TEST(wkrt_sddl_bad_strings_rejected)
 {
     static const char *bad[] = {
-        "X:", "D", "D:(", "D:(A;;GA;;;WD", "D:(A;;GA;;WD)", "D:(Q;;GA;;;WD)", "D:(A;;GA;;;ZZ)", "O:ZZ", "G:XX",
+        "X:", "D", "D:(A;;GA;;;WD", "D:(A;;GA;;WD)", "D:(Q;;GA;;;WD)", "D:(A;;GA;;;ZZ)", "O:ZZ", "G:XX",
         "D:(A;;GA;;;S-1-5-)", "D:(A;;0xZ;;;WD)", "D:(A;XX;GA;;;WD)", "D:(A;;ZZ;;;WD)",
     };
     unsigned i;
@@ -114,6 +123,15 @@ TEST(wkrt_sddl_bad_strings_rejected)
         if (r) LocalFree(sd);
         else CHECKF(GetLastError() != 0, "\"%s\" failed with no last-error", bad[i]);
     }
+}
+
+TEST(wkrt_sddl_open_paren_alone)
+{
+    /* Win10 accepts "D:(" and yields an empty DACL (a documented-as-invalid string that the parser tolerates) */
+    PSECURITY_DESCRIPTOR sd = sd_from_str("D:(", NULL);
+    t_note("\"D:(\" -> %s", sd ? "accepted" : "rejected");
+    CHECK(sd != NULL);
+    if (sd) { int ok; EXPECT_STR(sd_to_str(sd, ALL_SI, &ok), "D:"); LocalFree(sd); }
 }
 
 TEST(wkrt_sddl_revision_variants)

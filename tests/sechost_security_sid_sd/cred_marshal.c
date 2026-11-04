@@ -68,7 +68,7 @@ TEST(cred_marshal_cert_invalid_args)
 }
 TEST(cred_marshal_bad_type_values)
 {
-    CERT_CREDENTIAL_INFO c; char *s = (char *)0xdeadbeef; static const int types[] = { 0, 4, 5, 100, -1 };
+    CERT_CREDENTIAL_INFO c; char *s = (char *)0xdeadbeef; static const int types[] = { 0, 100, -1 };   /* 4 and 5 are valid marshal types on Win10 (they fault on a cert-shaped buffer), so they are not probed here */
     unsigned i;
     REQUIRE(CMA);
     cert_with(&c, NULL, 0);
