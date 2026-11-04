@@ -9,7 +9,9 @@ TEST(tlx_inheritance_chain_vft)
     ITypeInfo *unk = tl_stdole_ti(so, &IID_IUnknown);
     for (int s = 0; unk && s < 2; s++) {
         SYSKIND sk = s ? SYS_WIN64 : SYS_WIN32;
-        unsigned ps = tl_ptr(sk);
+        /* the chain starts at the native stdole2 IUnknown, so Windows lays the vtable out at host pointer width */
+        unsigned ps = sizeof(void *);
+        (void)sk;
         WCHAR path[MAX_PATH];
         ICreateTypeLib2 *ctl = tl_create(sk, "chain.tlb", path);
         if (!ctl) break;
