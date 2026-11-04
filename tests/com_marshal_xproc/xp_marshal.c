@@ -323,7 +323,9 @@ XT(mar_get_standard_marshal_inproc_roundtrip) {
         XEQ(hr, S_OK);
         XEQ(unk, XP_OBJ_UNK(o));
         if (unk) IUnknown_Release(unk);
-        XEQ(o->ref, 1);
+        /* Win10: the stub manager keeps the object referenced after the in-proc unmarshal (public references of the
+           marshal data are not all returned); releasing a second marshal data below tears it down */
+        XEQ(o->ref, 2);
         xp_rewind(s);
         hr = IMarshal_MarshalInterface(m, s, &XP_IID_IUnknown, XP_OBJ_UNK(o), MSHCTX_INPROC, NULL, MSHLFLAGS_NORMAL);
         XEQ(hr, S_OK); CHECK(o->ref > 1);
@@ -346,7 +348,10 @@ XT(mar_get_standard_marshal_unmarshal_class_per_context) {
         if (m) {
             hr = IMarshal_GetUnmarshalClass(m, &XP_IID_IUnknown, XP_OBJ_UNK(o), ctxs[i], NULL, MSHLFLAGS_NORMAL, &clsid);
             XEQ(hr, S_OK);
-            CHECKF(IsEqualGUID(&clsid, &XP_CLSID_StdMarshal), "ctx %lu unmarshal class {%08lx-...}", ctxs[i], clsid.Data1);
+            if (ctxs[i] == MSHCTX_CROSSCTX)                      /* Win10: cross-context marshaling is unmarshaled by its own class {00000350-...} */
+                CHECKF(clsid.Data1 == 0x350 && clsid.Data2 == 0 && clsid.Data3 == 0, "ctx %lu unmarshal class {%08lx-...}", ctxs[i], clsid.Data1);
+            else
+                CHECKF(IsEqualGUID(&clsid, &XP_CLSID_StdMarshal), "ctx %lu unmarshal class {%08lx-...}", ctxs[i], clsid.Data1);
             IMarshal_Release(m);
         }
         IClassFactory_Release(XP_OBJ_CF(o));
@@ -381,7 +386,7 @@ XT(mar_get_standard_marshal_args) {
 typedef struct {
     IMarshal iface; LONG ref; const CLSID *unmarshalClass;
     LONG nGetClass, nSize, nMarshal, nUnmarshal, nRelease, nDisconnect;
-    GUID gotRiid; DWORD gotCtx, gotFlags; void *gotPvCtx; ULONGLONG streamSizeAtMarshal; LONG order[4]; LONG seq;
+    GUID gotRiid; DWORD gotCtx, gotFlags, gotCtx2, gotFlags2; void *gotPvCtx; ULONGLONG streamSizeAtMarshal; LONG order[4]; LONG seq;
 } CM;
 static CM *CMo(IMarshal *m) { return (CM *)m; }
 static HRESULT WINAPI cm_qi(IMarshal *m, REFIID riid, void **ppv)
@@ -393,8 +398,10 @@ static ULONG WINAPI cm_addref(IMarshal *m) { return InterlockedIncrement(&CMo(m)
 static ULONG WINAPI cm_release(IMarshal *m) { return InterlockedDecrement(&CMo(m)->ref); }
 static HRESULT WINAPI cm_getclass(IMarshal *m, REFIID riid, void *pv, DWORD ctx, void *pctx, DWORD fl, CLSID *clsid)
 {
-    CM *c = CMo(m); c->order[0] = InterlockedIncrement(&c->seq); InterlockedIncrement(&c->nGetClass);
-    c->gotRiid = *riid; c->gotCtx = ctx; c->gotFlags = fl; c->gotPvCtx = pctx; *clsid = *c->unmarshalClass; return S_OK;
+    CM *c = CMo(m); LONG n = InterlockedIncrement(&c->nGetClass);
+    if (n == 1) { c->order[0] = InterlockedIncrement(&c->seq); c->gotRiid = *riid; c->gotCtx = ctx; c->gotFlags = fl; c->gotPvCtx = pctx; }
+    else { c->order[3] = InterlockedIncrement(&c->seq); c->gotCtx2 = ctx; c->gotFlags2 = fl; }
+    *clsid = *c->unmarshalClass; return S_OK;
 }
 static HRESULT WINAPI cm_size(IMarshal *m, REFIID riid, void *pv, DWORD ctx, void *pctx, DWORD fl, DWORD *size)
 { CM *c = CMo(m); c->order[1] = InterlockedIncrement(&c->seq); InterlockedIncrement(&c->nSize); *size = 0; return S_OK; }
@@ -402,7 +409,6 @@ static HRESULT WINAPI cm_marshal(IMarshal *m, IStream *s, REFIID riid, void *pv,
 {
     CM *c = CMo(m); IMarshal *std = NULL; STATSTG st; HRESULT hr;
     c->order[2] = InterlockedIncrement(&c->seq); InterlockedIncrement(&c->nMarshal);
-    c->gotRiid = *riid; c->gotCtx = ctx; c->gotFlags = fl;
     IStream_Stat(s, &st, STATFLAG_NONAME); c->streamSizeAtMarshal = st.cbSize.QuadPart;
     if (c->unmarshalClass != &XP_CLSID_StdMarshal) return S_OK;
     hr = U(CoGetStandardMarshal)(riid, (IUnknown *)m, ctx, NULL, fl, &std);
@@ -422,12 +428,15 @@ XT(mar_custom_marshaler_delegating_to_std) {
     s = xp_new_stream();
     hr = U(CoMarshalInterface)(s, &XP_IID_IUnknown, (IUnknown *)&c.iface, MSHCTX_INPROC, NULL, MSHLFLAGS_NORMAL);
     XEQ(hr, S_OK);
-    XEQ(c.nGetClass, 1); XEQ(c.nMarshal, 1);
+    /* Win10 asks for the unmarshal class twice: first from CoMarshalInterface (with the caller's context), again from the
+       standard marshaler when the delegating IMarshal::MarshalInterface runs (zero context and flags) */
+    XEQ(c.nGetClass, 2); XEQ(c.nMarshal, 1);
     XEQ(c.nSize, 0);                                                     /* the standard-marshal class path never asks for the size */
-    CHECK(c.order[0] < c.order[2]);                                      /* class first, then the data */
+    CHECK(c.order[0] < c.order[2] && c.order[2] < c.order[3]);           /* class, then the data, then the class again */
     XEQ(c.streamSizeAtMarshal, 0);                                       /* IMarshal::MarshalInterface receives an empty stream */
     CHECK(IsEqualGUID(&c.gotRiid, &XP_IID_IUnknown));
     XEQ(c.gotCtx, MSHCTX_INPROC); XEQ(c.gotFlags, MSHLFLAGS_NORMAL);
+    XEQ(c.gotCtx2, 0); XEQ(c.gotFlags2, 0);
     xp_rewind(s);
     hr = U(CoUnmarshalInterface)(s, &XP_IID_IUnknown, (void **)&unk);
     XEQ(hr, S_OK);
@@ -478,7 +487,7 @@ XT(mar_custom_marshaler_failure_propagates) {
     /* an interface the (std-delegating) marshaler cannot marshal: made-up IID without proxy/stub registration */
     hr = U(CoMarshalInterface)(s, &XP_IID_IUnknownBogus, (IUnknown *)&c.iface, MSHCTX_INPROC, NULL, MSHLFLAGS_NORMAL);
     t_note("marshal of an unregistered IID through a delegating custom marshaler: %08lx (%s)", hr, xp_hrname(hr));
-    XEQ(c.nGetClass, 1);
+    XEQ(c.nGetClass, 2);                                                 /* as above: CoMarshalInterface, then the standard marshaler */
     IStream_Release(s);
     UNINIT();
 }
@@ -596,6 +605,8 @@ XT(mar_ftm_aggregation_args) {
 }
 
 /* ---- table marshaling across apartments ------------------------------------------------------------------------- */
+struct RelW { IStream *s; HRESULT hr; };
+static void relw_work(void *p) { struct RelW *a = p; xp_rewind(a->s); a->hr = U(CoReleaseMarshalData)(a->s); }
 XT(mar_tablestrong_two_unmarshals_and_release_in_host) {
     XpFx f; IClassFactory *p2 = NULL; HRESULT hr;
     XP_NEED_BASE(); INIT(COINIT_APARTMENTTHREADED);
@@ -607,12 +618,12 @@ XT(mar_tablestrong_two_unmarshals_and_release_in_host) {
         IClassFactory_Release(f.p); f.p = NULL;
         CHECK(f.o->ref > 1);                                             /* the table still holds the object */
         XEQ(f.gone, 0);
-        {   /* release the table entry in the hosting apartment */
-            struct { IStream *s; HRESULT hr; } a; a.s = f.h.stream; a.hr = E_FAIL;
-            xp_rewind(f.h.stream);
-            hr = U(CoReleaseMarshalData)(f.h.stream);
-            XEQ(hr, S_OK);
+        {   /* release the table entry in the hosting apartment, where it was registered */
+            struct RelW a; a.s = f.h.stream; a.hr = E_FAIL;
+            CHECK(xp_host_run(&f.h, relw_work, &a));
+            XEQ(a.hr, S_OK);
         }
+        t_note("object references after the table entry is released: %ld", (long)f.o->ref);
         XEQ(f.o->ref, 1);
     } else CHECK(0);
     xp_fx_teardown(&f);
@@ -664,7 +675,7 @@ XT(mar_external_connection_marshal_and_release) {
     hr = U(CoMarshalInterface)(s, &XP_IID_IClassFactory, XP_OBJ_UNK(o), MSHCTX_INPROC, NULL, MSHLFLAGS_NORMAL);
     XEQ(hr, S_OK);
     CHECK(o->extConnAdd >= 1);                                           /* the stub manager announces the external strong connection */
-    XEQ(o->extConnRel, 0);
+    XEQ(o->extConnAdd - o->extConnRel, 1);                               /* Win10: exactly one external strong connection outstanding (the stub manager adds one and returns one while setting up) */
     xp_rewind(s);
     hr = U(CoReleaseMarshalData)(s);
     XEQ(hr, S_OK);
@@ -804,9 +815,11 @@ XT(mar_git_register_invalid_args) {
         void *pv = (void *)1;
         o = xp_obj_new();
         hr = IGlobalInterfaceTable_RegisterInterfaceInGlobal(git, XP_OBJ_UNK(o), &XP_IID_IUnknownBogus, &cookie);
-        CHECKF(FAILED(hr), "register with an unmarshalable IID returned %08lx", hr);
+        XEQ(hr, S_OK);                                                   /* Win10: no proxy/stub lookup happens when registering; the table holds the pointer */
         t_note("RegisterInterfaceInGlobal(unregistered IID): %08lx (%s) cookie=%lx", hr, xp_hrname(hr), cookie);
-        XEQ(o->ref, 1);
+        XEQ(o->ref, 2);                                                  /* the table entry holds a reference ... */
+        if (SUCCEEDED(hr)) { hr = IGlobalInterfaceTable_RevokeInterfaceFromGlobal(git, cookie); XEQ(hr, S_OK); }
+        XEQ(o->ref, 1);                                                  /* ... that revoking returns */
         hr = IGlobalInterfaceTable_GetInterfaceFromGlobal(git, 0xDEADBEEF, &XP_IID_IClassFactory, &pv);
         CHECKF(FAILED(hr), "get with a bogus cookie returned %08lx", hr);
         t_note("GetInterfaceFromGlobal(bogus cookie): %08lx (%s)", hr, xp_hrname(hr));

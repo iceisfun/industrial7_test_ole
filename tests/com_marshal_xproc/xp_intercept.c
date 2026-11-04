@@ -68,7 +68,7 @@ XT(icept_which_interfaces_have_interceptors) {
 /* ---- a frame-event sink --------------------------------------------------------------------------------- */
 typedef struct {
     ICallFrameEvents iface; LONG ref; LONG onCall;
-    HRESULT hrInfo, hrIid, hrNames, hrParam, hrRet; CALLFRAMEINFO info; GUID iid; ULONG method; LPWSTR ifname, mname; BOOL setRet; HRESULT retval;
+    HRESULT hrInfo, hrIid, hrNames, hrParam, hrRet, hrPi[3]; CALLFRAMEPARAMINFO pi[3]; CALLFRAMEINFO info; GUID iid; ULONG method; LPWSTR ifname, mname; BOOL setRet; HRESULT retval;
 } Sink;
 static Sink *SK(ICallFrameEvents *e) { return (Sink *)e; }
 static HRESULT WINAPI sk_qi(ICallFrameEvents *e, REFIID riid, void **ppv)
@@ -85,71 +85,79 @@ static HRESULT WINAPI sk_oncall(ICallFrameEvents *e, ICallFrame *f)
     s->hrInfo = ICallFrame_GetInfo(f, &s->info);
     s->hrIid = ICallFrame_GetIIDAndMethod(f, &s->iid, &s->method);
     s->hrNames = ICallFrame_GetNames(f, &s->ifname, &s->mname);
+    for (ULONG i = 0; i < 3; i++) s->hrPi[i] = ICallFrame_GetParamInfo(f, i, &s->pi[i]);
     if (s->setRet) { ICallFrame_SetReturnValue(f, s->retval); s->hrRet = S_OK; }
     return S_OK;
 }
 static ICallFrameEventsVtbl sk_vtbl = { sk_qi, sk_addref, sk_release, sk_oncall };
 static void sink_init(Sink *s) { memset(s, 0, sizeof *s); s->iface.lpVtbl = &sk_vtbl; s->ref = 1; }
 
-XT(icept_iclassfactory_call_frame) {
-    void *pv = NULL; HRESULT hr; ICallInterceptor *ci = NULL; Sink sink; IClassFactory *cf = NULL; IUnknown *unk = NULL;
+/* Win10 has call interceptors only for interfaces with a registered type library (IDispatch here); IClassFactory,
+   IUnknown, IStream, ... fail with HRESULT_FROM_WIN32(ERROR_FILE_NOT_FOUND), see icept_which_interfaces_have_interceptors */
+XT(icept_idispatch_call_frame) {
+    void *pv = NULL; HRESULT hr; ICallInterceptor *ci = NULL; Sink sink; IDispatch *d = NULL; IUnknown *unk = NULL; UINT n = 0xAAAA;
     NEED_ICEPT(); INIT(COINIT_APARTMENTTHREADED);
-    hr = U(CoGetInterceptor)(&XP_IID_IClassFactory, NULL, &XP_IID_ICallInterceptor, &pv);
-    if (FAILED(hr)) { t_skip("no interceptor for IClassFactory here (%08lx)", hr); UNINIT(); return; }
+    hr = U(CoGetInterceptor)(&XP_IID_IDispatch, NULL, &XP_IID_ICallInterceptor, &pv);
+    XEQ(hr, S_OK);
+    if (FAILED(hr)) { UNINIT(); return; }
     ci = pv;
     sink_init(&sink); sink.setRet = TRUE; sink.retval = XP_CUSTOM_HR;
     hr = ICallInterceptor_RegisterSink(ci, (ICallFrameEvents *)&sink.iface);
     XEQ(hr, S_OK);
-    hr = ICallInterceptor_QueryInterface(ci, &XP_IID_IClassFactory, (void **)&cf);
+    hr = ICallInterceptor_QueryInterface(ci, &XP_IID_IDispatch, (void **)&d);
     XEQ(hr, S_OK);
-    if (cf) {
-        hr = IClassFactory_LockServer(cf, TRUE);
+    if (d) {
+        hr = IDispatch_GetTypeInfoCount(d, &n);
         XEQ(sink.onCall, 1);
         XEQ(hr, XP_CUSTOM_HR);                                  /* the value set on the frame is what the caller gets back */
         XEQ(sink.hrInfo, S_OK); XEQ(sink.hrIid, S_OK); XEQ(sink.hrNames, S_OK); XEQ(sink.hrRet, S_OK);
-        CHECK(IsEqualGUID(&sink.iid, &XP_IID_IClassFactory));
-        XEQ(sink.method, 4);                                    /* IUnknown(0..2), CreateInstance(3), LockServer(4) */
-        XEQ(sink.info.iMethod, 4);
-        XEQ(sink.info.cParams, 1);
-        CHECK(sink.info.fHasInValues);
-        CHECK(!sink.info.fHasOutValues);
-        t_note("CALLFRAMEINFO.cMethod for IClassFactory: %lu", sink.info.cMethod);
-        CHECK(IsEqualGUID(&sink.info.iid, &XP_IID_IClassFactory));
-        CHECK(sink.ifname && !lstrcmpW(sink.ifname, L"IClassFactory"));
-        CHECK(sink.mname && !lstrcmpW(sink.mname, L"LockServer"));
+        CHECK(IsEqualGUID(&sink.iid, &XP_IID_IDispatch));
+        XEQ(sink.method, 3);                                    /* IUnknown(0..2), GetTypeInfoCount(3) */
+        XEQ(sink.info.iMethod, 3);
+        /* Win10: CALLFRAMEINFO.cParams is left 0 for these type-library based frames; the parameters are described by GetParamInfo */
+        XEQ(sink.info.cParams, 0);
+        XEQ(sink.hrPi[0], S_OK); XEQ(sink.pi[0].fIn, 0); XEQ(sink.pi[0].fOut, 1);   /* UINT *pctinfo */
+        t_note("GetTypeInfoCount frame: hasIn=%d hasOut=%d cMethod=%lu", (int)sink.info.fHasInValues, (int)sink.info.fHasOutValues, sink.info.cMethod);
+        CHECK(IsEqualGUID(&sink.info.iid, &XP_IID_IDispatch));
+        CHECK(sink.ifname && !lstrcmpW(sink.ifname, L"IDispatch"));
+        CHECK(sink.mname && !lstrcmpW(sink.mname, L"GetTypeInfoCount"));
         if (sink.ifname) U(CoTaskMemFree)(sink.ifname);
         if (sink.mname) U(CoTaskMemFree)(sink.mname);
         sink.ifname = sink.mname = NULL;
-        hr = IClassFactory_QueryInterface(cf, &XP_IID_IUnknownBogus, (void **)&unk);
+        hr = IDispatch_QueryInterface(d, &XP_IID_IUnknownBogus, (void **)&unk);
         t_note("QueryInterface of an unsupported iid on an interceptor: %08lx (%s) (OnCall events: %ld)", hr, xp_hrname(hr), sink.onCall);
-        IClassFactory_Release(cf);
+        IDispatch_Release(d);
     }
     hr = ICallInterceptor_RegisterSink(ci, NULL);               /* un-register */
     t_note("ICallInterceptor::RegisterSink(NULL): %08lx (%s)", hr, xp_hrname(hr));
     ICallInterceptor_Release(ci);
     UNINIT();
 }
-XT(icept_iclassfactory_create_instance_frame) {
-    void *pv = NULL; HRESULT hr; ICallInterceptor *ci = NULL; Sink sink; IClassFactory *cf = NULL; void *out = (void *)1;
+XT(icept_idispatch_get_type_info_frame) {
+    void *pv = NULL; HRESULT hr; ICallInterceptor *ci = NULL; Sink sink; IDispatch *d = NULL; ITypeInfo *ti = (ITypeInfo *)1;
     NEED_ICEPT(); INIT(COINIT_APARTMENTTHREADED);
-    hr = U(CoGetInterceptor)(&XP_IID_IClassFactory, NULL, &XP_IID_ICallInterceptor, &pv);
-    if (FAILED(hr)) { t_skip("no interceptor for IClassFactory here (%08lx)", hr); UNINIT(); return; }
+    hr = U(CoGetInterceptor)(&XP_IID_IDispatch, NULL, &XP_IID_ICallInterceptor, &pv);
+    XEQ(hr, S_OK);
+    if (FAILED(hr)) { UNINIT(); return; }
     ci = pv;
     sink_init(&sink); sink.setRet = TRUE; sink.retval = E_NOTIMPL;
     hr = ICallInterceptor_RegisterSink(ci, (ICallFrameEvents *)&sink.iface); XEQ(hr, S_OK);
-    hr = ICallInterceptor_QueryInterface(ci, &XP_IID_IClassFactory, (void **)&cf); XEQ(hr, S_OK);
-    if (cf) {
-        hr = IClassFactory_CreateInstance(cf, NULL, &XP_IID_IUnknown, &out);
+    hr = ICallInterceptor_QueryInterface(ci, &XP_IID_IDispatch, (void **)&d); XEQ(hr, S_OK);
+    if (d) {
+        hr = IDispatch_GetTypeInfo(d, 0, 0x409, &ti);
         XEQ(hr, E_NOTIMPL);
         XEQ(sink.onCall, 1);
-        XEQ(sink.method, 3);
-        XEQ(sink.info.cParams, 3);                             /* pUnkOuter, riid, ppvObject */
+        XEQ(sink.method, 4);
+        XEQ(sink.info.cParams, 0);                             /* see above: not filled in on Win10 */
+        XEQ(sink.hrPi[0], S_OK); XEQ(sink.pi[0].fIn, 1); XEQ(sink.pi[0].fOut, 0);   /* iTInfo */
+        XEQ(sink.hrPi[1], S_OK); XEQ(sink.pi[1].fIn, 1); XEQ(sink.pi[1].fOut, 0);   /* lcid */
+        XEQ(sink.hrPi[2], S_OK); XEQ(sink.pi[2].fIn, 0); XEQ(sink.pi[2].fOut, 1);   /* ppTInfo */
         CHECK(sink.info.fHasInValues);
         CHECK(sink.info.fHasOutValues);
-        CHECK(sink.mname && !lstrcmpW(sink.mname, L"CreateInstance"));
+        CHECK(sink.mname && !lstrcmpW(sink.mname, L"GetTypeInfo"));
         if (sink.ifname) U(CoTaskMemFree)(sink.ifname);
         if (sink.mname) U(CoTaskMemFree)(sink.mname);
-        IClassFactory_Release(cf);
+        IDispatch_Release(d);
     }
     ICallInterceptor_RegisterSink(ci, NULL);
     ICallInterceptor_Release(ci);
