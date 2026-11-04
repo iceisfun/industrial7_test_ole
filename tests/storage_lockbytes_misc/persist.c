@@ -263,7 +263,7 @@ TEST(slm_ostm_load_unsupported_riid) {
     void *p = (void *)1;
     EXPECT_EQ(U(OleLoadFromStream)(s, &G_IStorage, &p), E_NOINTERFACE);
     CHECK(p == NULL);
-    EXPECT_STR(g_last->log, "L");                    /* the object was created and loaded before the final QI failed */
+    EXPECT_STR(g_last->log, "");                     /* Windows asks CoCreateInstance for the requested IID: creation fails before Load runs */
     IStream_Release(s); unreg_class(ck);
     slm_couninit();
 }
@@ -497,10 +497,11 @@ TEST(slm_cache_aggregation_rules) {
     EXPECT_EQ(hr, S_OK);
     CHECK(p != NULL);
     if (p) {
-        /* the inner IUnknown does not delegate: QI for IUnknown returns the inner pointer itself */
+        /* the inner IUnknown does not delegate to the outer one; Windows returns the object's own IUnknown, which is
+           not necessarily the pointer CreateDataCache handed out */
         void *q = NULL;
         EXPECT_EQ(IUnknown_QueryInterface((IUnknown *)p, &G_IUnknown, &q), S_OK);
-        CHECK(q == p);
+        CHECK(q != NULL && q != (void *)&outer.iface);
         if (q) IUnknown_Release((IUnknown *)q);
         EXPECT_EQ(IUnknown_Release((IUnknown *)p), 0);
     }

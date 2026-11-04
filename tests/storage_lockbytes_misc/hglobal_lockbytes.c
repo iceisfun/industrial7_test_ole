@@ -227,7 +227,8 @@ TEST(slm_hg_write_zero_bytes) {
     REQUIRE(U(CreateILockBytesOnHGlobal));
     ILockBytes *lb = mk(NULL, TRUE); if (!lb) { CHECK(0); return; }
     ULONG n = 55;
-    EXPECT_EQ(wr(lb, 0, "x", 0, &n), S_OK); EXPECT_EQ(n, 0);
+    /* Windows locks the (zero-sized) HGLOBAL even for cb == 0; the lock fails, so the write faults */
+    EXPECT_EQ(wr(lb, 0, "x", 0, &n), STG_E_WRITEFAULT); EXPECT_EQ(n, 0);
     EXPECT_EQ(lb_size(lb), 0);
     /* cb == 0 beyond the end still extends the array to the offset on Windows */
     n = 55;

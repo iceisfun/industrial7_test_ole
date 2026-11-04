@@ -162,7 +162,9 @@ TEST(slm_rsm_gdi_bitmap) {
     EXPECT_EQ(cu.released, 1);
     memset(&m, 0, sizeof m); m.tymed = TYMED_GDI; m.hBitmap = hb;
     U(ReleaseStgMedium)(&m);
-    EXPECT_EQ(GDI(GetObjectType)(hb), 0);                    /* DeleteObject was called */
+    /* Windows keeps reporting OBJ_BITMAP from GetObjectType for a deleted bitmap handle (also after a plain DeleteObject),
+       so DeleteObject having run is observed through GetObject failing */
+    { BITMAP bm; EXPECT_EQ(GDI(GetObjectW)(hb, sizeof bm, &bm), 0); }
     EXPECT_EQ(m.tymed, TYMED_NULL);
 }
 TEST(slm_rsm_enhmetafile) {
