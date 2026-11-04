@@ -236,7 +236,8 @@ TEST(dtd_get_coercion_table_numeric)
     v_i4(&s, 1);       conv_row(&s, VT_DATE, S_OK);
     v_i4(&s, 1);       conv_row(&s, VT_I8, S_OK);
     v_i4(&s, 1);       conv_row(&s, VT_UI4, S_OK);
-    v_i4(&s, -1);      conv_row(&s, VT_UI4, DISP_E_OVERFLOW);
+    /* Win10 oleaut32 VariantChangeType I4->UI4 reinterprets the bits (no overflow), unlike VarUI4FromI4 */
+    v_i4(&s, -1);      conv_row(&s, VT_UI4, S_OK);
     v_i4(&s, 1);       conv_row(&s, VT_INT, S_OK);
     v_i4(&s, 1);       conv_row(&s, VT_DECIMAL, S_OK);
 }
