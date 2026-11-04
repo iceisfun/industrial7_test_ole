@@ -70,6 +70,7 @@ void t_check(int ok, const char *file, int line, const char *expr, const char *f
 /* A call that must FAIL with a specific error: r is the call's failure sentinel test. */
 #define EXPECT_FAIL(is_failure, err) do { t_check(!!(is_failure), __FILE__, __LINE__, #is_failure, "call unexpectedly succeeded"); EXPECT_ERR(err); } while (0)
 
+extern volatile DWORD t_veh_ignore_tid;   /* thread id the crash handler leaves alone (0 = none): for tests that watch a helper thread themselves */
 void t_note(const char *fmt, ...);   /* observed/version-dependent behaviour: logged, never fails */
 void t_skip(const char *fmt, ...);   /* skip the rest of the current test */
 #define REQUIRE(ptr) do { if (!(ptr)) { t_skip("missing export: " #ptr); return; } } while (0)

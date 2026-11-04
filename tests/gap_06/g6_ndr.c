@@ -20,18 +20,42 @@ static volatile DWORD g_tid, g_code;
 static LONG CALLBACK veh(EXCEPTION_POINTERS *ep) {
     if (GetCurrentThreadId() != g_tid) return EXCEPTION_CONTINUE_SEARCH;
     DWORD c = ep->ExceptionRecord->ExceptionCode;
+    /* rpcrt4 probes caller handles under SEH on Windows: access violations (and other hardware faults) are first-chance noise here, the
+     * frames inside rpcrt4 turn them into RPC statuses. Only an AV that nobody handles (the unhandled filter below) counts. */
+    if (c == 0xC0000005 || c == 0xC00000FD) return EXCEPTION_CONTINUE_SEARCH;
     if (c == 0x40010006 || c == 0x4001000A || c == 0x406D1388 || c == 0x40010005) return EXCEPTION_CONTINUE_SEARCH;
     g_code = c;
     ExitThread(0xE0C0DE01);
     return EXCEPTION_CONTINUE_SEARCH;
 }
+static LONG WINAPI ufilter(EXCEPTION_POINTERS *ep) {
+    if (GetCurrentThreadId() != g_tid) return EXCEPTION_CONTINUE_SEARCH;
+    g_code = ep->ExceptionRecord->ExceptionCode;
+    ExitThread(0xE0C0DE01);
+    return EXCEPTION_CONTINUE_SEARCH;
+}
 typedef void (*call_fn)(void *);
 typedef struct { call_fn fn; void *arg; } job_t;
-static DWORD WINAPI job_thread(void *p) { job_t *j = p; g_tid = GetCurrentThreadId(); j->fn(j->arg); return 0; }
-static DWORD raised(call_fn fn, void *arg) {    /* exception code, 0 = returned normally, 0xFFFFFFF0 = timeout */
+static DWORD WINAPI job_thread(void *p) { job_t *j = p; g_tid = t_veh_ignore_tid = GetCurrentThreadId(); j->fn(j->arg); return 0; }
+/* rpcrt4 creates its private heap lazily, on the first API that needs the runtime (RpcBindingFromStringBinding and friends). The
+ * NdrClientCall2 / NdrAsyncClientCall error paths allocate from it; in a process that has not touched RPC yet that heap is NULL and the call
+ * dies with an access violation in RtlAllocateHeap (Win10 ntdll) instead of reporting a status. Start the runtime before every probe. */
+static void rpc_warmup(void) {
+    static int done;
+    if (done) return;
+    done = 1;
+    RPC_STATUS (WINAPI *from)(RPC_WSTR, RPC_BINDING_HANDLE *) = (void *)t_proc("RpcBindingFromStringBindingW");
+    RPC_STATUS (WINAPI *fr)(RPC_BINDING_HANDLE *) = (void *)t_proc("RpcBindingFree");
+    RPC_BINDING_HANDLE b = NULL;
+    if (from && from((RPC_WSTR)L"ncalrpc:[olet_g6_warmup]", &b) == RPC_S_OK && fr) fr(&b);
+    t_note("rpcrt4 runtime started before the NdrClientCall2/NdrAsyncClientCall probes (its heap is created lazily; unstarted, those paths fault in RtlAllocateHeap)");
+}
+static DWORD raised(call_fn fn, void *arg) {
+    rpc_warmup();    /* exception code, 0 = returned normally, 0xFFFFFFF0 = timeout */
     job_t j = { fn, arg };
     g_code = 0;
     PVOID h = AddVectoredExceptionHandler(1, veh);
+    LPTOP_LEVEL_EXCEPTION_FILTER oldf = SetUnhandledExceptionFilter(ufilter);
     HANDLE th = CreateThread(NULL, 0, job_thread, &j, 0, NULL);
     DWORD res = 0xFFFFFFF0;
     if (th) {
@@ -41,6 +65,8 @@ static DWORD raised(call_fn fn, void *arg) {    /* exception code, 0 = returned 
         } else TerminateThread(th, 1);
         CloseHandle(th);
     }
+    t_veh_ignore_tid = 0;
+    SetUnhandledExceptionFilter(oldf);
     RemoveVectoredExceptionHandler(h);
     return res;
 }
