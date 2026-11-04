@@ -12,8 +12,12 @@ static const GUID TID_G6   = {0x6a6a6a01,0x0002,0x4c3d,{0x9a,0,0,0,0,0,0,0xd1}};
 
 static void tlb_path(WCHAR *out, const char *tag) { wsprintfW(out, L"%hs\\g6x_%hs_%lu.tlb", t_tmpdir(), tag, GetCurrentProcessId()); }
 
-static HRESULT build_lib(SYSKIND sk, const WCHAR *path, int with_enum) {
-    ICreateTypeLib *c = NULL; HRESULT hr = U(CreateTypeLib)(sk, path, &c);
+/* v2 != 0: CreateTypeLib2 (MSFT writer, loadable). v2 == 0: legacy CreateTypeLib, whose SaveAllChanges
+ * writes a file that Windows 10 oleaut32 itself refuses to load (see dx_gap6_ctl_legacy_file_not_loadable).
+ * Legacy SaveAllChanges also faults with a member-less TKIND_ENUM typeinfo on Win10, so it is only used empty. */
+static HRESULT build_lib(SYSKIND sk, const WCHAR *path, int with_enum, int v2) {
+    ICreateTypeLib *c = NULL;
+    HRESULT hr = v2 ? U(CreateTypeLib2)(sk, path, (ICreateTypeLib2 **)&c) : U(CreateTypeLib)(sk, path, &c);
     if (FAILED(hr) || !c) return hr;
     c->lpVtbl->SetName(c, L"G6Lib");
     c->lpVtbl->SetGuid(c, &LIBID_G6);
@@ -42,12 +46,12 @@ static HRESULT build_lib(SYSKIND sk, const WCHAR *path, int with_enum) {
 }
 
 TEST(dx_gap6_ctl_save_and_reload_attributes) {
-    REQUIRE(U(CreateTypeLib)); REQUIRE(U(LoadTypeLibEx));
+    REQUIRE(U(CreateTypeLib2)); REQUIRE(U(LoadTypeLibEx));
     static const SYSKIND kinds[] = { SYS_WIN32, SYS_WIN64 };
     for (unsigned i = 0; i < 2; i++) {
         WCHAR p[MAX_PATH]; tlb_path(p, i ? "w64" : "w32");
         DeleteFileW(p);
-        HRESULT hr = build_lib(kinds[i], p, 1);
+        HRESULT hr = build_lib(kinds[i], p, 1, 1);
         EQ(hr, S_OK);
         CHECK(GetFileAttributesW(p) != INVALID_FILE_ATTRIBUTES);
         ITypeLib *tl = NULL;
@@ -107,21 +111,36 @@ TEST(dx_gap6_ctl_duplicate_typeinfo_name) {
 TEST(dx_gap6_ctl_save_without_changes_writes_file) {
     REQUIRE(U(CreateTypeLib));
     WCHAR p[MAX_PATH]; tlb_path(p, "empty"); DeleteFileW(p);
-    HRESULT hr = build_lib(SYS_WIN32, p, 0);
+    HRESULT hr = build_lib(SYS_WIN32, p, 0, 1);
     t_note("empty library SaveAllChanges: 0x%lx, file exists=%d", hr, GetFileAttributesW(p) != INVALID_FILE_ATTRIBUTES);
     DeleteFileW(p);
 }
 TEST(dx_gap6_ctl_second_save_overwrites) {
-    REQUIRE(U(CreateTypeLib)); REQUIRE(U(LoadTypeLibEx));
+    REQUIRE(U(CreateTypeLib2)); REQUIRE(U(LoadTypeLibEx));
     WCHAR p[MAX_PATH]; tlb_path(p, "twice"); DeleteFileW(p);
-    EQ(build_lib(SYS_WIN32, p, 1), S_OK);
+    EQ(build_lib(SYS_WIN32, p, 1, 1), S_OK);
     WIN32_FILE_ATTRIBUTE_DATA d1, d2; memset(&d1, 0, sizeof d1); memset(&d2, 0, sizeof d2);
     GetFileAttributesExW(p, GetFileExInfoStandard, &d1);
-    EQ(build_lib(SYS_WIN32, p, 1), S_OK);
+    EQ(build_lib(SYS_WIN32, p, 1, 1), S_OK);
     GetFileAttributesExW(p, GetFileExInfoStandard, &d2);
     CHECK(d1.nFileSizeLow == d2.nFileSizeLow && d1.nFileSizeLow > 0);
     ITypeLib *tl = NULL;
     EQ(U(LoadTypeLibEx)(p, REGKIND_NONE, &tl), S_OK);
+    if (tl) tl->lpVtbl->Release(tl);
+    DeleteFileW(p);
+}
+/* Win10: CreateTypeLib (GenericTypeLibOLE) saves a file starting with "SLTG" that LoadTypeLibEx rejects with
+ * TYPE_E_UNSUPFORMAT. Windows is the authority, so this pins that result. */
+TEST(dx_gap6_ctl_legacy_file_not_loadable) {
+    REQUIRE(U(CreateTypeLib)); REQUIRE(U(LoadTypeLibEx));
+    WCHAR p[MAX_PATH]; tlb_path(p, "legacy"); DeleteFileW(p);
+    EQ(build_lib(SYS_WIN32, p, 0, 0), S_OK);
+    CHECK(GetFileAttributesW(p) != INVALID_FILE_ATTRIBUTES);
+    ITypeLib *tl = NULL;
+    HRESULT hr = U(LoadTypeLibEx)(p, REGKIND_NONE, &tl);
+    t_note("legacy CreateTypeLib file load: 0x%lx (Win10 22H2: TYPE_E_UNSUPFORMAT 0x80028019)", hr);
+    EQ(hr, (HRESULT)0x80028019L);
+    CHECK(tl == NULL);
     if (tl) tl->lpVtbl->Release(tl);
     DeleteFileW(p);
 }
