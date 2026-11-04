@@ -310,17 +310,15 @@ typedef struct HookState {
     volatile LONG active;
     LONG refs_added;
     LONG cgs, cfb, cn, sn, sgs, sfb;
-    int bad_extent, bad_pid, bad_method, bad_data, bad_causality;
-    GUID causality; int have_causality;
+    int bad_extent;
     ULONG server_data_size; unsigned char server_data;
     DWORD client_tid, server_tid;
-    DWORD seen_method; int seen_iid_ok;
     HRESULT client_notify_hr;
-    int bad_cbsize;
 } HookState;
 static HookState hs;
 static LONG hook_ref = 1;
 
+/* Win10 passes a plain IID of the called interface (not an SChannelHookCallInfo) as riid */
 static int is_stream_call(REFIID riid) { return IsEqualGUID(riid, &CX_IID_IStream); }
 static HRESULT WINAPI hk_QI(IChannelHook *i, REFIID riid, void **ppv)
 {
@@ -331,15 +329,7 @@ static ULONG WINAPI hk_AddRef(IChannelHook *i) { InterlockedIncrement(&hs.refs_a
 static ULONG WINAPI hk_Release(IChannelHook *i) { return InterlockedDecrement(&hook_ref) > 0 ? hook_ref : 1; }
 static void hk_check(REFGUID ext, REFIID riid, int need_object)
 {
-    SChannelHookCallInfo *info = (SChannelHookCallInfo *)riid;
     if (!IsEqualGUID(ext, &CX_EXTENT_OLET)) hs.bad_extent = 1;
-    if (info->cbSize != sizeof *info) { hs.bad_cbsize = 1; return; }
-    if (info->dwServerPid != GetCurrentProcessId()) hs.bad_pid = 1;
-    if (info->iMethod != 9) hs.bad_method = 1;
-    hs.seen_method = info->iMethod;
-    if (need_object && !info->pObject) hs.bad_data = 1;
-    if (!hs.have_causality) { hs.causality = info->uCausality; hs.have_causality = 1; }
-    else if (!IsEqualGUID(&hs.causality, &info->uCausality)) hs.bad_causality = 1;
 }
 static void WINAPI hk_ClientGetSize(IChannelHook *i, REFGUID ext, REFIID riid, ULONG *size)
 {
@@ -442,19 +432,20 @@ static void run_hook_call(DWORD server_model, DWORD client_model)
     CXEQ_HR(a.hr, S_OK);
     CXEQ(s.cf.lock_calls, 1);
     cx_srv_stop(&s);
+    CXEQ(hs.bad_extent, 0);
+    CXEQ(hs.sfb, 0);                                 /* the server added no data, so no fill call */
+    /* Win10: the hooks run for a call between two STA threads of the process; a call from an MTA client thread does not reach them */
+    if (client_model == CXM_MTA) {
+        t_note("MTA client -> STA server: channel hook calls cgs=%ld cfb=%ld sn=%ld sgs=%ld cn=%ld", hs.cgs, hs.cfb, hs.sn, hs.sgs, hs.cn);
+        CXEQ(hs.cgs, 0); CXEQ(hs.cfb, 0); CXEQ(hs.sn, 0); CXEQ(hs.sgs, 0); CXEQ(hs.cn, 0);   /* observed: none of the hooks runs */
+        return;
+    }
     /* every callback ran once for the call on IStream::Revert, all with our extent */
     CXEQ(hs.cgs, 1);
     CXEQ(hs.cfb, 1);
     CXEQ(hs.cn, 1);
     CXEQ(hs.sn, 1);
     CXEQ(hs.sgs, 1);
-    CXEQ(hs.sfb, 0);                                 /* the server added no data, so no fill call */
-    CXEQ(hs.bad_extent, 0);
-    CXEQ(hs.bad_cbsize, 0);
-    CXEQ(hs.bad_pid, 0);                             /* SChannelHookCallInfo.dwServerPid */
-    CXEQ(hs.bad_method, 0);                          /* iMethod counts IUnknown: Revert is method 9 */
-    CXEQ(hs.bad_data, 0);                            /* pObject is set on the server side */
-    CXEQ(hs.bad_causality, 0);
     CXEQ(hs.server_data_size, 1);                    /* the client's buffer arrives intact */
     CXEQ(hs.server_data, 0xcc);
     CXEQ_HR(hs.client_notify_hr, S_OK);

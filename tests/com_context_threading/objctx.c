@@ -395,6 +395,7 @@ static void w_cb_null_fn(void *p)
 }
 TEST(ctxthr_ctxcb_null_callback_e_invalidarg) { REQUIRE(U(CoGetObjectContext)); cx_run(CXM_STA, w_cb_null_fn, NULL); cx_run(CXM_MTA, w_cb_null_fn, NULL); }
 
+static HRESULT WINAPI cb_null_ok(ComCallData *pd) { return pd ? E_UNEXPECTED : S_OK; }
 static void w_cb_null_param(void *p)
 {
     /* the parameter block is opaque to COM: NULL is passed through */
@@ -403,7 +404,7 @@ static void w_cb_null_param(void *p)
     CXEQ_HR(U(CoGetObjectContext)(&CX_IID_IContextCallback, (void **)&cb), S_OK);
     memset(&d, 0, sizeof d);
     d.ret = S_OK;
-    hr = IContextCallback_ContextCallback(cb, cb_record, NULL, &CX_IID_IContextCallback, 2, NULL);
+    hr = IContextCallback_ContextCallback(cb, cb_null_ok, NULL, &CX_IID_IContextCallback, 2, NULL);   /* the callback must not dereference NULL */
     t_note("ContextCallback with NULL pParam in the same context: 0x%08lx", (unsigned long)hr);
     rel(cb);
 }
