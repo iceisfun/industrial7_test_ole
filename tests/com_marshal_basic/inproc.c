@@ -262,7 +262,7 @@ TEST(mbasic_life_marshal_destctx_variants_release) {
 
 /* ---------------------------------------------------------------- cross-apartment */
 
-typedef struct XA { IStream *stm; HRESULT hr_get, hr_call, hr_call2, hr_unlock; void *got; DWORD tid; HANDLE got_ev, go_ev; BOOL mta; LONG locks_seen; } XA;
+typedef struct XA { IStream *stm; HRESULT hr_get, hr_call, hr_call2, hr_unlock; void *got; DWORD tid; HANDLE got_ev, go_ev; BOOL mta; LONG locks_seen; HRESULT hr_lock; } XA;
 
 static DWORD CALLBACK xa_worker(void *p) {
     XA *x = p; IClassFactory *cf = NULL;
@@ -271,11 +271,15 @@ static DWORD CALLBACK xa_worker(void *p) {
     x->hr_get = U(CoGetInterfaceAndReleaseStream)(x->stm, &IID_IClassFactory, (void **)&cf);
     x->got = cf;
     if (cf) {
-        x->hr_call = IClassFactory_LockServer(cf, TRUE);
-        x->locks_seen = OBJ.locks;
+        /* Win10: the IClassFactory proxy answers LockServer locally (S_OK, never delivered to the object), so
+           CreateInstance is the call that proves the hop into the owning apartment (the object returns E_NOTIMPL) */
+        void *pp = NULL;
+        x->hr_lock = IClassFactory_LockServer(cf, TRUE);
+        x->hr_call = IClassFactory_CreateInstance(cf, NULL, &IID_IUnknown, &pp);
+        x->locks_seen = OBJ.ci_calls;
         x->hr_unlock = IClassFactory_LockServer(cf, FALSE);
         if (x->got_ev) { SetEvent(x->got_ev); if (x->go_ev) WaitForSingleObject(x->go_ev, 10000); }
-        x->hr_call2 = IClassFactory_LockServer(cf, TRUE);
+        x->hr_call2 = IClassFactory_CreateInstance(cf, NULL, &IID_IUnknown, &pp);
         IClassFactory_Release(cf);
     } else if (x->got_ev) SetEvent(x->got_ev);
     MB_DONE();
@@ -293,10 +297,12 @@ static void run_interthread(BOOL mta, const char *what) {
     EQ(x.hr_get, S_OK);
     CHECK(x.got != NULL);
     CHECK(x.got != (void *)MB_CF(0));                 /* other apartment: a proxy, not the object */
-    EQ(x.hr_call, S_OK);                              /* call crossed back into the owning STA */
+    EQ(x.hr_call, E_NOTIMPL);                         /* CreateInstance crossed back into the owning STA (object: E_NOTIMPL) */
+    EQ(x.hr_lock, S_OK);
     EQ(x.hr_unlock, S_OK);
     EQ(x.locks_seen, 1);
-    EQ(OBJ.locks, 1);                                 /* worker's second LockServer(TRUE) */
+    EQ(OBJ.ci_calls, 2);                              /* worker's two CreateInstance calls */
+    EQ(OBJ.locks, 0);                                 /* Win10: proxy-side LockServer is never delivered to the object */
     EQ(OBJ.last_tid, GetCurrentThreadId());           /* executed in the object's apartment */
 }
 /* adapted from Wine dlls/ole32/tests/marshal.c (LGPL-2.1+) */
@@ -362,7 +368,7 @@ static DWORD CALLBACK xa_disc_worker(void *p) {
     x->hr_get = U(CoGetInterfaceAndReleaseStream)(x->stm, &IID_IClassFactory, (void **)&cf);
     SetEvent(x->got_ev);
     WaitForSingleObject(x->go_ev, 10000);
-    if (cf) { x->hr_call = IClassFactory_LockServer(cf, TRUE); x->hr_call2 = IClassFactory_LockServer(cf, FALSE); IClassFactory_Release(cf); }
+    if (cf) { void *pp = NULL; x->hr_call = IClassFactory_CreateInstance(cf, NULL, &IID_IUnknown, &pp); x->hr_call2 = IClassFactory_CreateInstance(cf, NULL, &IID_IUnknown, &pp); IClassFactory_Release(cf); }
     MB_DONE();
     return 0;
 }
@@ -379,7 +385,7 @@ TEST(mbasic_xapt_disconnect_gives_rpc_e_disconnected) {
     CHECK(mb_join(th, 10000, NULL));
     CHECKF(x.hr_call == MB_RPC_E_DISCONNECTED || x.hr_call == MB_CO_E_OBJNOTCONNECTED, "call after disconnect hr=0x%lx", (unsigned long)x.hr_call);
     t_note("call through proxy after CoDisconnectObject = 0x%lx", (unsigned long)x.hr_call);
-    EQ(OBJ.locks, 0);                                  /* the object never saw the call */
+    EQ(OBJ.ci_calls, 0);                               /* the object never saw the call */
     CloseHandle(x.got_ev); CloseHandle(x.go_ev);
     MB_DONE();
 }
