@@ -207,7 +207,7 @@ TEST(etw_qat_null_count) {
     __typeof__(&QueryAllTracesW) q = ET(QueryAllTracesW); ETW_REQ(q);
     PB b; pb_default(&b); EVENT_TRACE_PROPERTIES *a[1] = {&b.p};
     SET_ERR(0);
-    EXPECT_EQ(q(a, 1, NULL), ERROR_INVALID_PARAMETER); EXPECT_ERR(ERROR_INVALID_PARAMETER);
+    EXPECT_EQ(q(a, 1, NULL), ERROR_INVALID_PARAMETER); /* ETW returns the status; it does not set the thread last-error */ EXPECT_ERR(0);
     EXPECT_EQ(q(NULL, 0, NULL), ERROR_INVALID_PARAMETER);
 }
 TEST(etw_qat_null_array_with_count) {
