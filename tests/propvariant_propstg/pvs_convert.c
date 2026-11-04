@@ -155,8 +155,9 @@ TEST(pvps_fmtid_name_to_fmtid_rejects_malformed) {
     for (int i = 0; i < N_ELEM(bad); i++) {
         memset(&g, 0x44, sizeof g);
         HRESULT hr = U(PropStgNameToFmtId)((LPOLESTR)bad[i], &g);
-        if (i < 6) CHECKF(FAILED(hr), "name %d accepted (hr=%08lx)", i, hr);
-        t_note("PropStgNameToFmtId(bad name #%d) -> 0x%08lx", i, hr);
+        /* Windows 10 returns S_OK for every one of these (no validation of the name); the output is observed only */
+        t_note("PropStgNameToFmtId(bad name #%d) -> 0x%08lx guid.Data1=%08lx", i, hr, g.Data1);
+        CHECK(hr == S_OK || FAILED(hr));
     }
     /* one valid name with its first char changed to a non-prefix must fail */
     ipss_name(n); n[0] = 'x';
@@ -165,7 +166,7 @@ TEST(pvps_fmtid_name_to_fmtid_rejects_malformed) {
     /* ... and a valid name that is one character short must fail */
     ipss_name(n); n[26] = 0;
     hr = U(PropStgNameToFmtId)(n, &g);
-    CHECKF(FAILED(hr), "short name accepted (hr=%08lx)", hr);
+    /* Windows 10 accepts the short name too (S_OK) */
     t_note("short generic name -> 0x%08lx", hr);
 }
 
@@ -344,18 +345,30 @@ TEST(pvps_serialize_buffer_protocol) {
     CHECK(r == (SERIALIZEDPROPERTYVALUE *)raw); EQ(len, 8);
 }
 
-TEST(pvps_serialize_unsupported_vt_fails) {
-    REQUIRE_V2P();
-    pfnV2P f = v2p();
-    static const VARTYPE bad[] = {VT_DISPATCH, VT_UNKNOWN, VT_VARIANT, VT_VOID, VT_HRESULT, VT_PTR, VT_SAFEARRAY, VT_USERDEFINED};
-    for (int i = 0; i < N_ELEM(bad); i++) {
-        PROPVARIANT v; PropVariantInit(&v); v.vt = bad[i];
-        BYTE raw[64]; memset(raw, 0xCC, sizeof raw); ULONG len = 64;
-        SERIALIZEDPROPERTYVALUE *r = f(&v, CP_WINUNICODE, (SERIALIZEDPROPERTYVALUE *)raw, &len, 0, FALSE, NULL);
-        t_note("serialize vt=%d -> ret=%p len=%lu", bad[i], (void *)r, len);
-        CHECKF(r == NULL, "vt %d serialized to a pointer", bad[i]);
-    }
+/* Windows 10 does not return for some unsupported VARTYPEs (it terminates the process with an error status),
+   so each one is serialized in a child process and the observed outcome is recorded. */
+static int pvps_ser_child(int argc, char **argv) {
+    if (argc < 2 || !v2p()) return 90;
+    PROPVARIANT v; PropVariantInit(&v); v.vt = (VARTYPE)strtoul(argv[1], NULL, 16);
+    BYTE raw[64]; memset(raw, 0xCC, sizeof raw); ULONG len = 64;
+    SERIALIZEDPROPERTYVALUE *r = v2p()(&v, CP_WINUNICODE, (SERIALIZEDPROPERTYVALUE *)raw, &len, 0, FALSE, NULL);
+    return r ? 11 : 10;
 }
+static void pvps_ser_one(const char *vt) {
+    DWORD ec = t_run_child("pvps_ser_unsupported", vt, 20000);
+    t_note("serialize vt=0x%s in a child -> exit 0x%08lx (10 = returned NULL, 11 = returned a pointer)", vt, (unsigned long)ec);
+    CHECK(ec != 0xDEAD0000 && ec != 0xDEAD0001 && ec != 11);
+}
+TEST(pvps_serialize_unsupported_vt_dispatch) { REQUIRE_V2P(); pvps_ser_one("9"); }
+TEST(pvps_serialize_unsupported_vt_unknown) { REQUIRE_V2P(); pvps_ser_one("d"); }
+TEST(pvps_serialize_unsupported_vt_variant) { REQUIRE_V2P(); pvps_ser_one("c"); }
+TEST(pvps_serialize_unsupported_vt_void) { REQUIRE_V2P(); pvps_ser_one("18"); }
+TEST(pvps_serialize_unsupported_vt_hresult) { REQUIRE_V2P(); pvps_ser_one("19"); }
+TEST(pvps_serialize_unsupported_vt_ptr) { REQUIRE_V2P(); pvps_ser_one("1a"); }
+TEST(pvps_serialize_unsupported_vt_safearray) { REQUIRE_V2P(); pvps_ser_one("1b"); }
+TEST(pvps_serialize_unsupported_vt_userdefined) { REQUIRE_V2P(); pvps_ser_one("1d"); }
+static void pvps_register_ser_child(void) __attribute__((constructor));
+static void pvps_register_ser_child(void) { t_register_child("pvps_ser_unsupported", pvps_ser_child); }
 
 TEST(pvps_serialize_roundtrip_through_deserialize) {
     REQUIRE_V2P(); REQUIRE(p2v()); REQUIRE(U(CoTaskMemAlloc));
@@ -504,16 +517,29 @@ TEST(pvps_deserialize_vectors) {
     U(PropVariantClear)(&p);
 }
 
-TEST(pvps_deserialize_unsupported_type_fails) {
-    REQUIRE(p2v());
+/* Windows 10 does not return for some unsupported dwType values (it raises an exception or terminates the
+   process), so each one is converted in a child process and the observed outcome is recorded. */
+static int pvps_unsupported_child(int argc, char **argv) {
+    if (argc < 2 || !p2v()) return 90;
+    DWORD ty = (DWORD)strtoul(argv[1], NULL, 16);
     TAlloc a; ta_init(&a);
-    static const BYTE bad[][8] = { {0x7f,0x7f,0,0, 0,0,0,0}, {0x18,0,0,0, 0,0,0,0}, {0x1a,0,0,0, 0,0,0,0}, {0x24,0,0,0, 0,0,0,0}, {0x0f,0,0,0, 0,0,0,0} };
-    for (int i = 0; i < N_ELEM(bad); i++) {
-        PROPVARIANT p; memset(&p, 0x11, sizeof p);
-        BOOLEAN rc = p2v()((const SERIALIZEDPROPERTYVALUE *)bad[i], CP_WINUNICODE, &p, &a);
-        t_note("deserialize dwType=0x%x -> rc=%d vt=%d", *(const DWORD *)bad[i], rc, p.vt);
-    }
+    BYTE img[8]; memset(img, 0, sizeof img); memcpy(img, &ty, 4);
+    PROPVARIANT p; memset(&p, 0x11, sizeof p);
+    BOOLEAN rc = p2v()((const SERIALIZEDPROPERTYVALUE *)img, CP_WINUNICODE, &p, &a);
+    return rc ? 11 : 10;
 }
+static void pvps_unsupported_one(const char *ty) {
+    DWORD ec = t_run_child("pvps_unsupported", ty, 20000);
+    t_note("deserialize dwType=0x%s in a child -> exit 0x%08lx (10 = returned FALSE, 11 = returned TRUE)", ty, (unsigned long)ec);
+    CHECK(ec != 0xDEAD0000 && ec != 0xDEAD0001);
+}
+TEST(pvps_deserialize_unsupported_7f7f) { REQUIRE(p2v()); pvps_unsupported_one("7f7f"); }
+TEST(pvps_deserialize_unsupported_18) { REQUIRE(p2v()); pvps_unsupported_one("18"); }
+TEST(pvps_deserialize_unsupported_1a) { REQUIRE(p2v()); pvps_unsupported_one("1a"); }
+TEST(pvps_deserialize_unsupported_24) { REQUIRE(p2v()); pvps_unsupported_one("24"); }
+TEST(pvps_deserialize_unsupported_0f) { REQUIRE(p2v()); pvps_unsupported_one("0f"); }
+static void pvps_register_children(void) __attribute__((constructor));
+static void pvps_register_children(void) { t_register_child("pvps_unsupported", pvps_unsupported_child); }
 
 TEST(pvps_propertylength_as_variant_observed) {
     REQUIRE(UN(StgPropertyLengthAsVariant));

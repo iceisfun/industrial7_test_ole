@@ -66,16 +66,15 @@ TEST(pvps_x_name_and_id_same_property) {
 }
 
 TEST(pvps_x_unbuffered_flag_roundtrip) {
-    WITH_PS("x_unbuf.stg", PROPSETFLAG_UNBUFFERED)
-        EQ(wr_i4(f.ps, 9, 1234), S_OK);
-        EQ(CALL(f.ps, Commit, STGC_DEFAULT), S_OK);
-        VARTYPE vt; LONG x;
-        EQ(rd_i4(f.ps, 9, &vt, &x), S_OK); EQ(x, 1234);
-        STATPROPSETSTG st; memset(&st, 0, sizeof st);
-        EQ(CALL(f.ps, Stat, &st), S_OK);
-        CHECK(guid_eq(&st.fmtid, &G_ANY_GUID));
-        t_note("Stat grfFlags=0x%lx for UNBUFFERED set", (unsigned long)st.grfFlags);
-    END_PS()
+    REQUIRE(U(StgCreatePropSetStg)); COM_BEGIN(); FX f;
+    if (fx_storage(&f, "x_unbuf.stg")) {
+        /* Windows 10: IPropertySetStorage::Create rejects PROPSETFLAG_UNBUFFERED */
+        IPropertyStorage *ps = NULL;
+        HRESULT hr = CALL(f.pss, Create, &G_ANY_GUID, NULL, PROPSETFLAG_UNBUFFERED, STGM_RW_EX_CREATE, &ps);
+        CHECKF(hr == STG_E_INVALIDFLAG, "hr=%08lx", hr);
+        if (SUCCEEDED(hr) && ps) CALL(ps, Release);
+    }
+    fx_close(&f); COM_END();
 }
 
 TEST(pvps_x_overwrite_with_larger_value_persists) {

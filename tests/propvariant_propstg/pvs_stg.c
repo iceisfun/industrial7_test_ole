@@ -54,7 +54,7 @@ TEST(pvps_pss_create_propsetstg_bad_arguments) {
         t_note("StgCreatePropSetStg(NULL out) = 0x%08lx", hr);
         p = NULL;
         hr = U(StgCreatePropSetStg)(f.stg, 1, &p);
-        CHECKF(FAILED(hr), "reserved=1 accepted hr=%08lx", hr);
+        CHECKF(hr == S_OK, "reserved=1 (ignored by Windows) hr=%08lx", hr);
         t_note("StgCreatePropSetStg(reserved=1) = 0x%08lx", hr);
         if (SUCCEEDED(hr) && p) CALL(p, Release);
         fx_close(&f);
@@ -234,6 +234,13 @@ TEST(pvps_pss_create_flag_combinations_succeed) {
         if (!fx_storage(&f, "pss_flags.stg")) { fx_close(&f); continue; }
         if (t_is_wine() && (fl[i] & PROPSETFLAG_NONSIMPLE)) { fx_close(&f); continue; }
         HRESULT hr = CALL(f.pss, Create, &G_ANY_GUID, NULL, fl[i], STGM_RW_EX_CREATE, &f.ps);
+        if (fl[i] & PROPSETFLAG_UNBUFFERED) {
+            /* Windows 10: IPropertySetStorage::Create rejects PROPSETFLAG_UNBUFFERED */
+            CHECKF(hr == STG_E_INVALIDFLAG, "flags 0x%lx hr=%08lx", fl[i], hr);
+            t_note("Create(flags 0x%lx) -> 0x%08lx", fl[i], hr);
+            if (SUCCEEDED(hr) && f.ps) { CALL(f.ps, Release); f.ps = NULL; }
+            fx_close(&f); continue;
+        }
         CHECKF(hr == S_OK, "flags 0x%lx hr=%08lx", fl[i], hr);
         if (hr == S_OK) {
             hr = wr_i4(f.ps, PID_FIRST_USABLE, 3);
@@ -604,7 +611,12 @@ TEST(pvps_pss_docsummary_userdefined_stat_clsid_independent) {
             CHECK(guid_eq(&st.fmtid, &G_FMTID_DSI));
             CALL(ds, Release);
         }
-        EQ(CALL(f.pss, Open, &G_FMTID_UDP, STGM_RW_EX, &ud), S_OK);
+        /* Windows 10: creating the DocumentSummaryInformation set does not create the user-defined section */
+        HRESULT hu = CALL(f.pss, Open, &G_FMTID_UDP, STGM_RW_EX, &ud);
+        t_note("Open(UDP) after Create(DSI) -> 0x%08lx", hu);
+        CHECK(hu == STG_E_FILENOTFOUND);
+        if (ud) { CALL(ud, Release); ud = NULL; }
+        EQ(CALL(f.pss, Create, &G_FMTID_UDP, NULL, PROPSETFLAG_ANSI, STGM_RW_EX_CREATE, &ud), S_OK);
         if (ud) {
             STATPROPSETSTG st; EQ(CALL(ud, Stat, &st), S_OK);
             CHECK(guid_eq(&st.fmtid, &G_FMTID_UDP));
@@ -855,10 +867,10 @@ TEST(pvps_stgprop_bad_arguments) {
             CHECKF(FAILED(hr), "NULL out accepted hr=%08lx", hr); t_note("StgCreatePropStg(NULL out) -> 0x%08lx", hr);
             ps = NULL;
             hr = U(StgCreatePropStg)((IUnknown *)s, &G_FMTID_SI, NULL, 0, 1, &ps);
-            CHECKF(FAILED(hr), "reserved=1 accepted hr=%08lx", hr); t_note("StgCreatePropStg(reserved=1) -> 0x%08lx", hr);
+            CHECKF(hr == S_OK, "reserved=1 (ignored by Windows) hr=%08lx", hr); t_note("StgCreatePropStg(reserved=1) -> 0x%08lx", hr);
             if (SUCCEEDED(hr) && ps) { CALL(ps, Release); ps = NULL; }
             hr = U(StgOpenPropStg)((IUnknown *)s, &G_FMTID_SI, 0, 1, &ps);
-            CHECKF(FAILED(hr), "Open reserved=1 accepted hr=%08lx", hr); t_note("StgOpenPropStg(reserved=1) -> 0x%08lx", hr);
+            CHECKF(hr == S_OK, "Open reserved=1 (ignored by Windows) hr=%08lx", hr); t_note("StgOpenPropStg(reserved=1) -> 0x%08lx", hr);
             if (SUCCEEDED(hr) && ps) { CALL(ps, Release); ps = NULL; }
         }
         /* an object that is neither IStream nor IStorage */
