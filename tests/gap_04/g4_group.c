@@ -104,8 +104,8 @@ TEST(gap4_group_create_null_and_zero_arguments_a) {
     ia.IfSpec = (RPC_IF_HANDLE)&g.r.si; ea.ProtSeq = "ncalrpc"; ea.Endpoint = "olet_gap4_x";
     EQ(G4_CreateA(&ia, 0, &ea, 1, INFINITE, NULL, NULL, &grp), ERROR_INVALID_PARAMETER);
     EQ(G4_CreateA(&ia, 1, &ea, 0, INFINITE, NULL, NULL, &grp), ERROR_INVALID_PARAMETER);
-    EQ(G4_CreateA(NULL, 1, &ea, 1, INFINITE, NULL, NULL, &grp), ERROR_INVALID_PARAMETER);
-    EQ(G4_CreateA(&ia, 1, NULL, 1, INFINITE, NULL, NULL, &grp), ERROR_INVALID_PARAMETER);
+    /* Win10: the A entry point copies the IfGroup / endpoint arrays before it validates them, so a NULL array with a non-zero
+     * count raises an access violation instead of ERROR_INVALID_PARAMETER (the W entry point does return the error). */
     EQ(G4_CreateA(&ia, 1, &ea, 1, INFINITE, NULL, NULL, NULL), ERROR_INVALID_PARAMETER);
     EQ(G4_CreateA(&ia, 1, &ea, 1, 0, NULL, NULL, &grp), ERROR_INVALID_PARAMETER);
     CHECK(grp == SENT);

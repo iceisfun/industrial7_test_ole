@@ -9,6 +9,8 @@ UDECL(RPC_STATUS, RpcRevertContainerImpersonation, (void));
 UDECL(RPC_STATUS, RpcRevertToSelfEx, (RPC_BINDING_HANDLE));
 UDECL(RPC_STATUS, RpcServerCompleteSecurityCallback, (RPC_BINDING_HANDLE, RPC_STATUS));
 
+#define G4_QUERY_CLIENT_PID 0x10       /* RPC_QUERY_CLIENT_PID: ClientPID is filled in only when asked for (0x8 is RPC_QUERY_CALL_LOCAL_ADDRESS, refused with 1764 here) */
+#define G4_QUERY_IS_CLIENT_LOCAL 0x20  /* RPC_QUERY_IS_CLIENT_LOCAL */
 #define G4_NO_CALL_ACTIVE 1725   /* RPC_S_NO_CALL_ACTIVE = 0x6bd */
 #define G4_INVALID_BINDING 1702  /* RPC_S_INVALID_BINDING = 0x6a6 */
 
@@ -75,7 +77,7 @@ TEST(gap4_inqcallattrsA_unauthenticated_basic) {
     REQUIRE(U(RpcServerInqCallAttributesA));
     if (t_is_wine()) { t_skip("RpcServerInqCallAttributes unimplemented in wine"); return; }
     RUP(f, 0xA3, 1, 0);
-    EQ(call_attrsA(&f, 2, 0, 160, 160, &r), RPC_S_OK);
+    EQ(call_attrsA(&f, 2, G4_QUERY_CLIENT_PID | G4_QUERY_IS_CLIENT_LOCAL, 160, 160, &r), RPC_S_OK);
     EQ(r.st, RPC_S_OK);
     EQ(r.pid, GetCurrentProcessId());            /* ClientPID: this process */
     EQ(r.local, 1);                              /* rcclLocal */
@@ -91,7 +93,7 @@ TEST(gap4_inqcallattrsA_versions) {
     RUP(f, 0xA4, 1, 0);
     for (k = 0; k < sizeof vers / sizeof *vers; k++) {
         EQ(call_attrsA(&f, vers[k], 0, 160, 160, &r), RPC_S_OK);
-        if (vers[k] == 1 || vers[k] == 2) EQ(r.st, RPC_S_OK); else CHECKF(r.st != RPC_S_OK, "version %lu accepted", vers[k]);
+        if (vers[k] >= 1 && vers[k] <= 3) EQ(r.st, RPC_S_OK); else CHECKF(r.st != RPC_S_OK, "version %lu accepted", vers[k]);
         t_note("InqCallAttributesA Version=%lu -> %lu", vers[k], r.st);
         CHECK(r.canary_ok);
     }
@@ -110,7 +112,7 @@ TEST(gap4_inqcallattrsA_client_principal_name) {
     CHECK(r.cname[159] == 0x7f || r.cname[159] == 0);
     CHECKF(r.clen == strlen(r.cname) + 1, "length %lu name \"%s\"", r.clen, r.cname);   /* characters including the NUL */
     CHECK(r.canary_ok);
-    EQ(r.level, RPC_C_AUTHN_LEVEL_PKT_INTEGRITY);
+    EQ(r.level, RPC_C_AUTHN_LEVEL_PKT_PRIVACY);   /* Win10: ncalrpc raises the requested PKT_INTEGRITY to PKT_PRIVACY */
     EQ(r.svc, RPC_C_AUTHN_WINNT);
     t_note("client principal (A): %s", r.cname);
     raw_down(&f);
