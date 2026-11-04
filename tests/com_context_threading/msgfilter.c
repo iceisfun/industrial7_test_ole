@@ -437,7 +437,7 @@ static void run_hook_call(DWORD server_model, DWORD client_model)
     /* Win10: the hooks run for a call between two STA threads of the process; a call from an MTA client thread does not reach them */
     if (client_model == CXM_MTA) {
         t_note("MTA client -> STA server: channel hook calls cgs=%ld cfb=%ld sn=%ld sgs=%ld cn=%ld", hs.cgs, hs.cfb, hs.sn, hs.sgs, hs.cn);
-        CXEQ(hs.cgs, hs.cfb); CXEQ(hs.cgs, hs.sn); CXEQ(hs.cgs, hs.sgs); CXEQ(hs.cgs, hs.cn);
+        CXEQ(hs.cgs, 0); CXEQ(hs.cfb, 0); CXEQ(hs.sn, 0); CXEQ(hs.sgs, 0); CXEQ(hs.cn, 0);   /* observed: none of the hooks runs */
         return;
     }
     /* every callback ran once for the call on IStream::Revert, all with our extent */

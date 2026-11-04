@@ -373,7 +373,7 @@ static void run_inflight_mode(DWORD client_model, BOOL enable, int via_object)
                 /* Win10: the cancel object is handed out even when cancellation is not enabled; cancelling through it is what is refused */
                 CXEQ_HR(gh, S_OK);
                 cancel_hr = obj ? ICancelMethodCalls_Cancel(obj, 0) : gh;
-                t_note("cancel object with cancellation disabled: Cancel 0x%08lx", (unsigned long)cancel_hr);
+                CXEQ_HR(cancel_hr, CX_HR_CANCELDISABLED);        /* observed on Win10: the object is handed out, cancelling through it is refused */
             }
             if (obj) {
                 HRESULT after = E_UNEXPECTED;

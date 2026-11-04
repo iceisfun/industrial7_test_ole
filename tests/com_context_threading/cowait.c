@@ -320,12 +320,8 @@ static DWORD WINAPI post_user5_thread(LPVOID p) { Sleep(30); UU(PostMessageW)((H
 static DWORD WINAPI send_dde_thread(LPVOID p) { UU(SendMessageW)((HWND)p, WM_USER + 7, 0, 0); return 0; }
 static DWORD WINAPI send_and_post_user_thread(LPVOID p)
 {
-    LRESULT r; DWORD e, t0;
     Sleep(30);
-    SetLastError(0); t0 = GetTickCount();
-    r = UU(SendMessageW)((HWND)p, WM_USER, 0, 0);
-    e = GetLastError();
-    (void)r; (void)e; (void)t0;
+    UU(SendMessageW)((HWND)p, WM_USER, 0, 0);
     UU(PostMessageW)((HWND)p, WM_USER, 0, 0);
     return 0;
 }
@@ -441,19 +437,18 @@ static void w_cw_dispatch_flags(void *p)
     /* ... while a message that arrives during the wait is dispatched without it */
     msgs_reset();
     {
-        Sig s0; HANDLE th0;
-        s0.ev = ev; s0.delay = 0;
+        HANDLE th0;
         th0 = CreateThread(NULL, 0, post_user5_thread, w, 0, NULL);
         hr = U(CoWaitForMultipleHandles)(COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES, 150, 1, &ev, &idx);
         CXEQ_HR(hr, CX_HR_CALLPENDING);
         CXEQ(saw(WM_USER + 5), 1);
         WaitForSingleObject(th0, 5000); CloseHandle(th0);
-        (void)s0;
     }
     msgs_reset();
     UU(PostMessageW)(w, WM_USER + 5, 0, 0);
     hr = U(CoWaitForMultipleHandles)(COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES, 60, 1, &ev, &idx);
-    t_note("window message posted before the wait, no COWAIT_INPUTAVAILABLE: hr 0x%08lx, %s", (unsigned long)hr, saw(WM_USER + 5) ? "dispatched" : "left queued");
+    CXEQ_HR(hr, CX_HR_CALLPENDING);                  /* observed: times out */
+    CXEQ(saw(WM_USER + 5), 0);                       /* observed: left queued */
     flush_queue();
     /* COWAIT_DISPATCH_CALLS alone: calls, but window messages stay queued (observed) */
     msgs_reset();
