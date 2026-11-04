@@ -58,12 +58,14 @@ TEST(mr_file_interfaces) {
     if (m) {
         static const struct { const GUID *iid; const char *n; } ok[] = {
             { &mr_IID_IUnknown, "IUnknown" }, { &mr_IID_IMoniker, "IMoniker" }, { &mr_IID_IPersistStream, "IPersistStream" },
-            { &mr_IID_IPersist, "IPersist" }, { &mr_IID_IROTData, "IROTData" }, { &mr_IID_IMarshal, "IMarshal" } };
-        for (int i = 0; i < 6; i++) {
+            { &mr_IID_IROTData, "IROTData" }, { &mr_IID_IMarshal, "IMarshal" } };
+        for (int i = 0; i < 5; i++) {
             p = NULL; HRESULT hr = IMoniker_QueryInterface(m, ok[i].iid, &p);
             CHECKF(hr == S_OK && p, "QI %s hr=%08lx", ok[i].n, hr);
             if (p) IUnknown_Release((IUnknown *)p);
         }
+        /* Windows 10: the file moniker does not answer IPersist directly */
+        p = (void *)1; EXPECT_EQ(IMoniker_QueryInterface(m, &mr_IID_IPersist, &p), E_NOINTERFACE); EXPECT_EQ(p, NULL);
         p = (void *)1; EXPECT_EQ(IMoniker_QueryInterface(m, &mr_IID_IDispatch, &p), E_NOINTERFACE); EXPECT_EQ(p, NULL);
         p = (void *)1; EXPECT_EQ(IMoniker_QueryInterface(m, &mr_IID_IBindCtx, &p), E_NOINTERFACE);
         /* the class-id QueryInterface idiom returns the object itself */
@@ -522,7 +524,10 @@ TEST(mr_file_compose_with_anti) {
         mr_rel(r); mr_rel(a);
         a = mr_anti(4); r = NULL;
         EXPECT_EQ(IMoniker_ComposeWith(m, a, FALSE, &r), S_OK);         /* F + A4 -> A3 */
-        if (r) EXPECT_EQ(mr_hash(r), 0x80000003);
+        /* Windows 10: file + anti(n) builds a generic composite of n-1 anti monikers (not one anti moniker with
+           count n-1); its hash is the xor of the component hashes, so three antis hash to 0x80000001 */
+        CHECK_TYPE(r, MKSYS_GENERICCOMPOSITE);
+        if (r) EXPECT_EQ(mr_hash(r), 0x80000001);
         mr_rel(r); mr_rel(a);
         IMoniker_Release(m);
     }

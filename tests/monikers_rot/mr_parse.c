@@ -130,7 +130,8 @@ TEST(mr_class_bind_to_registered_class) {
 TEST(mr_class_bind_to_unregistered_class) {
     IMoniker *m = mr_class(&mr_CLS_X); IBindCtx *bc = mr_bc(); IUnknown *u = (IUnknown *)1; SETUP();
     if (m && bc) {
-        EXPECT_EQ(IMoniker_BindToObject(m, bc, NULL, &mr_IID_IUnknown, (void **)&u), REGDB_E_CLASSNOTREG);
+        /* Windows 10 reports ERROR_MOD_NOT_FOUND for an unregistered CLSID here (not REGDB_E_CLASSNOTREG) */
+        EXPECT_EQ(IMoniker_BindToObject(m, bc, NULL, &mr_IID_IUnknown, (void **)&u), HRESULT_FROM_WIN32(ERROR_MOD_NOT_FOUND));
         EXPECT_EQ(u, NULL);
     }
     mr_rel(m); if (bc) IBindCtx_Release(bc);
@@ -566,7 +567,12 @@ TEST(mr_bindmoniker_class_and_item) {
     c = mr_class(&mr_CLS_CatMgr);
     if (c) { EXPECT_EQ(U(BindMoniker)(c, 0, &mr_IID_IUnknown, (void **)&u), S_OK); if (u) { IUnknown_Release(u); u = NULL; } IMoniker_Release(c); }
     c = mr_class(&mr_CLS_X);
-    if (c) { EXPECT_EQ(U(BindMoniker)(c, 0, &mr_IID_IUnknown, (void **)&u), REGDB_E_CLASSNOTREG); IMoniker_Release(c); }
+    if (c) { hr = U(BindMoniker)(c, 0, &mr_IID_IUnknown, (void **)&u);
+        /* Windows 10: an unregistered CLSID bound through a class moniker reports ERROR_MOD_NOT_FOUND, not REGDB_E_CLASSNOTREG */
+        t_note("BindMoniker(class moniker, unregistered CLSID) -> %08lx", (unsigned long)hr);
+        EXPECT_EQ(hr, HRESULT_FROM_WIN32(ERROR_MOD_NOT_FOUND));
+        if (u) { IUnknown_Release(u); u = NULL; }
+        IMoniker_Release(c); }
     it = mr_item(L"!", L"x");
     if (it) { u = (IUnknown *)1; hr = U(BindMoniker)(it, 0, &mr_IID_IUnknown, (void **)&u); EXPECT_EQ(hr, E_INVALIDARG); IMoniker_Release(it); }
     MR_COM_END();
