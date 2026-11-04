@@ -240,7 +240,8 @@ TEST(dx_svc_delete_marked_blocks_open_create_change) {
     CHECK(S(DeleteService)(f.svc));
     SET_ERR(0);
     SC_HANDLE o = S(OpenServiceW)(f.scm, f.name, SERVICE_QUERY_STATUS);
-    CHECK(o == NULL); EXPECT_ERR(ERROR_SERVICE_MARKED_FOR_DELETE);
+    /* Win10: OpenService on a marked service succeeds; only create/change/start refuse */
+    CHECK(o != NULL);
     if (o) S(CloseServiceHandle)(o);
     SET_ERR(0);
     SC_HANDLE c = S(CreateServiceW)(f.scm, f.name, f.disp, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
@@ -254,7 +255,7 @@ TEST(dx_svc_delete_marked_blocks_open_create_change) {
     SET_ERR(0);
     CHECK(!S(ChangeServiceConfig2W)(f.svc, SERVICE_CONFIG_DESCRIPTION, &d));
     t_note("ChangeServiceConfig2 on marked service -> err %lu", GetLastError());
-    EXPECT_EQ(start_it(f.svc), ERROR_SERVICE_MARKED_FOR_DELETE);
+    EXPECT_EQ(start_it(f.svc), ERROR_SERVICE_DISABLED); /* Win10: 1058 */
     SERVICE_STATUS st; BOOL r = S(QueryServiceStatus)(f.svc, &st);
     t_note("QueryServiceStatus on marked service -> %d", r);
     CHECK(r);
@@ -277,9 +278,16 @@ TEST(dx_svc_delete_with_second_handle_open) {
     CHECK(S(QueryServiceStatus)(h2, &st));
     if (h2) S(CloseServiceHandle)(h2);
     /* last handle closed: gone */
-    SET_ERR(0);
-    SC_HANDLE o = S(OpenServiceW)(f.scm, f.name, SERVICE_QUERY_STATUS);
+    /* Win10: the SCM drops the record asynchronously after the last handle is closed */
+    SC_HANDLE o; int i;
+    for (i = 0; i < 100; i++) {
+        SET_ERR(0);
+        o = S(OpenServiceW)(f.scm, f.name, SERVICE_QUERY_STATUS);
+        if (!o) break;
+        S(CloseServiceHandle)(o); Sleep(100);
+    }
     CHECK(o == NULL); EXPECT_ERR(ERROR_SERVICE_DOES_NOT_EXIST);
+    for (i = 0; i < 100 && reg_exists(f.name); i++) Sleep(100);
     CHECK(!reg_exists(f.name));
     /* name is reusable now */
     c = S(CreateServiceW)(f.scm, f.name, f.disp, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
@@ -602,7 +610,7 @@ TEST(dx_svc_notify_created_on_scm) {
             CHECK(g_nt.dwNotificationTriggered & SERVICE_NOTIFY_CREATED);
             if (g_nt.pszServiceNames) {
                 int match = 0; const WCHAR *p = g_nt.pszServiceNames;
-                while (*p) { t_note("created notification name: %ls", p); if (!lstrcmpiW(p, f.name)) match = 1; p += lstrlenW(p) + 1; }
+                while (*p) { t_note("created notification name: %ls", p); if (!lstrcmpiW(p[0] == L'/' ? p + 1 : p, f.name)) match = 1; /* created names carry a leading '/' */ p += lstrlenW(p) + 1; }
                 CHECK(match);
                 LocalFree(g_nt.pszServiceNames);
             } else CHECK(0);
@@ -642,7 +650,7 @@ TEST(dx_svc_notify_invalid_args) {
     static SERVICE_NOTIFYW n;
     memset(&n, 0, sizeof n); n.dwVersion = SERVICE_NOTIFY_STATUS_CHANGE; n.pfnNotifyCallback = notify_cb;
     DWORD r = S(NotifyServiceStatusChangeW)(NULL, SERVICE_NOTIFY_STOPPED, &n);
-    EXPECT_EQ(r, ERROR_INVALID_HANDLE);
+    EXPECT_EQ(r, ERROR_INVALID_PARAMETER); /* Win10: NULL handle -> 87 */
     r = S(NotifyServiceStatusChangeW)(f.scm, SERVICE_NOTIFY_STOPPED, &n);
     t_note("STOPPED mask on SCM handle -> %lu", r);
     memset(&n, 0, sizeof n); n.dwVersion = 99; n.pfnNotifyCallback = notify_cb;
