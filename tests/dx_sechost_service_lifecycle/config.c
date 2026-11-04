@@ -32,20 +32,21 @@ TEST(dx_svc_qconfig_buffer_protocol) {
     CHECK(!S(QueryServiceConfigW)(f.svc, NULL, 0, &need)); EXPECT_ERR(ERROR_INSUFFICIENT_BUFFER);
     CHECK(need > sizeof(QUERY_SERVICE_CONFIGW));
     DWORD n1 = need;
-    /* exact-1 fails and reports the same size */
+    /* Win10: the NULL-buffer call over-reports (it does not know the string lengths); the exact size is what a
+       successful call with a large buffer returns in *pcbBytesNeeded */
     BYTE *b = malloc(need + 16);
     DWORD n2 = 0;
+    CHECK(S(QueryServiceConfigW)(f.svc, (void *)b, n1 + 16, &n2));
+    t_note("NULL-buffer size %lu, exact size %lu", n1, n2);
+    CHECK(n2 > sizeof(QUERY_SERVICE_CONFIGW) && n2 <= n1);
+    DWORD exact = n2, n3 = 0;
     SET_ERR(0);
-    CHECK(!S(QueryServiceConfigW)(f.svc, (void *)b, n1 - 1, &n2)); EXPECT_ERR(ERROR_INSUFFICIENT_BUFFER);
-    EXPECT_EQ(n2, n1);
+    CHECK(!S(QueryServiceConfigW)(f.svc, (void *)b, exact - 1, &n3)); EXPECT_ERR(ERROR_INSUFFICIENT_BUFFER);
+    EXPECT_EQ(n3, exact);
     /* sizeof(struct) alone is too small because strings follow */
     SET_ERR(0);
-    CHECK(!S(QueryServiceConfigW)(f.svc, (void *)b, sizeof(QUERY_SERVICE_CONFIGW), &n2)); EXPECT_ERR(ERROR_INSUFFICIENT_BUFFER);
-    /* exact fits */
-    CHECK(S(QueryServiceConfigW)(f.svc, (void *)b, n1, &n2));
-    /* bigger buffer fits, needed value reflects bytes required */
-    CHECK(S(QueryServiceConfigW)(f.svc, (void *)b, n1 + 16, &n2));
-    t_note("bytes-needed on success: %lu (insufficient-buffer size %lu)", n2, n1);
+    CHECK(!S(QueryServiceConfigW)(f.svc, (void *)b, sizeof(QUERY_SERVICE_CONFIGW), &n3)); EXPECT_ERR(ERROR_INSUFFICIENT_BUFFER);
+    CHECK(S(QueryServiceConfigW)(f.svc, (void *)b, exact, &n3));
     free(b);
     fx_end(&f);
 }
@@ -162,8 +163,8 @@ TEST(dx_svc_change_display_name_duplicate) {
     CHECK(s2 != NULL);
     if (s2) {
         SET_ERR(0);
-        CHECK(!S(ChangeServiceConfigW)(s2, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, NULL, NULL, NULL, NULL, NULL, NULL, f.disp));
-        EXPECT_ERR(ERROR_DUPLICATE_SERVICE_NAME);
+        /* Win10: a duplicate display name is accepted */
+        CHECK(S(ChangeServiceConfigW)(s2, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, NULL, NULL, NULL, NULL, NULL, NULL, f.disp));
         /* same display name on itself is fine */
         WCHAR own[160]; wsprintfW(own, L"%s dd", f.disp);
         CHECK(S(ChangeServiceConfigW)(s2, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, SERVICE_NO_CHANGE, NULL, NULL, NULL, NULL, NULL, NULL, own));
@@ -400,7 +401,7 @@ TEST(dx_svc_cfg2_failure_actions_roundtrip) {
         BOOL ok2 = S(ChangeServiceConfig2W)(f.svc, SERVICE_CONFIG_FAILURE_ACTIONS, &rp);
         t_note("reset-period-only update -> %d err %lu", ok2, GetLastError());
         o = (void *)qcfg2(f.svc, SERVICE_CONFIG_FAILURE_ACTIONS);
-        if (o) { if (ok2) EXPECT_EQ(o->dwResetPeriod, 100); t_note("after reset-only: cActions=%lu", o->cActions); free(o); }
+        if (o) { if (ok2) EXPECT_EQ(o->dwResetPeriod, 86400); /* Win10: reset-only update (no actions) leaves the period unchanged */ t_note("after reset-only: cActions=%lu", o->cActions); free(o); }
         /* clear all actions: cActions=0 with non-NULL lpsaActions? document: cActions 0 + NULL deletes */
     }
     fx_end(&f);

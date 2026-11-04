@@ -129,7 +129,8 @@ TEST(dx_svc_create_duplicate_display_name) {
     SET_ERR(0);
     SC_HANDLE d = S(CreateServiceW)(f.scm, other, f.disp, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
         SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, FX_BIN, NULL, NULL, NULL, NULL, NULL);
-    CHECK(d == NULL); EXPECT_ERR(ERROR_DUPLICATE_SERVICE_NAME);
+    /* Win10: only a clash with another KEY name is refused; a duplicate display name is accepted */
+    CHECK(d != NULL);
     fx_del(&f, other, d);
     fx_end(&f);
 }
@@ -221,9 +222,9 @@ TEST(dx_svc_create_bad_error_control) {
 
 TEST(dx_svc_create_bad_service_type) {
     fx_t f; if (!fx_begin(&f, 0)) return;
-    /* SERVICE_ADAPTER (4) is reserved; 0 and combos with no valid meaning */
-    static const DWORD bad[] = { SERVICE_ADAPTER, 0, 0x3, 0x20 | 0x40, 0x7FFFFFFF };
-    for (int i = 0; i < 5; i++) {
+    /* SERVICE_ADAPTER (4) is reserved; 0 and combos with no valid meaning. WIN32_SHARE_PROCESS|INTERACTIVE (0x60) is accepted on Win10 */
+    static const DWORD bad[] = { SERVICE_ADAPTER, 0, 0x3, 0x7FFFFFFF };
+    for (int i = 0; i < 4; i++) {
         SET_ERR(0);
         SC_HANDLE s = S(CreateServiceW)(f.scm, f.name, f.disp, SERVICE_ALL_ACCESS, bad[i],
             SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, FX_BIN, NULL, NULL, NULL, NULL, NULL);
@@ -283,8 +284,8 @@ TEST(dx_svc_create_null_binary_path) {
     SC_HANDLE s = S(CreateServiceW)(f.scm, f.name, f.disp, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
         SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, NULL, NULL, NULL, NULL, NULL, NULL);
     CHECK(s == NULL);
-    t_note("NULL binary path (win32 service) -> err %lu (87 expected)", GetLastError());
-    EXPECT_ERR(ERROR_INVALID_PARAMETER);
+    t_note("NULL binary path (win32 service) -> err %lu", GetLastError());
+    EXPECT_ERR(ERROR_INVALID_ADDRESS); /* Win10: 487 */
     if (s) { S(DeleteService)(s); S(CloseServiceHandle)(s); }
     fx_end(&f);
 }
@@ -696,7 +697,7 @@ TEST(dx_svc_registry_side_effects) {
     CHECK(reg_str(f.name, L"DisplayName", s, 512, &ty)); CHECK(!lstrcmpW(s, f.disp)); EXPECT_EQ(ty, REG_SZ);
     CHECK(reg_str(f.name, L"ObjectName", s, 512, &ty)); CHECK(!lstrcmpiW(s, L"LocalSystem"));
     fx_end(&f);
-    CHECK(!reg_exists(f.name));
+    { int i; for (i = 0; i < 100 && reg_exists(f.name); i++) Sleep(100); CHECK(!reg_exists(f.name)); } /* removal is asynchronous */
 }
 
 TEST(dx_svc_registry_key_removed_on_delete) {
@@ -704,8 +705,9 @@ TEST(dx_svc_registry_key_removed_on_delete) {
     CHECK(reg_exists(f.name));
     CHECK(S(DeleteService)(f.svc));
     S(CloseServiceHandle)(f.svc); f.svc = NULL;
-    /* last handle closed: key is gone */
-    CHECK(!reg_exists(f.name));
+    /* last handle closed: key is gone (removal is asynchronous on Win10) */
+    { int i; for (i = 0; i < 100 && reg_exists(f.name); i++) Sleep(100);
+      t_note("registry key removed after %d ms", i * 100); CHECK(!reg_exists(f.name)); }
     fx_end(&f);
 }
 
@@ -716,7 +718,12 @@ TEST(dx_svc_registry_env_in_imagepath_not_expanded) {
     CHECK(s != NULL); f.svc = s;
     if (s) {
         QUERY_SERVICE_CONFIGW *c; BYTE *b = qcfg(s, &c);
-        if (b) { CHECK(!lstrcmpW(c->lpBinaryPathName, L"%SystemRoot%\\olet_nonexistent\\x.exe")); free(b); }
+        if (b) {
+            /* Win10: QueryServiceConfig returns the ImagePath REG_EXPAND_SZ value already expanded; the registry value is raw */
+            WCHAR ex[MAX_PATH]; ExpandEnvironmentStringsW(L"%SystemRoot%\\olet_nonexistent\\x.exe", ex, MAX_PATH);
+            t_note("QueryServiceConfig binary path: %ls", c->lpBinaryPathName);
+            CHECK(!lstrcmpiW(c->lpBinaryPathName, ex)); free(b);
+        }
         WCHAR p[260]; DWORD ty = 0;
         CHECK(reg_str(f.name, L"ImagePath", p, 260, &ty));
         CHECK(!lstrcmpW(p, L"%SystemRoot%\\olet_nonexistent\\x.exe"));
