@@ -7,6 +7,7 @@ static int g_pass, g_fail, g_cur_fail, g_cur_skip;
 static const char *g_cur;
 static jmp_buf g_jb;
 static volatile int g_in_test;
+volatile DWORD t_veh_ignore_tid;   /* a helper thread whose first-chance faults the test itself handles (see t.h) */
 
 HMODULE t_module(const char *dll) { return LoadLibraryA(dll); }   /* refcounted; modules stay loaded */
 FARPROC t_proc_in(const char *dll, const char *name) { HMODULE m = t_module(dll); return m ? GetProcAddress(m, name) : NULL; }
@@ -41,6 +42,7 @@ void t_skip(const char *fmt, ...) { va_list a; va_start(a, fmt); printf("  SKIP 
 static LONG WINAPI veh(PEXCEPTION_POINTERS ep) {
     DWORD c = ep->ExceptionRecord->ExceptionCode;
     if (!g_in_test) return EXCEPTION_CONTINUE_SEARCH;
+    if (t_veh_ignore_tid && GetCurrentThreadId() == t_veh_ignore_tid) return EXCEPTION_CONTINUE_SEARCH;
     if (c == 0x40010006 || c == 0x406D1388 || c == DBG_PRINTEXCEPTION_C || c == 0x4001000A) return EXCEPTION_CONTINUE_SEARCH;
     if ((c & 0xF0000000) != 0xC0000000) return EXCEPTION_CONTINUE_SEARCH;
     {
