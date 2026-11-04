@@ -2,7 +2,7 @@
  * Everything in rpcrt4 is reached via U()/UIN() (GetProcAddress); only kernel32 scaffolding is direct. */
 #ifndef G3NDRH_H
 #define G3NDRH_H
-#include "t.h"
+#include "g3once.h"
 #include <rpc.h>
 #include <rpcndr.h>
 #include <ndrtypes.h>

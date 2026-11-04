@@ -6,7 +6,7 @@
  *   cFormats == 0 needs NULL rgAdvf/rgFormatEtc/rgdwConnection, otherwise rgAdvf and rgFormatEtc are required, each advf <= 0x7f,
  *   pStg must be a valid interface; rgdwConnection[0..cFormats) is zeroed as soon as the counts are consistent. */
 #define COBJMACROS
-#include "t.h"
+#include "g3once.h"
 #include <objbase.h>
 #include <ole2.h>
 

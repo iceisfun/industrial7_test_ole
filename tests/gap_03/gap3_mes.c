@@ -92,9 +92,21 @@ TEST(gap3_mes_incr_reset_encode_requires_alloc_and_write) {
     handle_t h = mk_dec(&u1); CHECK(h != NULL); if (!h) return;
     /* a decode handle has a Read routine only */
     EXPECT_EQ(RESET(h, &u1, NULL, NULL, NULL, OP_ENCODE), ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(RESET(h, &u1, g_alloc, NULL, NULL, OP_ENCODE), ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(RESET(h, &u1, NULL, g_write, NULL, OP_ENCODE), ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(RESET(h, &u1, NULL, g_write, NULL, OP_ENCODE64), ERROR_INVALID_PARAMETER);
+    /* Win10: a rejected reset is not transactional, the non-NULL routines passed are already stored in the handle.
+     * So use a fresh decode handle per partial case. */
+    handle_t h2 = mk_dec(&u1); CHECK(h2 != NULL);
+    if (h2) {
+        EXPECT_EQ(RESET(h2, &u1, g_alloc, NULL, NULL, OP_ENCODE), ERROR_INVALID_PARAMETER);
+        /* ... and the Alloc stored by the rejected call completes a later Write-only reset */
+        EXPECT_EQ(RESET(h2, &u1, NULL, g_write, NULL, OP_ENCODE), RPC_S_OK);
+        U(MesHandleFree)(h2);
+    }
+    h2 = mk_dec(&u1); CHECK(h2 != NULL);
+    if (h2) {
+        EXPECT_EQ(RESET(h2, &u1, NULL, g_write, NULL, OP_ENCODE), ERROR_INVALID_PARAMETER);
+        EXPECT_EQ(RESET(h2, &u1, NULL, g_write, NULL, OP_ENCODE64), ERROR_INVALID_PARAMETER);
+        U(MesHandleFree)(h2);
+    }
     EXPECT_EQ(RESET(h, &u1, g_alloc, g_write, NULL, OP_ENCODE), RPC_S_OK);
     /* and the Alloc/Write routines stick for the next reset */
     EXPECT_EQ(RESET(h, NULL, NULL, NULL, NULL, OP_ENCODE64), RPC_S_OK);
@@ -125,7 +137,7 @@ TEST(gap3_mes_incr_reset_switches_user_state_and_routines) {
     /* turn the same handle into a decoder over u2's bytes */
     EXPECT_EQ(RESET(h, &u2, NULL, NULL, g_read, OP_DECODE), RPC_S_OK);
     unsigned out = 0;
-    NTRY U(NdrMesSimpleTypeDecode)(h, &out, 4); NEND;
+    NTRY U(NdrMesSimpleTypeDecode)(h, &out, 8 /* FC_LONG: the decode entry takes a format character, not a byte size */); NEND;
     EXPECT_EQ(n_code, 0);
     EXPECT_EQ(out, 0xCAFEF00D);
     CHECK(u2.reads >= 1);

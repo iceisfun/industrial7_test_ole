@@ -2,7 +2,7 @@
  * Win10 combase: ObjectStublessClientN is `mov eax, N ; jmp <common stubless dispatcher>` placed 0x10 bytes apart;
  * ole32 re-exports each as a forwarder or a `jmp [iat]` thunk landing on the same combase code;
  * NdrProxyForwardingFunctionN(P, ...) tail-calls  (*(void***)P[+0x20])[N](P[+0x20], ...)  with every argument preserved. */
-#include "t.h"
+#include "g3once.h"
 
 static FARPROC sym(const char *dll, const char *fmt, int n) {
     char nm[64]; wsprintfA(nm, fmt, n);

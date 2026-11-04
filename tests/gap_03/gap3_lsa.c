@@ -4,7 +4,7 @@
  *   - PolicyHandle == NULL                               -> STATUS_INVALID_HANDLE  (0xC0000008)
  *   - SetInformationPolicy(PolicyDnsDomainInformationInt) -> STATUS_INVALID_PARAMETER (0xC000000D), checked BEFORE the handle
  *   - Store/RetrievePrivateData KeyName with odd Length   -> STATUS_INVALID_PARAMETER (LsapDuplicateSecretName), after the handle */
-#include "t.h"
+#include "g3once.h"
 #include <ntsecapi.h>
 
 #define ST_INVALID_HANDLE    ((NTSTATUS)0xC0000008)

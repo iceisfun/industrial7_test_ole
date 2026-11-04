@@ -495,7 +495,9 @@ TEST(gap3_carray_complex_unmarshal_truncated_raises) {
         nctx c; nc_rx(&c, g3f_ba, wire, len, 1);
         unsigned out[5]; unsigned char *p = (unsigned char *)out;
         NTRY U(NdrComplexArrayUnmarshall)(&c.sm, &p, g3f_ba, 0); NEND;
-        CHECKF(n_code == X_BAD_STUB, "len %u raised %lu want %d", len, (unsigned long)n_code, X_BAD_STUB);
+        /* Win10: the size pre-pass (NdrpComplexArrayMemorySize) runs before any element is read and raises
+         * RPC_X_BYTE_COUNT_TOO_SMALL (1734) for a short buffer, not RPC_X_BAD_STUB_DATA */
+        CHECKF(n_code == 1734, "len %u raised %lu want 1734", len, (unsigned long)n_code);
         nc_done(&c);
     }
 }
