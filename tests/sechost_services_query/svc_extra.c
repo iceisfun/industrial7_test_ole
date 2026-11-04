@@ -91,7 +91,9 @@ TEST(svcx_enum_type_matches_config) {
         QUERY_SERVICE_CONFIGW *c = s ? xcfg(s, &m) : NULL;
         if (c) {
             checked++;
-            if (c->dwServiceType != e[i].ServiceStatusProcess.dwServiceType) { bad++; t_note("%ls cfg type 0x%lx enum 0x%lx", e[i].lpServiceName, c->dwServiceType, e[i].ServiceStatusProcess.dwServiceType); }
+            /* Win10: the enumerated type is the SCM view and can carry more bits than the configured type (cfg 0x20 / enum 0x30). */
+            DWORD ct = c->dwServiceType & ~SERVICE_INTERACTIVE_PROCESS, et = e[i].ServiceStatusProcess.dwServiceType;
+            if ((et & ct) != ct) { bad++; t_note("%ls cfg type 0x%lx enum 0x%lx", e[i].lpServiceName, c->dwServiceType, e[i].ServiceStatusProcess.dwServiceType); }
             if (lstrcmpW(c->lpDisplayName, e[i].lpDisplayName)) bad++;
         }
         free(m); svc_close(s);
@@ -135,13 +137,18 @@ TEST(svcx_enum_order_stable_between_calls) {
 }
 TEST(svcx_enum_dependents_subset_checks) {
     REQUIRE(S(EnumDependentServicesW));
-    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE_OPEN(s);
     DWORD na = 0, nl = 0, ca = 0, cl = 0;
+    /* Win10 does not report the count on the size-query call (ERROR_MORE_DATA leaves it 0): fetch the entries. */
     S(EnumDependentServicesW)(s, SERVICE_ACTIVE, NULL, 0, &na, &ca);
     S(EnumDependentServicesW)(s, SERVICE_STATE_ALL, NULL, 0, &nl, &cl);
+    EXPECT_EQ(cl, 0);
+    DWORD sa = na + 4096, sl = nl + 4096; /* the successful calls overwrite na/nl (bytes needed = 0) */
+    { BYTE *t = calloc(1, sa); CHECK(S(EnumDependentServicesW)(s, SERVICE_ACTIVE, (void *)t, sa, &na, &ca)); free(t); }
+    { BYTE *t = calloc(1, sl); CHECK(S(EnumDependentServicesW)(s, SERVICE_STATE_ALL, (void *)t, sl, &nl, &cl)); free(t); }
     CHECK(cl > 0); CHECKF(ca <= cl, "active %lu all %lu", ca, cl); CHECKF(ca > 0, "RpcSs is active and depends on RpcEptMapper");
-    BYTE *b = calloc(1, nl + 4096);
-    if (S(EnumDependentServicesW)(s, SERVICE_STATE_ALL, (void *)b, nl + 4096, &nl, &cl)) {
+    BYTE *b = calloc(1, sl);
+    if (S(EnumDependentServicesW)(s, SERVICE_STATE_ALL, (void *)b, sl, &nl, &cl)) {
         ENUM_SERVICE_STATUSW *e = (void *)b; int dup = 0;
         for (DWORD i = 0; i < cl; i++) for (DWORD j = i + 1; j < cl; j++) if (!lstrcmpiW(e[i].lpServiceName, e[j].lpServiceName)) dup++;
         CHECK(dup == 0);
@@ -150,8 +157,9 @@ TEST(svcx_enum_dependents_subset_checks) {
 }
 TEST(svcx_dependents_A_matches_W_count) {
     REQUIRE(S(EnumDependentServicesW)); REQUIRE(S(EnumDependentServicesA));
-    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS, &scm); REQUIRE_OPEN(s);
     DWORD nw = 0, na = 0, cw = 0, ca = 0;
+    /* counts are only reported by the call that returns entries */
     S(EnumDependentServicesW)(s, SERVICE_STATE_ALL, NULL, 0, &nw, &cw);
     BYTE *bw = calloc(1, nw + 4096), *ba = NULL;
     S(EnumDependentServicesA)(s, SERVICE_STATE_ALL, NULL, 0, &na, &ca);
@@ -165,7 +173,7 @@ TEST(svcx_dependents_A_matches_W_count) {
 /* ---------- config content of the core services ---------- */
 static void cfg_core(const char *name) {
     REQUIRE(S(QueryServiceConfigW));
-    SC_HANDLE scm, s = svc_fixture(name, SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture(name, SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     BYTE *m = NULL; QUERY_SERVICE_CONFIGW *c = xcfg(s, &m); REQUIRE(c);
     EXPECT_EQ(c->dwServiceType, SERVICE_WIN32_SHARE_PROCESS);
     EXPECT_EQ(c->dwTagId, 0);
@@ -177,7 +185,7 @@ PER_SERVICE(svcx_cfg_core, cfg_core)
 
 TEST(svcx_rpcss_dependencies_multisz) {
     REQUIRE(S(QueryServiceConfigW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     BYTE *m = NULL; QUERY_SERVICE_CONFIGW *c = xcfg(s, &m); REQUIRE(c);
     CHECK(c->lpDependencies != NULL);
     CHECK(multisz_has(c->lpDependencies, L"RpcEptMapper"));
@@ -187,11 +195,11 @@ TEST(svcx_rpcss_dependencies_multisz) {
 TEST(svcx_dependency_symmetry_with_dependents) {
     /* RpcSs lists RpcEptMapper as a dependency, so RpcSs must show up among RpcEptMapper's dependents. */
     REQUIRE(S(QueryServiceConfigW)); REQUIRE(S(EnumDependentServicesW));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     BYTE *m = NULL; QUERY_SERVICE_CONFIGW *c = xcfg(s, &m); REQUIRE(c);
     int dep = multisz_has(c->lpDependencies, L"RpcEptMapper");
     free(m); svc_close(s);
-    SC_HANDLE e = svc_open(scm, "RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS); REQUIRE(e);
+    SC_HANDLE e = svc_open(scm, "RpcEptMapper", SERVICE_ENUMERATE_DEPENDENTS); REQUIRE_OPEN(e);
     DWORD need = 0, cnt = 0; S(EnumDependentServicesW)(e, SERVICE_STATE_ALL, NULL, 0, &need, &cnt);
     BYTE *b = calloc(1, need + 4096); int found = 0;
     if (S(EnumDependentServicesW)(e, SERVICE_STATE_ALL, (void *)b, need + 4096, &need, &cnt))
@@ -201,7 +209,7 @@ TEST(svcx_dependency_symmetry_with_dependents) {
 }
 TEST(svcx_config_stable_between_calls) {
     REQUIRE(S(QueryServiceConfigW));
-    SC_HANDLE scm, s = svc_fixture("EventLog", SERVICE_QUERY_CONFIG, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("EventLog", SERVICE_QUERY_CONFIG, &scm); REQUIRE_OPEN(s);
     DWORD n1 = 0, n2 = 0; S(QueryServiceConfigW)(s, NULL, 0, &n1); S(QueryServiceConfigW)(s, NULL, 0, &n2);
     EXPECT_EQ(n1, n2);
     svc_close(s); svc_close(scm);
@@ -209,7 +217,7 @@ TEST(svcx_config_stable_between_calls) {
 TEST(svcx_config_independent_of_scm_access) {
     REQUIRE(S(QueryServiceConfigW)); REQUIRE(S(OpenSCManagerW));
     SC_HANDLE scm = S(OpenSCManagerW)(NULL, NULL, SC_MANAGER_CONNECT); REQUIRE(scm);
-    SC_HANDLE s = svc_open(scm, "RpcSs", SERVICE_QUERY_CONFIG | SERVICE_QUERY_STATUS); REQUIRE(s);
+    SC_HANDLE s = svc_open(scm, "RpcSs", SERVICE_QUERY_CONFIG | SERVICE_QUERY_STATUS); REQUIRE_OPEN(s);
     svc_close(scm);                                   /* service handle outlives the SCM handle */
     BYTE *m = NULL; QUERY_SERVICE_CONFIGW *c = xcfg(s, &m);
     CHECK(c != NULL);
@@ -230,7 +238,7 @@ TEST(svcx_pid_shared_between_svchost_peers) {
     REQUIRE(S(QueryServiceStatusEx));
     DWORD pid[2] = {0, 0}; const char *n[2] = {"RpcSs", "DcomLaunch"};
     for (int i = 0; i < 2; i++) {
-        SC_HANDLE scm, s = svc_fixture(n[i], SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+        SC_HANDLE scm, s = svc_fixture(n[i], SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
         SERVICE_STATUS_PROCESS p; DWORD need;
         CHECK(S(QueryServiceStatusEx)(s, SC_STATUS_PROCESS_INFO, (LPBYTE)&p, sizeof p, &need));
         pid[i] = p.dwProcessId; svc_close(s); svc_close(scm);
@@ -240,7 +248,7 @@ TEST(svcx_pid_shared_between_svchost_peers) {
 }
 TEST(svcx_handle_survives_scm_close_status_ex) {
     REQUIRE(S(QueryServiceStatusEx));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", SERVICE_QUERY_STATUS, &scm); REQUIRE_OPEN(s);
     svc_close(scm);
     SERVICE_STATUS_PROCESS p; DWORD need = 0;
     CHECK(S(QueryServiceStatusEx)(s, SC_STATUS_PROCESS_INFO, (LPBYTE)&p, sizeof p, &need));
@@ -248,7 +256,7 @@ TEST(svcx_handle_survives_scm_close_status_ex) {
 }
 TEST(svcx_security_descriptor_owner_note) {
     REQUIRE(S(QueryServiceObjectSecurity));
-    SC_HANDLE scm, s = svc_fixture("RpcSs", READ_CONTROL, &scm); REQUIRE(s);
+    SC_HANDLE scm, s = svc_fixture("RpcSs", READ_CONTROL, &scm); REQUIRE_OPEN(s);
     BYTE buf[2048]; DWORD need = 0;
     if (S(QueryServiceObjectSecurity)(s, OWNER_SECURITY_INFORMATION, (PSECURITY_DESCRIPTOR)buf, sizeof buf, &need)) {
         BOOL def; PSID o = NULL;
