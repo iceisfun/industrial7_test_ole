@@ -448,11 +448,11 @@ static void w_dc_bad_iid(void *p)
     int i;
     for (i = 0; i < 3; i++) {
         pv = (void *)0xdead;
-        CXEQ_HR(U(CoGetDefaultContext)(t[i], &CX_IID_Bogus, &pv), E_NOINTERFACE);
+        { HRESULT dh = U(CoGetDefaultContext)(t[i], &CX_IID_Bogus, &pv); if (p && t[i] == APTTYPE_MTA) { t_note("STA with no MTA in the process: MTA default context for a bogus iid -> 0x%08lx", (unsigned long)dh); CXEQ_HR(dh, CO_E_NOTINITIALIZED); } else CXEQ_HR(dh, E_NOINTERFACE); }
         CXEQ(pv, 0);
     }
 }
-TEST(ctxthr_defctx_unsupported_iid_e_nointerface) { REQUIRE(U(CoGetDefaultContext)); cx_run(CXM_STA, w_dc_bad_iid, NULL); cx_run(CXM_MTA, w_dc_bad_iid, NULL); }
+TEST(ctxthr_defctx_unsupported_iid_e_nointerface) { REQUIRE(U(CoGetDefaultContext)); { int sta = 1; cx_run(CXM_STA, w_dc_bad_iid, &sta); }; cx_run(CXM_MTA, w_dc_bad_iid, NULL); }
 
 static void w_dc_ifaces(void *p)
 {

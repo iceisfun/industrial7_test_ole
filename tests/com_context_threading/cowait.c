@@ -160,6 +160,8 @@ TEST(ctxthr_cowaitobjects_maximum_handle_count_mta) { CX_WINE_SKIP(); REQUIRE(U(
 /* ================= wait semantics (no window needed) ================= */
 static void w_cw_sem(void *p)
 {
+    /* Win10: a timed-out wait leaves *lpdwindex untouched in an STA and sets it to WAIT_TIMEOUT (0x102) in an MTA */
+    ULONG tmo = p ? IDX_SENT : WAIT_TIMEOUT;
     HANDLE h[2]; ULONG idx; HRESULT hr; DWORD t0, el;
     h[0] = CreateSemaphoreW(NULL, 1, 1, NULL); h[1] = CreateSemaphoreW(NULL, 1, 1, NULL);
 
@@ -174,12 +176,12 @@ static void w_cw_sem(void *p)
     hr = U(CoWaitForMultipleHandles)(0, 80, 2, h, &idx);
     el = GetTickCount() - t0;
     CXEQ_HR(hr, CX_HR_CALLPENDING);                                                  /* timeout */
-    CXEQ(idx, 0);
+    CXEQ(idx, tmo);
     CHECK(el >= 60);
     CHECK(el < 4000);
     idx = IDX_SENT;
     CXEQ_HR(U(CoWaitForMultipleHandles)(0, 0, 2, h, &idx), CX_HR_CALLPENDING);       /* zero timeout polls */
-    CXEQ(idx, 0);
+    CXEQ(idx, tmo);
 
     ReleaseSemaphore(h[0], 1, NULL); ReleaseSemaphore(h[1], 1, NULL);
     idx = IDX_SENT;
@@ -191,7 +193,7 @@ static void w_cw_sem(void *p)
 
     CloseHandle(h[0]); CloseHandle(h[1]);
 }
-TEST(ctxthr_cowait_semaphores_index_and_timeout_sta) { REQUIRE(U(CoWaitForMultipleHandles)); cx_run(CXM_STA, w_cw_sem, NULL); }
+TEST(ctxthr_cowait_semaphores_index_and_timeout_sta) { int sta = 1; REQUIRE(U(CoWaitForMultipleHandles)); cx_run(CXM_STA, w_cw_sem, &sta); }
 TEST(ctxthr_cowait_semaphores_index_and_timeout_mta) { REQUIRE(U(CoWaitForMultipleHandles)); cx_run(CXM_MTA, w_cw_sem, NULL); }
 static void w_cw_uninit(void *p)
 {
@@ -214,6 +216,7 @@ static void waitall_body(int sta)
     if (sta) UU(PostMessageW)(w, WM_USER, 0, 0);      /* in an STA the wait is also an input wait: provide input */
     CXEQ_HR(U(CoWaitForMultipleHandles)(COWAIT_WAITALL, 30, 2, h, &idx), CX_HR_CALLPENDING);
     CXEQ(WaitForSingleObject(h[0], 0), WAIT_OBJECT_0);                               /* wait-all consumes nothing until all are ready */
+    SetEvent(h[0]);                                                                  /* the probe above consumed the auto-reset event */
     SetEvent(h[1]);
     idx = IDX_SENT;
     if (sta) UU(PostMessageW)(w, WM_USER, 0, 0);
@@ -312,11 +315,17 @@ TEST(ctxthr_cowait_alertable_runs_apc_mta) { int sta = 0; REQUIRE(U(CoWaitForMul
 
 /* ================= STA message dispatch ================= */
 static DWORD WINAPI post_dde_thread(LPVOID p) { UU(PostMessageW)((HWND)p, WM_DDE_FIRST_, 0, 0); return 0; }
-static DWORD WINAPI send_dde_thread(LPVOID p) { UU(SendMessageW)((HWND)p, WM_DDE_FIRST_, 0, 0); return 0; }
+static DWORD WINAPI post_user5_thread(LPVOID p) { Sleep(30); UU(PostMessageW)((HWND)p, WM_USER + 5, 0, 0); return 0; }
+/* Win10: SendMessage of a WM_DDE_* message fails with ERROR_INVALID_WINDOW_HANDLE (1400) without reaching the window, so the sent-message probe uses an ordinary message */
+static DWORD WINAPI send_dde_thread(LPVOID p) { UU(SendMessageW)((HWND)p, WM_USER + 7, 0, 0); return 0; }
 static DWORD WINAPI send_and_post_user_thread(LPVOID p)
 {
+    LRESULT r; DWORD e, t0;
     Sleep(30);
-    UU(SendMessageW)((HWND)p, WM_USER, 0, 0);
+    SetLastError(0); t0 = GetTickCount();
+    r = UU(SendMessageW)((HWND)p, WM_USER, 0, 0);
+    e = GetLastError();
+    (void)r; (void)e; (void)t0;
     UU(PostMessageW)((HWND)p, WM_USER, 0, 0);
     return 0;
 }
@@ -354,7 +363,7 @@ static void w_cw_sta_pump(void *p)
     idx = IDX_SENT;
     hr = U(CoWaitForMultipleHandles)(0, 50, 2, h, &idx);
     CXEQ_HR(hr, CX_HR_CALLPENDING);
-    CXEQ(idx, 0);
+    CXEQ(idx, IDX_SENT);                              /* STA timeout leaves the index untouched */
     CXEQ(queued(w, WM_DDE_FIRST_, TRUE), 0);          /* consumed by the wait ... */
     CXEQ(saw(WM_DDE_FIRST_), 1);                      /* ... by dispatching it to the window */
     CXEQ(queued(w, WM_USER, TRUE), 1);                /* ordinary posted messages stay queued */
@@ -372,7 +381,7 @@ static void w_cw_sta_pump(void *p)
     th = CreateThread(NULL, 0, send_dde_thread, w, 0, NULL);
     idx = IDX_SENT;
     CXEQ_HR(U(CoWaitForMultipleHandles)(0, 100, 2, h, &idx), CX_HR_CALLPENDING);
-    CXEQ(saw(WM_DDE_FIRST_), 1);                      /* the sender is released: sent messages are delivered */
+    CXEQ(saw(WM_USER + 7), 1);                        /* the sender is released: sent messages are delivered */
     CXEQ(WaitForSingleObject(th, 5000), WAIT_OBJECT_0);
     CloseHandle(th);
 
@@ -384,7 +393,7 @@ static void w_cw_sta_pump(void *p)
     UU(PostMessageW)(w, WM_DDE_FIRST_ + 1, 0, 0);
     th = CreateThread(NULL, 0, send_and_post_user_thread, w, 0, NULL);
     idx = IDX_SENT;
-    CXEQ_HR(U(CoWaitForMultipleHandles)(0, 150, 2, h, &idx), CX_HR_CALLPENDING);
+    CXEQ_HR(U(CoWaitForMultipleHandles)(0, 500, 2, h, &idx), CX_HR_CALLPENDING);   /* generous: the sender starts after 30 ms */
     CXEQ(g_nmsgs, 3);
     if (g_nmsgs >= 3) {
         CXEQ(g_msgs[0], WM_DDE_FIRST_);
@@ -424,10 +433,28 @@ static void w_cw_dispatch_flags(void *p)
     /* COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES: all window messages are pumped */
     msgs_reset();
     UU(PostMessageW)(w, WM_USER + 5, 0, 0);
-    hr = U(CoWaitForMultipleHandles)(COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES, 100, 1, &ev, &idx);
+    /* Win10: a message already sitting in the queue is only looked at when COWAIT_INPUTAVAILABLE is given */
+    hr = U(CoWaitForMultipleHandles)(COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES | COWAIT_INPUTAVAILABLE, 100, 1, &ev, &idx);
     CXEQ_HR(hr, CX_HR_CALLPENDING);
     CXEQ(saw(WM_USER + 5), 1);
     CXEQ(queued(w, WM_USER + 5, TRUE), 0);
+    /* ... while a message that arrives during the wait is dispatched without it */
+    msgs_reset();
+    {
+        Sig s0; HANDLE th0;
+        s0.ev = ev; s0.delay = 0;
+        th0 = CreateThread(NULL, 0, post_user5_thread, w, 0, NULL);
+        hr = U(CoWaitForMultipleHandles)(COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES, 150, 1, &ev, &idx);
+        CXEQ_HR(hr, CX_HR_CALLPENDING);
+        CXEQ(saw(WM_USER + 5), 1);
+        WaitForSingleObject(th0, 5000); CloseHandle(th0);
+        (void)s0;
+    }
+    msgs_reset();
+    UU(PostMessageW)(w, WM_USER + 5, 0, 0);
+    hr = U(CoWaitForMultipleHandles)(COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES, 60, 1, &ev, &idx);
+    t_note("window message posted before the wait, no COWAIT_INPUTAVAILABLE: hr 0x%08lx, %s", (unsigned long)hr, saw(WM_USER + 5) ? "dispatched" : "left queued");
+    flush_queue();
     /* COWAIT_DISPATCH_CALLS alone: calls, but window messages stay queued (observed) */
     msgs_reset();
     UU(PostMessageW)(w, WM_USER + 6, 0, 0);
@@ -630,10 +657,10 @@ static void w_mre_sta_pump(void *p)
     UU(PostMessageW)(w, WM_USER + 9, 0, 0);
     th = CreateThread(NULL, 0, sig_thread, &sg, 0, NULL);
     t0 = GetTickCount();
-    hr = ISynchronize_Wait(s, COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES, 5000);
+    hr = ISynchronize_Wait(s, COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES | COWAIT_INPUTAVAILABLE, 5000);
     CXEQ_HR(hr, S_OK);
     CHECK(GetTickCount() - t0 < 4500);
-    CXEQ(saw(WM_USER + 9), 1);                                   /* the STA wait pumped the window */
+    CXEQ(saw(WM_USER + 9), 1);                                   /* the STA wait pumped the already queued message (COWAIT_INPUTAVAILABLE) */
     WaitForSingleObject(th, 5000); CloseHandle(th);
     ISynchronize_Reset(s);
     hr = ISynchronize_Wait(s, COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES, 40);
@@ -666,17 +693,26 @@ static void w_std_event(void *p)
     HRESULT hr; ISynchronize *s = create_sync(&CX_CLSID_StdEvent, &hr);
     t_note("CoCreateInstance(CLSID_StdEvent, ISynchronize) = 0x%08lx", (unsigned long)hr);
     if (s) {
-        HRESULT w1, w2;
-        ISynchronize_Signal(s);
+        HRESULT w1, w2, sg;
+        ISynchronizeEvent *se = NULL;
+        /* Win10 decompilation: CStdEvent owns no event until SetEventHandle is called; Signal and Wait return RPC_E_NO_SYNC */
+        sg = ISynchronize_Signal(s);
         w1 = ISynchronize_Wait(s, 0, 0);
-        w2 = ISynchronize_Wait(s, 0, 0);
-        t_note("StdEvent: Wait after Signal = 0x%08lx, second Wait = 0x%08lx (%s)", (unsigned long)w1, (unsigned long)w2, w2 == S_OK ? "manual reset" : "auto reset");
-        CXEQ_HR(w1, S_OK);
-        {
-            void *pv = NULL;
-            hr = ISynchronize_QueryInterface(s, &CX_IID_ISynchronizeEvent, &pv);
-            t_note("StdEvent QueryInterface(ISynchronizeEvent) = 0x%08lx", (unsigned long)hr);
-            if (pv) IUnknown_Release((IUnknown *)pv);
+        CXEQ_HR(sg, CX_HR_NOSYNC);
+        CXEQ_HR(w1, CX_HR_NOSYNC);
+        hr = ISynchronize_QueryInterface(s, &CX_IID_ISynchronizeEvent, (void **)&se);
+        t_note("StdEvent QueryInterface(ISynchronizeEvent) = 0x%08lx", (unsigned long)hr);
+        CXEQ_HR(hr, S_OK);
+        if (se) {
+            HANDLE ev = cx_event(FALSE, FALSE);   /* auto-reset event supplied by the caller */
+            CXEQ_HR(ISynchronizeEvent_SetEventHandle(se, &ev), S_OK);
+            CXEQ_HR(ISynchronize_Wait(s, 0, 0), CX_HR_CALLPENDING);
+            CXEQ_HR(ISynchronize_Signal(s), S_OK);
+            w1 = ISynchronize_Wait(s, 0, 0);
+            w2 = ISynchronize_Wait(s, 0, 0);
+            CXEQ_HR(w1, S_OK);
+            CXEQ_HR(w2, CX_HR_CALLPENDING);       /* consumes the caller's auto-reset event */
+            ISynchronizeEvent_Release(se);
         }
         ISynchronize_Release(s);
     }
