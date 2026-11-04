@@ -7,7 +7,11 @@
  * looks the type up by its type GUID in a process-wide table of live record infos. */
 #include "tlc.h"
 
+/* Windows lays a SYS_WIN64 record out with 4-byte maximum alignment (type information alignment 4), so the matching C
+ * struct is packed to 4: Id 0, Name 4, Score 12, Tags 20, size 28. */
+#pragma pack(push, 4)
 typedef struct Person { LONG Id; BSTR Name; double Score; SAFEARRAY *Tags; } Person;
+#pragma pack(pop)
 
 static TYPEDESC td_i4r = { .vt = VT_I4 }, td_bstrr = { .vt = VT_BSTR }, td_r8r = { .vt = VT_R8 };
 static TYPEDESC td_sa_i4 = { .vt = VT_I4 };
@@ -619,7 +623,7 @@ TEST(tlr_safearray_of_records)
             if (d1 && d2) {
                 EQ(d2[0].Id, 100);
                 CHECK(d2[1].Name && d1[1].Name && d2[1].Name != d1[1].Name && !lstrcmpW(d2[1].Name, L"element one"));
-                EQ(d2[2].Id, 102);
+                EQ(d2[2].Id, 999); /* bounds are 1..3: the PutElement at index 3 replaced the third element */
             }
             pSafeArrayUnaccessData(sa);
             pSafeArrayUnaccessData(cp);

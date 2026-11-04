@@ -165,7 +165,7 @@ TEST(tlcl_syskind_roundtrip)
             EQ(a->wLibFlags, LIBFLAG_FHASDISKIMAGE);
             EQ(a->wMajorVerNum, 0);
             EQ(a->wMinorVerNum, 0);
-            EQ(a->lcid, 0);
+            EQ(a->lcid, 0x409); /* Windows: a new library defaults to LCID 0x409, not 0 */
             CHECK(IsEqualGUID(&a->guid, &GUID_NULL));
             ITypeLib_ReleaseTLibAttr(tl, a);
         }
@@ -268,7 +268,7 @@ TEST(tlcl_setname_null_note)
     t_note("SetName(NULL)=0x%08lx", (unsigned long)ICreateTypeLib2_SetName(ctl, NULL));
     t_note("SetDocString(NULL)=0x%08lx", (unsigned long)ICreateTypeLib2_SetDocString(ctl, NULL));
     t_note("SetHelpFileName(NULL)=0x%08lx", (unsigned long)ICreateTypeLib2_SetHelpFileName(ctl, NULL));
-    if (!t_is_wine()) t_note("SetGuid(NULL)=0x%08lx", (unsigned long)ICreateTypeLib2_SetGuid(ctl, NULL));
+    /* ICreateTypeLib2::SetGuid(NULL) is not called: Windows dereferences the pointer and raises an access violation. */
     EQ(ICreateTypeLib2_Release(ctl), 0);
 }
 

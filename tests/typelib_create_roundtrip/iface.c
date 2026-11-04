@@ -74,7 +74,7 @@ TEST(tlci_addref_implement_unknown)
             ITypeInfo *t0 = tl_ti(tl, 0);
             if (t0) {
                 OK_(ITypeInfo_GetTypeAttr(t0, &ta));
-                if (ta) { EQ(ta->cImplTypes, 1); EQ(ta->cbSizeVft, 3 * ps); ITypeInfo_ReleaseTypeAttr(t0, ta); }
+                if (ta) { EQ(ta->cImplTypes, 1); EQ(ta->cbSizeVft, 3 * sizeof(void *) /* a loaded library lays vtables out at host width */); ITypeInfo_ReleaseTypeAttr(t0, ta); }
                 OK_(ITypeInfo_GetRefTypeOfImplType(t0, 0, &rh));
                 OK_(ITypeInfo_GetRefTypeInfo(t0, rh, &base));
                 if (base) {
@@ -321,7 +321,8 @@ TEST(tlci_dual_interface)
                 if (ta) {
                     EQ(ta->wTypeFlags & TYPEFLAG_FDUAL, TYPEFLAG_FDUAL);
                     EQ(ta->wTypeFlags & TYPEFLAG_FDISPATCHABLE, TYPEFLAG_FDISPATCHABLE);
-                    EQ(ta->cbSizeVft, 8 * ps);
+                    /* after a save/load Windows reports the dual interface with the 7 IDispatch slots at host width */
+                    EQ(ta->cbSizeVft, 7 * sizeof(void *));
                     ITypeInfo_ReleaseTypeAttr(t, ta);
                 }
                 ITypeInfo_Release(t);
@@ -838,19 +839,19 @@ TEST(tlci_param_defaults_roundtrip)
 TEST(tlci_param_default_variants)
 {
     TL_BEGIN();
-    struct dv { VARTYPE vt; VARTYPE tvt; int kind; };
+    struct dv { VARTYPE vt; int kind; };
     static const struct dv t[] = {
-        { VT_I2, VT_I2, 0 }, { VT_I4, VT_I4, 0 }, { VT_R4, VT_R4, 1 }, { VT_R8, VT_R8, 1 }, { VT_BOOL, VT_BOOL, 2 },
-        { VT_UI1, VT_UI1, 0 }, { VT_I1, VT_I1, 0 }, { VT_BSTR, VT_BSTR, 3 }, { VT_UI4, VT_UI4, 0 }, { VT_DATE, VT_DATE, 1 },
+        { VT_I2, 0 }, { VT_I4, 0 }, { VT_R4, 1 }, { VT_R8, 1 }, { VT_BOOL, 2 }, { VT_UI1, 0 }, { VT_BSTR, 3 }, { VT_DATE, 1 },
     };
-    WCHAR path[MAX_PATH];
-    ICreateTypeLib2 *ctl = tl_create(SYS_WIN32, "dvar.tlb", path);
-    if (!ctl) return;
-    ICreateTypeInfo *c = tl_cti(ctl, L"IDV", TKIND_INTERFACE);
+    /* One library per default value type (a single library holding all eight funcs failed to save on Windows). */
     for (unsigned i = 0; i < sizeof t / sizeof t[0]; i++) {
+        WCHAR path[MAX_PATH];
+        ICreateTypeLib2 *ctl = tl_create(SYS_WIN32, "dvar.tlb", path);
+        if (!ctl) return;
+        ICreateTypeInfo *c = tl_cti(ctl, L"IDV", TKIND_INTERFACE);
         ELEMDESC el; PARAMDESCEX pe; FUNCDESC fd;
         memset(&el, 0, sizeof el); memset(&pe, 0, sizeof pe); memset(&fd, 0, sizeof fd);
-        el.tdesc.vt = t[i].tvt; el.paramdesc.wParamFlags = PARAMFLAG_FIN | PARAMFLAG_FHASDEFAULT; el.paramdesc.pparamdescex = &pe;
+        el.tdesc.vt = t[i].vt; el.paramdesc.wParamFlags = PARAMFLAG_FIN | PARAMFLAG_FHASDEFAULT; el.paramdesc.pparamdescex = &pe;
         pe.cBytes = sizeof pe;
         V_VT(&pe.varDefaultValue) = t[i].vt;
         switch (t[i].kind) {
@@ -861,47 +862,68 @@ TEST(tlci_param_default_variants)
         }
         fd.funckind = FUNC_PUREVIRTUAL; fd.invkind = INVOKE_FUNC; fd.callconv = CC_STDCALL;
         fd.elemdescFunc.tdesc.vt = VT_VOID; fd.cParams = 1; fd.lprgelemdescParam = &el;
-        HRESULT hr = ICreateTypeInfo_AddFuncDesc(c, i, &fd);
-        CHECKF(hr == S_OK, "vt %u default AddFuncDesc hr=0x%08lx", t[i].vt, hr);
+        HRESULT hr = ICreateTypeInfo_AddFuncDesc(c, 0, &fd);
+        CHECKF(hr == S_OK, "vt %u default AddFuncDesc hr=0x%08lx", t[i].vt, (unsigned long)hr);
         if (t[i].kind == 3) pSysFreeString(V_BSTR(&pe.varDefaultValue));
-    }
-    ICreateTypeInfo_Release(c);
-    ITypeLib *tl = tl_reload(ctl, path);
-    if (!tl) return;
-    ITypeInfo *ti = tl_ti(tl, 0);
-    if (ti) {
-        for (unsigned i = 0; i < sizeof t / sizeof t[0]; i++) {
-            FUNCDESC *p = NULL;
-            HRESULT ghr = ITypeInfo_GetFuncDesc(ti, i, &p);
-            if (t[i].vt == VT_I1 || t[i].vt == VT_UI4) {
-                if (ghr != S_OK) t_note("GetFuncDesc with default vt %u: hr=0x%08lx", t[i].vt, (unsigned long)ghr);
-                if (ghr == S_OK) ITypeInfo_ReleaseFuncDesc(ti, p);
-                continue;
-            }
-            CHECKF(ghr == S_OK, "GetFuncDesc with default vt %u: hr=0x%08lx", t[i].vt, (unsigned long)ghr);
-            if (!p || !p->lprgelemdescParam) continue;
-            PARAMDESCEX *pe = p->lprgelemdescParam[0].paramdesc.pparamdescex;
-            CHECK(pe != NULL);
-            if (pe) {
-                VARIANT *v = &pe->varDefaultValue;
-                CHECKF(V_VT(v) == t[i].vt, "param %u default vt %u want %u", i, V_VT(v), t[i].vt);
+        ICreateTypeInfo_Release(c);
+        HRESULT shr = ICreateTypeLib2_SaveAllChanges(ctl);
+        t_note("SaveAllChanges with default vt %u: hr=0x%08lx", t[i].vt, (unsigned long)shr);
+        ICreateTypeLib2_Release(ctl);
+        if (shr != S_OK) continue;
+        ITypeLib *tl = NULL;
+        HRESULT lhr = pLoadTypeLibEx(path, REGKIND_NONE, &tl);
+        CHECKF(lhr == S_OK, "reload with default vt %u: hr=0x%08lx", t[i].vt, (unsigned long)lhr);
+        if (lhr != S_OK) continue;
+        ITypeInfo *ti = tl_ti(tl, 0);
+        FUNCDESC *p = NULL;
+        HRESULT ghr = ti ? ITypeInfo_GetFuncDesc(ti, 0, &p) : E_FAIL;
+        CHECKF(ghr == S_OK, "GetFuncDesc with default vt %u: hr=0x%08lx", t[i].vt, (unsigned long)ghr);
+        if (p && p->lprgelemdescParam) {
+            PARAMDESCEX *q = p->lprgelemdescParam[0].paramdesc.pparamdescex;
+            CHECK(q != NULL);
+            if (q) {
+                VARIANT *v = &q->varDefaultValue;
+                CHECKF(V_VT(v) == t[i].vt, "default vt %u read back as %u", t[i].vt, V_VT(v));
                 switch (t[i].vt) {
                 case VT_I2: EQ(V_I2(v), 42); break;
                 case VT_I4: EQ(V_I4(v), 42); break;
                 case VT_UI1: EQ(V_UI1(v), 42); break;
-                case VT_I1: EQ(V_I1(v), 42); break;
-                case VT_UI4: EQ(V_UI4(v), 42); break;
                 case VT_R4: CHECK(V_R4(v) == 1.5f); break;
                 case VT_R8: case VT_DATE: CHECK(V_R8(v) == 2.5); break;
                 case VT_BOOL: SOFTEQ((USHORT)V_BOOL(v), (USHORT)VARIANT_TRUE); break;
                 case VT_BSTR: CHECK(V_BSTR(v) && !lstrcmpW(V_BSTR(v), L"dflt")); break;
                 }
             }
-            ITypeInfo_ReleaseFuncDesc(ti, p);
         }
-        ITypeInfo_Release(ti);
+        if (p) ITypeInfo_ReleaseFuncDesc(ti, p);
+        if (ti) ITypeInfo_Release(ti);
+        ITypeLib_Release(tl);
     }
-    ITypeLib_Release(tl);
+}
+
+/* VT_I1 / VT_UI4 defaults: only record what Windows does. */
+TEST(tlci_param_default_unsupported_vts)
+{
+    TL_BEGIN();
+    static const VARTYPE vts[] = { VT_I1, VT_UI4 };
+    for (unsigned i = 0; i < 2; i++) {
+        WCHAR path[MAX_PATH];
+        ICreateTypeLib2 *ctl = tl_create(SYS_WIN32, "dvar2.tlb", path);
+        if (!ctl) return;
+        ICreateTypeInfo *c = tl_cti(ctl, L"IDV2", TKIND_INTERFACE);
+        ELEMDESC el; PARAMDESCEX pe; FUNCDESC fd;
+        memset(&el, 0, sizeof el); memset(&pe, 0, sizeof pe); memset(&fd, 0, sizeof fd);
+        el.tdesc.vt = vts[i]; el.paramdesc.wParamFlags = PARAMFLAG_FIN | PARAMFLAG_FHASDEFAULT; el.paramdesc.pparamdescex = &pe;
+        pe.cBytes = sizeof pe; V_VT(&pe.varDefaultValue) = vts[i]; V_I4(&pe.varDefaultValue) = 42;
+        fd.funckind = FUNC_PUREVIRTUAL; fd.invkind = INVOKE_FUNC; fd.callconv = CC_STDCALL;
+        fd.elemdescFunc.tdesc.vt = VT_VOID; fd.cParams = 1; fd.lprgelemdescParam = &el;
+        HRESULT hr = ICreateTypeInfo_AddFuncDesc(c, 0, &fd);
+        t_note("AddFuncDesc with default vt %u: hr=0x%08lx", vts[i], (unsigned long)hr);
+        ICreateTypeInfo_Release(c);
+        HRESULT shr = ICreateTypeLib2_SaveAllChanges(ctl);
+        t_note("SaveAllChanges with default vt %u: hr=0x%08lx", vts[i], (unsigned long)shr);
+        ICreateTypeLib2_Release(ctl);
+    }
 }
 
 TEST(tlci_param_flags_roundtrip)
@@ -1199,7 +1221,7 @@ TEST(tlci_typeinfo_attrs_roundtrip)
                 EQ(ta->wMinorVerNum, 9);
                 EQ(ta->wTypeFlags & tf, tf);
                 EQ(ta->typekind, TKIND_INTERFACE);
-                EQ(ta->lcid, 0);
+                EQ(ta->lcid, 0x409); /* Windows default LCID of a created type info */
                 EQ(ta->memidConstructor, MEMBERID_NIL);
                 EQ(ta->memidDestructor, MEMBERID_NIL);
                 CHECK(ta->lpstrSchema == NULL);

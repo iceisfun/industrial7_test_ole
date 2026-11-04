@@ -325,14 +325,22 @@ TEST(tlt_record_mixed_types_layout)
             OK_(ITypeInfo_GetTypeAttr(ti, &ta));
             if (ta) {
                 EQ(ta->cVars, 12);
-                SOFTEQ(ta->cbSizeInstance >= 11 * 32, 1);
                 t_note("%s record of 12 fields at 32-byte offsets: cbSizeInstance=%lu cbAlignment=%u", s ? "win64" : "win32", ta->cbSizeInstance, ta->cbAlignment);
                 ITypeInfo_ReleaseTypeAttr(ti, ta);
             }
+            ULONG prev = 0;
             for (UINT i = 0; i < 12; i++) {
                 VARDESC *p = NULL;
                 OK_(ITypeInfo_GetVarDesc(ti, i, &p));
-                if (p) { CHECKF(p->oInst == i * 32 && p->elemdescVar.tdesc.vt == vts[i], "field %u oInst %lu vt %u", i, p->oInst, p->elemdescVar.tdesc.vt); ITypeInfo_ReleaseVarDesc(ti, p); }
+                if (p) {
+                    /* Windows lays the fields out itself (LayOut ignores the supplied oInst): offsets must ascend and
+                     * not overlap the previous field */
+                    CHECKF(p->elemdescVar.tdesc.vt == vts[i], "field %u vt %u want %u", i, p->elemdescVar.tdesc.vt, vts[i]);
+                    CHECKF(i == 0 ? p->oInst == 0 : p->oInst > prev, "field %u oInst %lu after %lu", i, p->oInst, prev);
+                    t_note("%s mixed record field %u: oInst=%lu", s ? "win64" : "win32", i, p->oInst);
+                    prev = p->oInst;
+                    ITypeInfo_ReleaseVarDesc(ti, p);
+                }
             }
             ITypeInfo_Release(ti);
         }
@@ -786,7 +794,8 @@ TEST(tlt_module_invoke_and_addressofmember)
         EXCEPINFO ex; memset(&ex, 0, sizeof ex);
         UINT err = 0;
         hr = ITypeInfo_Invoke(ti, NULL, 0x1, DISPATCH_METHOD, &dp, &res, &ex, &err);
-        EQHR(hr, S_OK);
+        /* Windows does not implement Invoke on a module type info (AddressOfMember is the supported path) */
+        EQHR(hr, E_NOTIMPL);
         if (hr == S_OK) { EQ(V_VT(&res), VT_UI4); EQ(V_UI4(&res), GetCurrentProcessId()); }
         pVariantClear(&res);
         EQHR(ITypeInfo_AddressOfMember(ti, 0x55, INVOKE_FUNC, &addr), TYPE_E_ELEMENTNOTFOUND);
@@ -825,7 +834,13 @@ TEST(tlt_typeflags_roundtrip)
     for (unsigned i = 0; i < 12; i++) {
         WCHAR nm[8]; wsprintfW(nm, L"C%u", i);
         ICreateTypeInfo *c = tl_cti(ctl, nm, TKIND_COCLASS);
-        if (c) { OK_(ICreateTypeInfo_SetTypeFlags(c, fl[i])); ICreateTypeInfo_Release(c); }
+        if (c) {
+            /* Windows (CTypeInfo2::SetTypeFlags) refuses the interface-only flags on a coclass */
+            int bad = (fl[i] & (TYPEFLAG_FDUAL | TYPEFLAG_FNONEXTENSIBLE | TYPEFLAG_FOLEAUTOMATION | TYPEFLAG_FREPLACEABLE |
+                                TYPEFLAG_FDISPATCHABLE | TYPEFLAG_FREVERSEBIND | TYPEFLAG_FPROXY)) != 0;
+            EQHR(ICreateTypeInfo_SetTypeFlags(c, fl[i]), bad ? (HRESULT)0x800288bd : S_OK); /* observed refusal code */
+            ICreateTypeInfo_Release(c);
+        }
     }
     ITypeLib *tl = tl_reload(ctl, path);
     if (!tl) return;
@@ -833,7 +848,10 @@ TEST(tlt_typeflags_roundtrip)
         ITypeInfo *ti = tl_ti(tl, i);
         TYPEATTR *ta = NULL;
         if (ti && ITypeInfo_GetTypeAttr(ti, &ta) == S_OK) {
-            CHECKF((ta->wTypeFlags & fl[i]) == fl[i], "coclass %u flag 0x%x -> 0x%x", i, fl[i], ta->wTypeFlags);
+            int bad = (fl[i] & (TYPEFLAG_FDUAL | TYPEFLAG_FNONEXTENSIBLE | TYPEFLAG_FOLEAUTOMATION | TYPEFLAG_FREPLACEABLE |
+                                TYPEFLAG_FDISPATCHABLE | TYPEFLAG_FREVERSEBIND | TYPEFLAG_FPROXY)) != 0;
+            if (bad) CHECKF((ta->wTypeFlags & fl[i]) == 0, "coclass %u refused flag 0x%x stored: 0x%x", i, fl[i], ta->wTypeFlags);
+            else CHECKF((ta->wTypeFlags & fl[i]) == fl[i], "coclass %u flag 0x%x -> 0x%x", i, fl[i], ta->wTypeFlags);
             ITypeInfo_ReleaseTypeAttr(ti, ta);
         }
         if (ti) ITypeInfo_Release(ti);

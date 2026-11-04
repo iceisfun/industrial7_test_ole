@@ -65,7 +65,16 @@ static HRESULT afd(ICreateTypeInfo *c, UINT idx, INVOKEKIND ik, MEMBERID id, ELE
     fd.memid = id; fd.funckind = FUNC_PUREVIRTUAL; fd.invkind = ik; fd.callconv = CC_STDCALL;
     fd.elemdescFunc.tdesc.vt = VT_HRESULT; fd.cParams = n; fd.cParamsOpt = nopt; fd.lprgelemdescParam = el;
     HRESULT hr = ICreateTypeInfo_AddFuncDesc(c, idx, &fd);
-    if (hr == S_OK && names) hr = ICreateTypeInfo_SetFuncAndParamNames(c, idx, names, nnames);
+    if (hr == S_OK && names) {
+        /* Windows requires exactly cParams + 1 names (cParams for property put/putref) (function name first; a NULL entry leaves that name unset);
+         * any other count fails with TYPE_E_ELEMENTNOTFOUND. Pad the caller's list with NULLs. */
+        LPOLESTR full[9];
+        UINT want = (UINT)n + 1;
+        /* the value parameter of a property put/putref is not named: one name fewer */
+        if ((ik == INVOKE_PROPERTYPUT || ik == INVOKE_PROPERTYPUTREF) && n > 0) want--;
+        for (UINT i = 0; i < want && i < 9; i++) full[i] = i < nnames ? names[i] : NULL;
+        hr = ICreateTypeInfo_SetFuncAndParamNames(c, idx, full, want);
+    }
     return hr;
 }
 
