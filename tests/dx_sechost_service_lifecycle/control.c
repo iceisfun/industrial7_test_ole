@@ -220,6 +220,7 @@ TEST(dx_svc_delete_basic) {
     fx_t f; if (!fx_begin(&f, 1)) return;
     CHECK(S(DeleteService)(f.svc));
     S(CloseServiceHandle)(f.svc); f.svc = NULL;
+    CHECK(fx_wait_gone(f.scm, f.name));
     SET_ERR(0);
     SC_HANDLE o = S(OpenServiceW)(f.scm, f.name, SERVICE_QUERY_STATUS);
     CHECK(o == NULL); EXPECT_ERR(ERROR_SERVICE_DOES_NOT_EXIST);

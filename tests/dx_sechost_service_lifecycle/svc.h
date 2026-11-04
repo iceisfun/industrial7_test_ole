@@ -65,6 +65,33 @@ static void fx_sweep(void) {
     S(CloseServiceHandle)(scm);
 }
 
+/* The SCM finishes a delete asynchronously once the last handle/reference is gone, so a name can answer
+   ERROR_SERVICE_MARKED_FOR_DELETE (create) or still open (open) for a short while. Retry only on that. */
+static SC_HANDLE fx_create_retry(SC_HANDLE scm, const WCHAR *name, const WCHAR *disp, DWORD *err) {
+    SC_HANDLE s = NULL; DWORD le = 0;
+    for (int i = 0; i < 100; i++) {
+        s = S(CreateServiceW)(scm, name, disp, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
+                              SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, FX_BIN, NULL, NULL, NULL, NULL, NULL);
+        if (s) break;
+        le = GetLastError();
+        if (le != ERROR_SERVICE_MARKED_FOR_DELETE) break;
+        Sleep(100);
+    }
+    if (err) *err = le;
+    return s;
+}
+
+/* Returns 1 once the service name is really gone (open fails with DOES_NOT_EXIST), waiting up to ~10 s. */
+static int fx_wait_gone(SC_HANDLE scm, const WCHAR *name) {
+    for (int i = 0; i < 100; i++) {
+        SC_HANDLE o = S(OpenServiceW)(scm, name, SERVICE_QUERY_STATUS);
+        if (!o) return GetLastError() == ERROR_SERVICE_DOES_NOT_EXIST;
+        S(CloseServiceHandle)(o);
+        Sleep(100);
+    }
+    return 0;
+}
+
 /* Returns 1 when ready. create: also create the default service (demand start, own process). */
 static int fx_begin(fx_t *f, int create) {
     memset(f, 0, sizeof *f);
@@ -80,9 +107,9 @@ static int fx_begin(fx_t *f, int create) {
     wsprintfW(f->disp, L"olet display %lu %ld", pid, n);
     wsprintfA(f->nameA, "olet_%lu_%ld_svc", pid, n);
     if (create) {
-        f->svc = S(CreateServiceW)(f->scm, f->name, f->disp, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
-                                   SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, FX_BIN, NULL, NULL, NULL, NULL, NULL);
-        if (!f->svc) { DWORD e = GetLastError(); S(CloseServiceHandle)(f->scm); f->scm = NULL; t_skip("CreateServiceW failed %lu", e); return 0; }
+        DWORD e = 0;
+        f->svc = fx_create_retry(f->scm, f->name, f->disp, &e);
+        if (!f->svc) { S(CloseServiceHandle)(f->scm); f->scm = NULL; t_skip("CreateServiceW failed %lu", e); return 0; }
     }
     return 1;
 }
