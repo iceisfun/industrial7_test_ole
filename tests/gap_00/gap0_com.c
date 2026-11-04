@@ -105,7 +105,7 @@ TEST(gap0_com_get_system_security_permissions_valid) { WINE_STUB();
         CHECKF(IsValidSecurityDescriptor(sd), "%s: not a valid security descriptor", nm[t]);
         SECURITY_DESCRIPTOR_CONTROL ctl = 0; DWORD rev = 0;
         if (GetSecurityDescriptorControl(sd, &ctl, &rev)) { EXPECT_EQ(rev, 1); t_note("%s: control=0x%x", nm[t], ctl); }
-        EXPECT_EQ(LocalFree(sd), NULL);    /* documented: free with LocalFree */
+        { HLOCAL fr = LocalFree(sd); EXPECT_EQ(fr, NULL); }    /* documented: free with LocalFree */
     }
     if (SUCCEEDED(ihr)) CoUninit();
 }
