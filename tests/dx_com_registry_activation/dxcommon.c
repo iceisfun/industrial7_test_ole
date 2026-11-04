@@ -54,7 +54,25 @@ int dx_exists(const char *sub) {
     if (RegOpenKeyExA(HKCU_ROOT, p, 0, KEY_READ | g_view, &k)) return 0;
     RegCloseKey(k); return 1;
 }
-void dx_del(const char *sub) { char p[512]; full(sub, p, sizeof p); RegDeleteTreeA(HKCU_ROOT, p); }
+/* An elevated caller's writes through HKCR (CoTreatAsClass, OleSetAutoConvert) land in HKLM\\Software\\Classes, so a tracked olet
+ * key is removed from the machine hive as well (best effort; only keys carrying the olet marker). */
+void dx_del(const char *sub) {
+    char p[512]; full(sub, p, sizeof p); RegDeleteTreeA(HKCU_ROOT, p);
+    if (HKCU_ROOT == HKEY_CURRENT_USER && (strstr(sub, "7E57C0DE") || !strncmp(sub, "olet", 4))) RegDeleteTreeA(HKEY_LOCAL_MACHINE, p);
+}
+/* merged HKCR view: what the COM runtime reads and writes through */
+int dx_get_merged(const char *sub, const char *name, char *out, size_t cap) {
+    HKEY k; DWORD n = (DWORD)cap, type; LONG r;
+    if (RegOpenKeyExA(HKEY_CLASSES_ROOT, sub, 0, KEY_READ | g_view, &k)) return 1;
+    r = RegQueryValueExA(k, name, NULL, &type, (BYTE *)out, &n); RegCloseKey(k);
+    if (r) return 2;
+    if (n < cap) out[n] = 0; else out[cap - 1] = 0;
+    return 0;
+}
+int dx_exists_merged(const char *sub) {
+    HKEY k; if (RegOpenKeyExA(HKEY_CLASSES_ROOT, sub, 0, KEY_READ | g_view, &k)) return 0;
+    RegCloseKey(k); return 1;
+}
 void dx_track(const char *sub) {
     for (int i = 0; i < g_ntracked; i++) if (!strcmp(g_tracked[i], sub)) return;
     if (g_ntracked < 512) snprintf(g_tracked[g_ntracked++], 160, "%s", sub);
