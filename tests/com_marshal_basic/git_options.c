@@ -101,7 +101,9 @@ TEST(mbasic_git_register_unsupported_iid) {
     GIT_SETUP();
     DWORD cookie = 0x1234;
     HRESULT hr = IGlobalInterfaceTable_RegisterInterfaceInGlobal(git, MB_UNK(0), &MB_IID_Bogus, &cookie);
-    CHECKF(FAILED(hr), "hr=0x%lx", (unsigned long)hr);
+    /* observed on Win10 22H2: Register does not reject an IID the object lacks (S_OK, nonzero cookie) */
+    EQ(hr, S_OK);
+    CHECK(cookie != 0 && cookie != 0x1234);
     t_note("Register with an IID the object lacks = 0x%lx cookie=0x%lx", (unsigned long)hr, cookie);
     if (SUCCEEDED(hr)) IGlobalInterfaceTable_RevokeInterfaceFromGlobal(git, cookie);
     GIT_END();
@@ -141,7 +143,8 @@ static DWORD CALLBACK git_worker(void *p) {
     if (g) {
         w->hr_get = IGlobalInterfaceTable_GetInterfaceFromGlobal(g, w->cookie, &IID_IClassFactory, (void **)&cf);
         w->got = cf;
-        if (cf) { w->hr_call = IClassFactory_LockServer(cf, TRUE); IClassFactory_LockServer(cf, FALSE); IClassFactory_Release(cf); }
+        if (cf) { void *pp = NULL; /* Win10: LockServer on the proxy is answered locally, CreateInstance reaches the object */
+            w->hr_call = IClassFactory_CreateInstance(cf, NULL, &IID_IUnknown, &pp); IClassFactory_LockServer(cf, FALSE); IClassFactory_Release(cf); }
         if (w->revoke) w->hr_rev = IGlobalInterfaceTable_RevokeInterfaceFromGlobal(g, w->cookie);
         IGlobalInterfaceTable_Release(g);
     }
@@ -155,7 +158,8 @@ static void git_cross(BOOL mta, BOOL revoke_in_worker) {
     CHECK(mb_join(mb_thread(git_worker, &w), 10000, NULL));
     EQ(w.hr_get, S_OK);
     CHECK(w.got != NULL && w.got != (void *)MB_CF(0));        /* proxy in the other apartment */
-    EQ(w.hr_call, S_OK);
+    EQ(w.hr_call, E_NOTIMPL);                                 /* the object's CreateInstance ran */
+    EQ(OBJ.ci_calls, 1);
     EQ(OBJ.last_tid, GetCurrentThreadId());                   /* call executed in the registering apartment */
     if (revoke_in_worker) {
         t_note("Revoke from another apartment = 0x%lx", (unsigned long)w.hr_rev);
@@ -208,7 +212,7 @@ TEST(mbasic_glbopt_query_defaults) {
     EQ(IGlobalOptions_Query(go, COMGLB_EXCEPTION_HANDLING, &v), S_OK);
     EQ(v, COMGLB_EXCEPTION_HANDLE);
     v = 0x1234; EQ(IGlobalOptions_Query(go, COMGLB_RPC_THREADPOOL_SETTING, &v), S_OK);
-    EQ(v, 0);
+    EQ(v, 1);                                          /* Win10: Query returns I_RpcMgmtQueryDedicatedThreadPool() != 0; a dedicated pool is the default */
     v = 0x1234; HRESULT hr = IGlobalOptions_Query(go, COMGLB_RO_SETTINGS, &v);
     EQ(hr, S_OK); t_note("COMGLB_RO_SETTINGS default = 0x%llx", (unsigned long long)v);
     v = 0x1234; hr = IGlobalOptions_Query(go, COMGLB_UNMARSHALING_POLICY, &v);
