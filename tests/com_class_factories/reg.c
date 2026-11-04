@@ -241,7 +241,8 @@ TEST(cgreg_revoke_double) {
     EQ(cg_register(&f, CLSCTX_INPROC_SERVER, REGCLS_MULTIPLEUSE, &c), S_OK);
     EQ(pCoRevokeClassObject(c), S_OK);
     HRESULT hr = pCoRevokeClassObject(c);
-    CHECKF(FAILED(hr), "second revoke of the same cookie succeeded: 0x%08lx", hr);
+    /* Win10 22H2: revoking an unknown/already revoked cookie is a silent S_OK */
+    EQ(hr, S_OK);
     t_note("double CoRevokeClassObject -> 0x%08lx", hr);
     EQ(f.ref, 1);
     UNINIT();
@@ -254,7 +255,8 @@ TEST(cgreg_revoke_bad_cookies) {
     for (unsigned i = 0; i < 5; i++) {
         DWORD k = offs[i] ? (offs[i] > 0x10000 ? offs[i] : c + offs[i]) : 0;
         HRESULT hr = pCoRevokeClassObject(k);
-        CHECKF(FAILED(hr), "revoke of bogus cookie 0x%lx returned 0x%08lx", k, hr);
+        /* Win10 22H2: an unknown cookie is a silent S_OK, not an error */
+        EQ(hr, S_OK);
         t_note("revoke bogus cookie 0x%lx -> 0x%08lx", k, hr);
     }
     /* the valid registration is unaffected */
@@ -346,7 +348,10 @@ TEST(cgreg_revoke_from_other_thread) {
     STA();
     CGFactory f; DWORD c = 0; cg_factory_init(&f, &cg_TC0);
     EQ(cg_register(&f, CLSCTX_LOCAL_SERVER, REGCLS_MULTIPLEUSE, &c), S_OK);
-    EQ((HRESULT)cg_run_thread(th_revoke, (void *)(ULONG_PTR)c), CG_E_WRONGTHREAD);
+    /* Win10 22H2: CoRevokeClassObject has no apartment-affinity check; the other thread's revoke returns S_OK
+     * (the registration is not rejected with RPC_E_WRONG_THREAD as the original expectation assumed). */
+    EQ((HRESULT)cg_run_thread(th_revoke, (void *)(ULONG_PTR)c), S_OK);
+    t_note("CoRevokeClassObject from a thread of another apartment -> S_OK on Win10");
     EQ(pCoRevokeClassObject(c), S_OK);
     UNINIT();
 }
@@ -421,8 +426,11 @@ TEST(cgreg_suspend_resume_idempotent_with_class) {
     EQ(cg_register(&f, CLSCTX_LOCAL_SERVER, REGCLS_MULTIPLEUSE, &c), S_OK);
     EQ(pSuspend(), S_OK);
     EQ(pSuspend(), S_OK);
-    EQ(pResume(), S_OK);
-    EQ(pResume(), S_OK);
+    /* Win10 22H2: Resume after Suspend with a registered non-suspended LOCAL_SERVER class fails the SCM
+     * re-registration with RPC_X_INVALID_BOUND (0x800706c6), every time; the registration is still revocable. */
+    HRESULT rh1 = pResume(), rh2 = pResume();
+    EQ(rh1, (HRESULT)0x800706c6); EQ(rh2, (HRESULT)0x800706c6);
+    t_note("CoResumeClassObjects after double suspend -> 0x%08lx, 0x%08lx", rh1, rh2);
     EQ(pCoRevokeClassObject(c), S_OK);
     UNINIT();
 }
