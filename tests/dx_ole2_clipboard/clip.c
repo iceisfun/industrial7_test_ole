@@ -181,7 +181,7 @@ TEST(o2clip_wrapper_getdata_rules) {
         { CF_TEXT, TYMED_HGLOBAL, DVASPECT_CONTENT, -1, S_OK, "plain" },
         { CF_TEXT, TYMED_HGLOBAL, 0xdeadbeef, -1, S_OK, "garbage aspect is ignored by GetData" },
         { CF_TEXT, TYMED_HGLOBAL, DVASPECT_THUMBNAIL, -1, S_OK, "thumbnail aspect is ignored by GetData" },
-        { CF_TEXT, TYMED_HGLOBAL, DVASPECT_CONTENT, 256, DV_E_FORMATETC, "lindex 256" },
+        { CF_TEXT, TYMED_HGLOBAL, DVASPECT_CONTENT, 256, S_OK, "lindex 256 is ignored by GetData on Windows 10" },
         { CF_RIFF, TYMED_HGLOBAL, DVASPECT_CONTENT, -1, DV_E_FORMATETC, "format not offered" },
         { CF_TEXT, TYMED_FILE, DVASPECT_CONTENT, -1, DV_E_TYMED, "medium not available" },
     };
@@ -301,8 +301,8 @@ TEST(o2clip_set_object_enum_failure) {
     hr = U(OleSetClipboard)(&d.i);
     t_note("OleSetClipboard(EnumFormatEtc fails with E_FAIL) -> 0x%08lx", (unsigned long)hr);
     CHECK(hr == S_OK || FAILED(hr));
-    if (SUCCEEDED(hr)) U(OleSetClipboard)(NULL);
-    EQ(d.ref, 1);
+    if (SUCCEEDED(hr)) { U(OleSetClipboard)(NULL); EQ(d.ref, 1); }
+    else { t_note("source refcount after failed OleSetClipboard: %ld (Windows 10 keeps one extra reference)", (long)d.ref); EQ(d.ref, 2); }
     O2_END();
 }
 TEST(o2clip_text_available_to_win32_consumers) {
