@@ -14,6 +14,12 @@
 #include <lm.h>
 #include <ntsecapi.h>
 
+/* The shared EXPECT_EQ evaluates its arguments twice; every argument here is a call with side effects (LsaFreeMemory,
+ * LsaRemoveAccountRights, LsaEnumerateAccountRights), so use a single-evaluation form. */
+#undef EXPECT_EQ
+#define EXPECT_EQ(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
+    t_check(a_ == b_, __FILE__, __LINE__, #a " == " #b, "got 0x%llx want 0x%llx", (unsigned long long)a_, (unsigned long long)b_); } while (0)
+
 #define SH "sechost.dll"
 #define LADD   UIN(SH, LsaAddAccountRights)
 #define LREM   UIN(SH, LsaRemoveAccountRights)
