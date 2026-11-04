@@ -24,8 +24,11 @@
 #define X_INTERNAL      1766  /* RPC_S_INTERNAL_ERROR */
 #define X_INVALID_ES    1827  /* RPC_X_INVALID_ES_ACTION */
 
-/* ---- exception capture (VEH + longjmp; no SEH keywords in mingw) ---- */
-static jmp_buf n_jb;
+/* ---- exception capture (VEH + non-unwinding builtin longjmp; no SEH keywords in mingw) ---- */
+/* Recovery uses the compiler's non-unwinding __builtin_setjmp/__builtin_longjmp: the CRT longjmp unwinds frame by frame
+   (RtlUnwindEx) from inside the handler and, on Windows 10, occasionally walks off the top of the stack while unwinding
+   through the RPC runtime's raise path, which killed the process with an access violation. */
+static void *n_jb[5];
 static volatile LONG n_armed;
 static volatile DWORD n_code;
 static LONG CALLBACK n_veh(PEXCEPTION_POINTERS ep) {
@@ -33,7 +36,7 @@ static LONG CALLBACK n_veh(PEXCEPTION_POINTERS ep) {
     if (!n_armed) return EXCEPTION_CONTINUE_SEARCH;
     if (c == 0x40010006 || c == 0x406D1388 || c == 0x4001000A || c == 0x40010005 || c == 0x80000003 || c == 0x4001000B) return EXCEPTION_CONTINUE_SEARCH;
     n_code = c; n_armed = 0;
-    longjmp(n_jb, 1);
+    __builtin_longjmp(n_jb, 1);
     return EXCEPTION_CONTINUE_SEARCH;
 }
 /* Windows 10: server side NdrServerInitialize* needs the RPC runtime to be initialised (it allocates a per-thread object
@@ -56,7 +59,7 @@ static void n_init(void) {
     static int done;
     if (!done) { done = 1; AddVectoredExceptionHandler(1, n_veh); }
 }
-#define NTRY    do { n_init(); n_code = 0; if (!setjmp(n_jb)) { n_armed = 1;
+#define NTRY    do { n_init(); n_code = 0; if (!__builtin_setjmp(n_jb)) { n_armed = 1;
 #define NEND    n_armed = 0; } } while (0)
 
 /* ---- allocator hooks ---- */
