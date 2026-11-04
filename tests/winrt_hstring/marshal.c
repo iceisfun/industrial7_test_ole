@@ -9,7 +9,7 @@
 #define WDT_MARK 0x50746457u                     /* "WdtP" */
 #define E_RAISED_NOMEM 0x8007000eu
 #define RPC_X_BAD_STUB_DATA_ 0x6f7u
-#define ALIGN8(x) (((x) + 7u) & ~7u)
+#define ALIGN8(x) (((x) + 7u) & ~(__typeof__(x))7u)
 
 static ULONG v_size(int v64, ULONG *f, ULONG st, HSTRING *h)
 { return v64 ? UN(HSTRING_UserSize64)(f, st, h) : UN(HSTRING_UserSize)(f, st, h); }

@@ -5,6 +5,16 @@
 #include "t.h"
 #include <winstring.h>
 
+/* common/t.h evaluates both EXPECT_EQ/EXPECT_NE operands twice (once to test, once to print), which re-runs
+ * mutating calls such as WindowsPromoteStringBuffer, WindowsDeleteString or HSTRING_UserUnmarshal.
+ * Evaluate each operand exactly once here. */
+#undef EXPECT_EQ
+#undef EXPECT_NE
+#define EXPECT_EQ(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
+    t_check(a_ == b_, __FILE__, __LINE__, #a " == " #b, "got 0x%llx want 0x%llx", (unsigned long long)a_, (unsigned long long)b_); } while (0)
+#define EXPECT_NE(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
+    t_check(a_ != b_, __FILE__, __LINE__, #a " != " #b, "got 0x%llx", (unsigned long long)a_); } while (0)
+
 #define HS_E_INVALIDARG   ((HRESULT)0x80070057)
 #define HS_E_POINTER      ((HRESULT)0x80004003)
 #define HS_E_BOUNDS       ((HRESULT)0x8000000B)
