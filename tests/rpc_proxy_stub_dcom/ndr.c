@@ -46,7 +46,7 @@ TEST(psdn_proxy_initialize_connected) {
     UIN("rpcrt4.dll", NdrProxyFreeBuffer)(r.iface, &sm);     /* nothing valid to free; drops the channel reference */
     EQ(r.chan->ref, 2);
     CHECK(sm.pRpcChannelBuffer == NULL);
-    EQ(r.chan->n_freebuf, 1);                                /* only the final successful call frees its buffer */
+    EQ(r.chan->n_freebuf, 0);
     psd_rig_down(&r); PSD_DONE();
 }
 
@@ -273,7 +273,7 @@ TEST(psdn_proxy_call_maps_errors) {
     /* Win10: a failed GetBuffer allocates nothing, but after a failed SendReceive the proxy does not call FreeBuffer
      * (one buffer per such call stays with the channel); a real channel frees it itself */
     EQ(r.chan->live_buffers, nfail_sr);
-    EQ(r.chan->n_freebuf, 0);
+    EQ(r.chan->n_freebuf, 1);                                /* only the final successful call frees its buffer */
     psd_rig_down(&r); PSD_DONE();
 }
 
