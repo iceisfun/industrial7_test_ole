@@ -42,6 +42,18 @@ static IDispatchVtbl dd_vtbl = { dd_qi, dd_ar, dd_rl, dd_gtic, dd_gti, dd_gids, 
 static void dd_init(DD *d) { memset(d, 0, sizeof *d); d->iface.lpVtbl = &dd_vtbl; d->ref = 1; d->hr = S_OK; }
 
 typedef HRESULT (WINAPI *conv_fn)(IDispatch *, LCID, void *);
+/* Win10 VarXFromDisp hands VariantChangeTypeEx an UNINITIALISED stack VARIANT as destination and VariantChangeTypeEx clears the destination
+ * first (it frees whatever its stale vt says), so the result depends on the caller's dead stack: stale bytes give DISP_E_BADVARTYPE (0x80020008)
+ * or worse. Every call therefore goes through a trampoline that zeroes the 4 KB below the stack pointer first (descending, so the guard page
+ * is walked in order); with a clean stack the conversion behaves as documented. */
+extern HRESULT g6_call_clean(conv_fn f, IDispatch *d, LCID lcid, void *out);
+__asm__(".text\n.globl g6_call_clean\ng6_call_clean:\n"
+        "push %rbp\n mov %rsp,%rbp\n"
+        "mov %rsp,%r10\n mov $512,%r11\n"
+        "1: sub $8,%r10\n movq $0,(%r10)\n dec %r11\n jnz 1b\n"
+        "mov %rcx,%rax\n mov %rdx,%rcx\n mov %r8,%rdx\n mov %r9,%r8\n"
+        "sub $32,%rsp\n call *%rax\n"
+        "mov %rbp,%rsp\n pop %rbp\n ret\n");
 typedef enum { K_INT, K_UINT, K_R4, K_R8, K_BOOL, K_CY, K_DATE, K_DEC } kind_t;
 typedef struct { const char *name; const char *proc; kind_t k; unsigned size; double lo, hi; } conv_t;
 static const conv_t CV[] = {
@@ -57,9 +69,9 @@ static const conv_t CV[] = {
 static double bankers(double d) { double f = floor(d), diff = d - f; if (diff < 0.5) return f; if (diff > 0.5) return f + 1; return fmod(f, 2.0) == 0 ? f : f + 1; }
 
 /* run conversion i on a dispatch returning *val; fills raw out bytes; returns hr */
-static HRESULT run(unsigned i, DD *d, LCID lcid, BYTE *out /* 16 bytes, pre-poisoned by caller */) {
+static HRESULT run(unsigned i, DD *d, LCID lcid, BYTE *out /* 24 bytes (a whole VARIANT: Win10 VarDecFromDisp stores 24 bytes), pre-poisoned by caller */) {
     conv_fn f = (conv_fn)t_proc(CV[i].proc);
-    return f ? f(&d->iface, lcid, out) : (HRESULT)0xDEADBEEF;
+    return f ? g6_call_clean(f, &d->iface, lcid, out) : (HRESULT)0xDEADBEEF;
 }
 #define LCID_US 0x0409
 
@@ -67,14 +79,22 @@ static void check_numeric(const char *tag, VARIANT res, double v, int integral_s
     for (unsigned i = 0; i < NCV; i++) {
         if (!t_proc(CV[i].proc)) { CHECKF(0, "%s missing", CV[i].proc); continue; }
         DD d; dd_init(&d); d.result = res;
-        BYTE out[16]; memset(out, 0xA5, sizeof out);
+        BYTE out[24]; memset(out, 0xA5, sizeof out);
         HRESULT hr = run(i, &d, LCID_US, out);
-        BYTE ref[16]; memset(ref, 0xA5, sizeof ref);
+        BYTE ref[24]; memset(ref, 0xA5, sizeof ref);
         const conv_t *c = &CV[i];
         HRESULT want = S_OK; double wv = 0;
         switch (c->k) {
         case K_INT: case K_UINT: {
             double r = bankers(v);
+            int ssz = 0, suns = 0;   /* integral source of the same width as the target but other signedness: Win10 reinterprets the bits, S_OK */
+            switch (V_VT(&res)) { case VT_I1: ssz = 1; break; case VT_I2: ssz = 2; break; case VT_I4: ssz = 4; break; case VT_I8: ssz = 8; break;
+                case VT_UI1: ssz = 1; suns = 1; break; case VT_UI2: ssz = 2; suns = 1; break; case VT_UI4: ssz = 4; suns = 1; break; case VT_UI8: ssz = 8; suns = 1; break; }
+            if (ssz && ssz == (int)c->size && suns != (c->k == K_UINT)) {
+                if (c->k == K_UINT && v < 0) r = v + ldexp(1.0, 8 * ssz);
+                else if (c->k == K_INT && v > c->hi) r = v - ldexp(1.0, 8 * ssz);
+                if (r != v) t_note("%s -> %s: same-width signedness change is not an overflow on Win10 (value reinterpreted)", tag, c->name);
+            }
             if (r < c->lo || r > c->hi || (c->k == K_INT && c->size == 8 && r >= 9223372036854775808.0) || (c->k == K_UINT && c->size == 8 && r >= 18446744073709551616.0)) want = E_OVERFL; else wv = r;
             break; }
         case K_BOOL: wv = v != 0 ? -1 : 0; break;
@@ -86,7 +106,7 @@ static void check_numeric(const char *tag, VARIANT res, double v, int integral_s
         case K_DEC: wv = v; if (fabs(v) >= 7.9228162514264337593543950336e28) want = E_OVERFL; break;
         }
         CHECKF(hr == want, "%s -> %s: hr 0x%lx want 0x%lx", tag, c->name, hr, want);
-        if (hr != S_OK) { CHECKF(!memcmp(out, ref, 16), "%s -> %s: output modified on failure", tag, c->name); continue; }
+        if (hr != S_OK) { CHECKF(!memcmp(out, ref, 24), "%s -> %s: output modified on failure", tag, c->name); continue; }
         switch (c->k) {
         case K_INT: { long long x = 0; memcpy(&x, out, c->size); if (c->size < 8) { long long sh = 64 - 8 * c->size; x = (x << sh) >> sh; } CHECKF((double)x == wv, "%s -> %s: got %lld want %.0f", tag, c->name, x, wv); break; }
         case K_UINT: { unsigned long long x = 0; memcpy(&x, out, c->size); CHECKF((double)x == wv, "%s -> %s: got %llu want %.0f", tag, c->name, x, wv); break; }
@@ -137,7 +157,7 @@ TEST(gap6_fromdisp_null_result_type_mismatch) {
     VARIANT r; VariantInit(&r); V_VT(&r) = VT_NULL;
     for (unsigned i = 0; i < NCV; i++) {
         DD d; dd_init(&d); d.result = r;
-        BYTE out[16]; memset(out, 0x5A, sizeof out); BYTE ref[16]; memset(ref, 0x5A, sizeof ref);
+        BYTE out[24]; memset(out, 0x5A, sizeof out); BYTE ref[24]; memset(ref, 0x5A, sizeof ref);
         HRESULT hr = run(i, &d, LCID_US, out);
         CHECKF(hr == E_TYPEMIS, "%s hr 0x%lx", CV[i].name, hr);
         CHECKF(!memcmp(out, ref, sizeof out), "%s output modified", CV[i].name);
@@ -150,7 +170,7 @@ TEST(gap6_fromdisp_bstr_result) {
         for (unsigned i = 4; i < 10; i++) {   /* I1 .. R8 */
             if (!strcmp(CV[i].name, "R4") && 0) continue;
             DD d; dd_init(&d); d.result = r;
-            BYTE out[16]; memset(out, 0xA5, sizeof out);
+            BYTE out[24]; memset(out, 0xA5, sizeof out);
             HRESULT hr = run(i, &d, LCID_US, out);
             if (!t[k].ok) { CHECKF(hr == E_TYPEMIS || FAILED(hr), "\"%ls\" -> %s hr 0x%lx", t[k].s, CV[i].name, hr); continue; }
             if (t[k].v == 300 && (!strcmp(CV[i].name, "I1"))) { CHECKF(hr == E_OVERFL, "300 -> I1 hr 0x%lx", hr); continue; }
@@ -165,7 +185,7 @@ TEST(gap6_fromdisp_invoke_failure_is_type_mismatch) {
     for (unsigned h = 0; h < sizeof hrs / sizeof *hrs; h++) {
         for (unsigned i = 0; i < NCV; i++) {
             DD d; dd_init(&d); d.hr = hrs[h]; V_VT(&d.result) = VT_I4; V_I4(&d.result) = 5;
-            BYTE out[16]; memset(out, 0x77, sizeof out); BYTE ref[16]; memset(ref, 0x77, sizeof ref);
+            BYTE out[24]; memset(out, 0x77, sizeof out); BYTE ref[24]; memset(ref, 0x77, sizeof ref);
             HRESULT hr = run(i, &d, LCID_US, out);
             CHECKF(hr == E_TYPEMIS, "invoke hr 0x%lx %s -> 0x%lx", hrs[h], CV[i].name, hr);
             CHECKF(!memcmp(out, ref, sizeof out), "%s output modified", CV[i].name);
@@ -177,7 +197,7 @@ TEST(gap6_fromdisp_invoke_call_shape) {
     REQUIRE(U(VarI4FromDisp));
     DD d; dd_init(&d); V_VT(&d.result) = VT_I4; V_I4(&d.result) = 8;
     LONG out = -1;
-    EQ(U(VarI4FromDisp)(&d.iface, 0x0407, &out), S_OK);
+    EQ(g6_call_clean((conv_fn)U(VarI4FromDisp), &d.iface, 0x0407, &out), S_OK);
     EQ(out, 8);
     EQ(d.invokes, 1);
     CHECKF(d.dispid == DISPID_VALUE, "dispid %ld", d.dispid);
@@ -191,7 +211,7 @@ TEST(gap6_fromdisp_invoke_call_shape) {
 TEST(gap6_fromdisp_lifetime_net_zero) {
     for (unsigned i = 0; i < NCV; i++) {
         DD d; dd_init(&d); V_VT(&d.result) = VT_I4; V_I4(&d.result) = 1;
-        BYTE out[16];
+        BYTE out[24];
         run(i, &d, LCID_US, out);
         CHECKF(d.ref == 1, "%s: ref=%ld after call", CV[i].name, d.ref);
     }
@@ -202,14 +222,14 @@ TEST(gap6_fromdisp_result_is_object_chain) {
     DD inner; dd_init(&inner); V_VT(&inner.result) = VT_I4; V_I4(&inner.result) = 99;
     DD outer; dd_init(&outer); V_VT(&outer.result) = VT_DISPATCH; V_DISPATCH(&outer.result) = &inner.iface; inner.ref++;
     LONG out = -1;
-    HRESULT hr = U(VarI4FromDisp)(&outer.iface, LCID_US, &out);
+    HRESULT hr = g6_call_clean((conv_fn)U(VarI4FromDisp), &outer.iface, LCID_US, &out);
     t_note("dispatch returning a dispatch: hr=0x%lx out=%ld inner invokes=%ld", hr, out, inner.invokes);
     if (hr == S_OK) EQ(out, 99);
 }
 TEST(gap6_fromdisp_null_dispatch) {
     REQUIRE(U(VarI4FromDisp));
     LONG out = 55;
-    HRESULT hr = U(VarI4FromDisp)(NULL, LCID_US, &out);
+    HRESULT hr = g6_call_clean((conv_fn)U(VarI4FromDisp), NULL, LCID_US, &out);
     t_note("VarI4FromDisp(NULL) hr=0x%lx out=%ld", hr, out);
     CHECK(FAILED(hr));
     CHECK(out == 55);
@@ -221,7 +241,7 @@ TEST(gap6_fromdisp_matches_variantchangetypeex) {
         DD d; dd_init(&d); V_VT(&d.result) = VT_R8; V_R8(&d.result) = vals[k];
         VARIANT src, dst; VariantInit(&src); VariantInit(&dst); V_VT(&src) = VT_DISPATCH; V_DISPATCH(&src) = &d.iface;
         HRESULT h1 = U(VariantChangeTypeEx)(&dst, &src, LCID_US, 0, VT_I2);
-        SHORT o2 = 0x7777; HRESULT h2 = U(VarI2FromDisp)(&d.iface, LCID_US, &o2);
+        SHORT o2 = 0x7777; HRESULT h2 = g6_call_clean((conv_fn)U(VarI2FromDisp), &d.iface, LCID_US, &o2);
         CHECKF(h1 == h2, "val %g: 0x%lx vs 0x%lx", vals[k], h1, h2);
         if (h1 == S_OK) CHECKF(V_VT(&dst) == VT_I2 && V_I2(&dst) == o2, "val %g", vals[k]);
     }
@@ -229,22 +249,26 @@ TEST(gap6_fromdisp_matches_variantchangetypeex) {
 TEST(gap6_fromdisp_decimal_precision) {
     REQUIRE(U(VarDecFromDisp));
     DD d; dd_init(&d); V_VT(&d.result) = VT_R8; V_R8(&d.result) = 2.5;
-    DECIMAL x; memset(&x, 0xEE, sizeof x);
-    EQ(U(VarDecFromDisp)(&d.iface, LCID_US, &x), S_OK);
-    CHECK(x.sign == 0 && x.scale == 1 && x.Hi32 == 0 && x.Lo64 == 25);
+    /* Win10 VarDecFromDisp copies the whole 24-byte converted VARIANT to *pdecOut (movups + movsd), i.e. 8 bytes past a DECIMAL; the first 16 bytes
+     * are the DECIMAL (wReserved overlays vt = VT_DECIMAL). A caller buffer must therefore be VARIANT-sized. */
+    union { DECIMAL x; VARIANT v; } u; memset(&u, 0xEE, sizeof u);
+    EQ(g6_call_clean((conv_fn)U(VarDecFromDisp), &d.iface, LCID_US, &u), S_OK);
+    t_note("VarDecFromDisp stores 24 bytes: wReserved/vt=%u, bytes 16..23 = %016llx", u.x.wReserved, *(unsigned long long *)((BYTE *)&u + 16));
+    CHECK(u.x.sign == 0 && u.x.scale == 1 && u.x.Hi32 == 0 && u.x.Lo64 == 25);
     V_R8(&d.result) = -0.125;
-    EQ(U(VarDecFromDisp)(&d.iface, LCID_US, &x), S_OK);
-    CHECK(x.sign == DECIMAL_NEG && x.scale == 3 && x.Hi32 == 0 && x.Lo64 == 125);
+    memset(&u, 0xEE, sizeof u);
+    EQ(g6_call_clean((conv_fn)U(VarDecFromDisp), &d.iface, LCID_US, &u), S_OK);
+    CHECK(u.x.sign == DECIMAL_NEG && u.x.scale == 3 && u.x.Hi32 == 0 && u.x.Lo64 == 125);
 }
 TEST(gap6_fromdisp_cy_scaling) {
     REQUIRE(U(VarCyFromDisp));
     DD d; dd_init(&d); V_VT(&d.result) = VT_R8; V_R8(&d.result) = 12.3456;
     CY c; c.int64 = 0;
-    EQ(U(VarCyFromDisp)(&d.iface, LCID_US, &c), S_OK);
+    EQ(g6_call_clean((conv_fn)U(VarCyFromDisp), &d.iface, LCID_US, &c), S_OK);
     EQ(c.int64, 123456);
     V_R8(&d.result) = 1e15;           /* 1e15 * 10000 = 1e19 > 2^63 */
     c.int64 = 5;
-    EQ(U(VarCyFromDisp)(&d.iface, LCID_US, &c), E_OVERFL);
+    EQ(g6_call_clean((conv_fn)U(VarCyFromDisp), &d.iface, LCID_US, &c), E_OVERFL);
     EQ(c.int64, 5);
 }
 TEST(gap6_fromdisp_bool_from_variants) {
@@ -254,7 +278,7 @@ TEST(gap6_fromdisp_bool_from_variants) {
         DD d; dd_init(&d); V_VT(&d.result) = t[k].vt;
         switch (t[k].vt) { case VT_I4: V_I4(&d.result) = (LONG)t[k].v; break; case VT_R8: V_R8(&d.result) = t[k].v; break; case VT_I2: V_I2(&d.result) = (SHORT)t[k].v; break; case VT_UI1: V_UI1(&d.result) = (BYTE)t[k].v; break; }
         VARIANT_BOOL o = 0x1234;
-        HRESULT hr = U(VarBoolFromDisp)(&d.iface, LCID_US, &o);
+        HRESULT hr = g6_call_clean((conv_fn)U(VarBoolFromDisp), &d.iface, LCID_US, &o);
         CHECKF(hr == S_OK && o == t[k].want, "vt %u v %g: hr 0x%lx out %d", t[k].vt, t[k].v, hr, o);
     }
 }
@@ -264,7 +288,7 @@ TEST(gap6_fromdisp_bool_bstr_true_false) {
     for (unsigned k = 0; k < sizeof t / sizeof *t; k++) {
         DD d; dd_init(&d); V_VT(&d.result) = VT_BSTR; V_BSTR(&d.result) = (BSTR)t[k].s;
         VARIANT_BOOL o = 0x1234;
-        HRESULT hr = U(VarBoolFromDisp)(&d.iface, 0x0409, &o);
+        HRESULT hr = g6_call_clean((conv_fn)U(VarBoolFromDisp), &d.iface, 0x0409, &o);
         CHECKF(hr == S_OK && o == t[k].want, "\"%ls\": hr 0x%lx out %d", t[k].s, hr, o);
     }
 }
@@ -272,6 +296,6 @@ TEST(gap6_fromdisp_date_value) {
     REQUIRE(U(VarDateFromDisp));
     DD d; dd_init(&d); V_VT(&d.result) = VT_R8; V_R8(&d.result) = 36526.25;
     DATE o = 0;
-    EQ(U(VarDateFromDisp)(&d.iface, LCID_US, &o), S_OK);
+    EQ(g6_call_clean((conv_fn)U(VarDateFromDisp), &d.iface, LCID_US, &o), S_OK);
     CHECK(o == 36526.25);
 }
