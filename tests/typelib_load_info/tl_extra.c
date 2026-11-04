@@ -111,7 +111,12 @@ TEST(tlli_x_truncated_and_corrupt_copies)
         spit(p, orig, cuts[i]);
         ITypeLib *tl = SENTINEL;
         HRESULT hr = f(p, REGKIND_NONE, &tl);
-        t_note("truncated to %lu bytes -> 0x%08lx", (unsigned long)cuts[i], (unsigned long)hr);
+        /* Windows 10 reports either TYPE_E_CANTLOADLIBRARY (0x80029c4a) or 0x80028ca2 for the same truncated file, from boot to
+           boot, so only a code outside that pair is worth printing */
+        if ((unsigned long)hr == 0x80029c4aUL || (unsigned long)hr == 0x80028ca2UL)
+            t_note("truncated to %lu bytes -> a typelib load error (CANTLOADLIBRARY or 0x80028ca2)", (unsigned long)cuts[i]);
+        else
+            t_note("truncated to %lu bytes -> 0x%08lx", (unsigned long)cuts[i], (unsigned long)hr);
         if (cuts[i] < 0x54) {
             CHECKF(FAILED(hr), "truncated to %lu loaded", (unsigned long)cuts[i]);
             CHECK(tl == NULL);

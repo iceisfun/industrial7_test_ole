@@ -6,9 +6,35 @@ usage: win10_compare.py <serial.log> <serial.log> [...] [--lines]
 Per (mode, exe) it reports tests whose result differs between the logs and, with --lines, every printed output line
 (NOTE, FAIL and SKIP detail, test results) that is not present the same number of times in all logs. Timing fields
 (the rc seconds) are ignored. Exit code 0 when all logs agree, else 1."""
-import collections, os, sys
+import collections, os, re, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import win10_results as wr
+
+# Values that legitimately differ between boots (addresses, ids, timings, generated names, file times) are masked in
+# NOTE detail lines so --lines only reports differences in what a test observed about the system.
+_VOLATILE = [
+    (re.compile(r"\b[0-9A-Fa-f]{12,16}\b"), "<ptr>"),                      # pointers, OXIDs, file times
+    (re.compile(r"\b[0-9A-Fa-f]{8}:[0-9A-Fa-f]{8}\b"), "<ft>"),
+    (re.compile(r"\b0x[0-9A-Fa-f]{9,16}\b"), "<ptr>"),
+    (re.compile(r"\b(pid|tid|cookie|atom|port)[= ]\d+", re.I), r"\1=<n>"),
+    (re.compile(r"\b(\d+) ?ms\b"), "<ms>"),
+    (re.compile(r"\b(after|first|last) \d+\b"), r"\1 <n>"),
+    (re.compile(r"ROOT\\OLET\\\d+"), "ROOT-OLET-<n>"),
+    (re.compile(r"\b(needed|returned|holds|process) \d+"), r"\1 <n>"),
+    (re.compile(r"needed=\d+"), "needed=<n>"),
+    (re.compile(r"\d+ GUIDs"), "<n> GUIDs"),
+    (re.compile(r"\b\d+ element\(s\)"), "<n> element(s)"),
+    (re.compile(r"(\bc=|\bm=|\ba=)[0-9a-f]+:[0-9a-f]+"), r"\1<ft>"),
+    (re.compile(r"service process \d+"), "service process <n>"),
+    (re.compile(r"olet_[0-9A-Za-z]+(_[0-9A-Za-z]+)*"), "olet_<id>"),
+    (re.compile(r"~DF[0-9A-F]+\.TMP"), "~DF<id>.TMP"),
+    (re.compile(r"LRPC-[0-9a-f]+"), "LRPC-<id>"),
+    (re.compile(r"\b[0-9a-f]{8}\b(?=[:,\s]|$)"), "<h8>"),
+]
+def mask(body):
+    if not body.lstrip().startswith("NOTE"): return body
+    for rx, rep in _VOLATILE: body = rx.sub(rep, body)
+    return body
 
 def outlines(text):
     d = collections.defaultdict(collections.Counter); mode = "?"
@@ -22,7 +48,7 @@ def outlines(text):
             body = body.rstrip()
             if body.startswith("SUMMARY"):   # the number of checks varies with the system objects an area enumerates
                 body = " ".join(w for w in body.split() if not w.startswith("checks_pass="))
-            d[(mode, exe.strip())][body] += 1
+            d[(mode, exe.strip())][mask(body)] += 1
     return d
 
 def main(argv):
