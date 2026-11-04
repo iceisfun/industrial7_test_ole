@@ -45,7 +45,7 @@ TEST(gap7_lsa_open_policy_clears_out_handle_and_rootdirectory_first)
     CHECKF(st == 0, "LsaOpenPolicy 0x%lx", (unsigned long)st);
     CHECK(oa.RootDirectory == NULL);               /* overwritten by the client before the RPC */
     CHECK(h != NULL && h != (LSA_HANDLE)(ULONG_PTR)0xdeadbeef);
-    if (st == 0) EXPECT_EQ(LCLOSE(h), 0);
+    if (st == 0) EQ(LCLOSE(h), 0);
 }
 TEST(gap7_lsa_open_policy_access_masks)
 {
@@ -56,7 +56,7 @@ TEST(gap7_lsa_open_policy_access_masks)
     for (i = 0; i < NELEM(ok); i++) {
         LSA_HANDLE h; NTSTATUS st = open_with(ok[i], &h);
         CHECKF(st == 0, "access 0x%lx: status 0x%lx", (unsigned long)ok[i], (unsigned long)st);
-        if (st == 0) { CHECK(h != NULL); EXPECT_EQ(LCLOSE(h), 0); }
+        if (st == 0) { CHECK(h != NULL); EQ(LCLOSE(h), 0); }
     }
 }
 TEST(gap7_lsa_open_policy_zero_and_all_access_observed)
@@ -80,13 +80,13 @@ TEST(gap7_lsa_open_policy_handles_distinct_and_independent)
     CHECK(sa == 0 && sb == 0);
     if (sa || sb) { if (!sa) LCLOSE(a); if (!sb) LCLOSE(b); return; }
     CHECK(a != b);
-    EXPECT_EQ(LCLOSE(a), 0);
+    EQ(LCLOSE(a), 0);
     {   /* b is still usable after a is closed */
         PVOID buf = NULL; NTSTATUS q = LQUERY(b, PolicyAccountDomainInformation, &buf);
         CHECKF(q == 0, "query on surviving handle 0x%lx", (unsigned long)q);
         if (buf) LFREE(buf);
     }
-    EXPECT_EQ(LCLOSE(b), 0);
+    EQ(LCLOSE(b), 0);
 }
 
 /* ---------------- LsaQueryInformationPolicy ---------------- */
@@ -122,7 +122,7 @@ TEST(gap7_lsa_query_class_13_is_invalid_parameter_before_handle_check)
 TEST(gap7_lsa_query_unknown_class_with_valid_handle_fails_and_nulls_buffer)
 {
     WSKIP_LSA();
-    static const int classes[] = { 0, 14, 15, 100 };
+    static const int classes[] = { 0, 9, 17, 100 };   /* 9 (modification info) is refused on Win10; 14, 15 and 16 are served (see the succeed test) */
     LSA_HANDLE h; unsigned i;
     REQUIRE(LQUERY); REQUIRE(LOPEN); REQUIRE(LCLOSE);
     if (open_with(POLICY_VIEW_LOCAL_INFORMATION, &h) != 0) { t_skip("cannot open policy"); return; }
@@ -159,7 +159,7 @@ TEST(gap7_lsa_query_account_domain_contents)
                 t_note("account domain name equals the computer name");
             else t_note("account domain name differs from the computer name (domain controller?)");
         }
-        EXPECT_EQ(LFREE(buf), 0);
+        EQ(LFREE(buf), 0);
     }
     LCLOSE(h);
 }
@@ -176,7 +176,7 @@ TEST(gap7_lsa_query_primary_domain_contents)
         CHECK(ustr_ok(&d->Name));
         if (d->Sid) CHECK(IsValidSid(d->Sid));
         t_note("primary domain \"%.*ls\" sid %s", d->Name.Length / 2, d->Name.Buffer ? d->Name.Buffer : L"", d->Sid ? "present (domain member)" : "NULL (workgroup)");
-        EXPECT_EQ(LFREE(buf), 0);
+        EQ(LFREE(buf), 0);
     }
     LCLOSE(h);
 }
@@ -193,7 +193,7 @@ TEST(gap7_lsa_query_dns_domain_information)
         CHECK(ustr_ok(&d->Name)); CHECK(ustr_ok(&d->DnsDomainName)); CHECK(ustr_ok(&d->DnsForestName));
         if (d->Sid) CHECK(IsValidSid(d->Sid));
         if (!d->Sid) CHECK(d->DnsDomainName.Length == 0);   /* workgroup machine: no DNS domain */
-        EXPECT_EQ(LFREE(buf), 0);
+        EQ(LFREE(buf), 0);
     }
     LCLOSE(h);
 }
@@ -201,14 +201,14 @@ TEST(gap7_lsa_query_view_local_information_classes_succeed)
 {
     WSKIP_LSA();
     static const int classes[] = { PolicyAccountDomainInformation, PolicyPrimaryDomainInformation, PolicyLsaServerRoleInformation,
-        PolicyDefaultQuotaInformation, PolicyModificationInformation, PolicyDnsDomainInformation };
+        PolicyDefaultQuotaInformation, PolicyDnsDomainInformation, 14, 15, 16 };
     LSA_HANDLE h; unsigned i;
     REQUIRE(LQUERY); REQUIRE(LOPEN); REQUIRE(LCLOSE); REQUIRE(LFREE);
     if (open_with(POLICY_VIEW_LOCAL_INFORMATION, &h) != 0) { t_skip("cannot open policy"); return; }
     for (i = 0; i < NELEM(classes); i++) {
         PVOID buf = (PVOID)(ULONG_PTR)0xfeedf00d; NTSTATUS st = LQUERY(h, (POLICY_INFORMATION_CLASS)classes[i], &buf);
         CHECKF(st == 0, "class %d: 0x%lx", classes[i], (unsigned long)st);
-        if (st == 0) { CHECKF(buf != NULL && buf != (PVOID)(ULONG_PTR)0xfeedf00d, "class %d buffer", classes[i]); EXPECT_EQ(LFREE(buf), 0); }
+        if (st == 0) { CHECKF(buf != NULL && buf != (PVOID)(ULONG_PTR)0xfeedf00d, "class %d buffer", classes[i]); EQ(LFREE(buf), 0); }
     }
     LCLOSE(h);
 }
@@ -274,6 +274,6 @@ TEST(gap7_lsa_free_memory_null_and_forwarding)
     memset(&oa, 0, sizeof oa); oa.Length = sizeof oa; h = NULL;
     st = adv(NULL, &oa, POLICY_VIEW_LOCAL_INFORMATION, &h);
     CHECKF(st == 0, "advapi32!LsaOpenPolicy 0x%lx", (unsigned long)st);
-    if (st == 0) EXPECT_EQ(LCLOSE(h), 0);
+    if (st == 0) EQ(LCLOSE(h), 0);
     t_note("advapi32!LsaOpenPolicy %s sechost's address", (FARPROC)adv == (FARPROC)LOPEN ? "is" : "is not");
 }

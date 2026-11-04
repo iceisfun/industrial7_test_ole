@@ -370,13 +370,13 @@ TEST(gap7_cred_unmarshal_type_char_sets_type_even_on_failure)
     unsigned t;
     REQUIRE(CUW);
     for (t = 0; t < 64; t++) {
-        char s[128]; WCHAR w[128]; CRED_MARSHAL_TYPE rt = (CRED_MARSHAL_TYPE)0x77; void *u = (void *)1; BOOL r;
+        char s[128]; WCHAR w[128]; CRED_MARSHAL_TYPE rt = (CRED_MARSHAL_TYPE)0x77; void *u = (void *)1; BOOL r; DWORD le;
         make_cert_str(s, 0); s[2] = ALPHA[t]; g7_widen(s, w, 128);
-        SET_ERR(0); r = CUW(w, &rt, &u);
+        SET_ERR(0); r = CUW(w, &rt, &u); le = GetLastError();
         if (t == 1) { CHECK(r); if (r && u) CFREE(u); }
         else {
             CHECKF(!r, "type char %u unexpectedly accepted", t);
-            if (!t_is_wine()) { EXPECT_ERR(ERROR_INVALID_PARAMETER); CHECK(u == NULL); }   /* wine neither sets the error nor clears the output */
+            if (!t_is_wine()) { CHECKF(le == ERROR_INVALID_PARAMETER, "type char %u: GetLastError %lu", t, (unsigned long)le); CHECK(u == NULL); }   /* wine neither sets the error nor clears the output */
         }
         CHECKF((unsigned)rt == t, "type %u: out %d", t, rt);
     }

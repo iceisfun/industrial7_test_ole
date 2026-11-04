@@ -2,12 +2,16 @@
  * Decomp-verified model (rpcrt4 19041): a per-thread (TLS) ALLOCATION_CONTEXT holds {alloc, free} hooks (initially the
  * runtime's DefaultAllocate/DefaultFree), an enable count, and a context reference count (starts at 1).
  *   Set/SwapClientAllocFree create the context on demand (count 0) and only exchange the hook pair;
- *   Enable (count 0 -> 1) installs RpcSsAllocate/RpcSsFree as the hooks and Disable never restores the old ones;
+ *   Enable (count 0 -> 1) installs RpcSsAllocate/RpcSsFree as the hooks; the Disable that drops the count to 0 releases the
+ *   arena and puts the default pair back (Win10 decompilation of the release path, confirmed on a live guest);
+ *   the default pair raises RPC_X_NO_MEMORY (0x725) while the process-wide default allocator is unset (it is, in this exe);
  *   SetThreadHandle(other) drops the current context (freed outright when its reference count is 1) and adopts `other`;
- *   NdrRpcSmClientAllocate/Free (and RpcSmClientFree) simply call the current hooks, defaults when the thread has no context.
+ *   NdrRpcSmClientAllocate/Free (and RpcSmClientFree) simply call the current hooks; with no context they call the
+ *   default pair directly (so they raise 0x725 here as well).
  * The status-returning RpcSm* wrappers always return RPC_S_OK. */
 #include "gap7.h"
 
+#define G7_NOMEM 0x725u   /* the status the default allocator pair raises; not the header's RPC_X_NO_MEMORY (= 14) */
 typedef void *(__RPC_API *a_fn)(size_t);
 typedef void (__RPC_API *f_fn)(void *);
 
@@ -61,11 +65,13 @@ TEST(gap7_stubmem_client_hooks_dispatch_allocate_and_free)
 static HANDLE g_ev1, g_ev2;
 static DWORD WINAPI other_thread(void *p)
 {
-    res *r = p; void *m;
+    res *r = p;
     WaitForSingleObject(g_ev1, 8000);
-    m = U(NdrRpcSmClientAllocate)(40);          /* no context on this thread: defaults */
-    r->d[0] = m != NULL; r->d[1] = g_a[0];
-    if (m) { memset(m, 0xAB, 40); U(NdrRpcSmClientFree)(m); }
+    void *oa = 0, *of = 0;
+    /* a fresh context on this thread holds the default pair, not the hooks set on the other thread */
+    r->d[4] = U(RpcSmSwapClientAllocFree)(NULL, NULL, (RPC_CLIENT_ALLOC **)&oa, (RPC_CLIENT_FREE **)&of);
+    r->d[0] = oa != NULL && of != NULL && oa != (void *)HA[0] && of != (void *)HF[0];
+    r->d[1] = g_a[0];
     r->d[2] = g_f[0];
     SetEvent(g_ev2);
     return 0;
@@ -88,7 +94,7 @@ TEST(gap7_stubmem_client_hooks_are_per_thread)
     reset_hooks(); memset(&r, 0, sizeof r);
     g_ev1 = CreateEventA(NULL, FALSE, FALSE, NULL); g_ev2 = CreateEventA(NULL, FALSE, FALSE, NULL);
     EQ(g7_run(body_perthread, &r), 0);
-    EQ(r.d[0], 1);            /* default allocator works */
+    EQ(r.d[4], 0); EQ(r.d[0], 1);   /* the other thread sees the default pair */
     EQ(r.d[1], 0);            /* other thread's hook not called */
     EQ(r.d[2], 0);
     EQ(r.d[3], 0);            /* and the hook thread made no allocation itself */
@@ -137,7 +143,7 @@ TEST(gap7_stubmem_swap_chains_previous_pairs_across_ss_and_sm)
     CHECK(r.r[10] == NULL && r.r[11] == NULL);
 }
 
-/* ---------- enable installs RpcSs hooks that survive Disable ---------- */
+/* ---------- enable installs RpcSs hooks that Disable replaces by the defaults ---------- */
 static void body_enable_hooks(void *p)
 {
     res *r = p; void *oa = 0, *of = 0; DWORD code;
@@ -153,20 +159,23 @@ static void body_enable_hooks(void *p)
     }
     r->d[2] = U(RpcSmDisableAllocate)();
     U(RpcSsSwapClientAllocFree)(NULL, NULL, (RPC_CLIENT_ALLOC **)&oa, (RPC_CLIENT_FREE **)&of);
-    r->r[2] = oa; r->r[3] = of;                                    /* still the RpcSs hooks: Disable does not restore */
+    r->r[2] = oa; r->r[3] = of;                                    /* default pair again: the last Disable released the context state */
     r->d[3] = g_a[0];
 }
-TEST(gap7_stubmem_enable_replaces_client_hooks_and_disable_leaves_them)
+TEST(gap7_stubmem_enable_replaces_client_hooks_and_disable_restores_defaults)
 {
-    res r;
+    res r, d;
     REQUIRE(U(RpcSmEnableAllocate)); REQUIRE(U(RpcSmDisableAllocate)); REQUIRE(U(RpcSsAllocate)); REQUIRE(U(RpcSsFree));
     if (t_is_wine()) { t_skip("wine lacks the TLS allocation-context hooks"); return; }
-    reset_hooks(); memset(&r, 0, sizeof r);
+    reset_hooks(); memset(&r, 0, sizeof r); memset(&d, 0, sizeof d);
+    EQ(g7_run(body_defaults, &d), 0);
     EQ(g7_run(body_enable_hooks, &r), 0);
     EQ(r.d[0], 0); EQ(r.d[1], 1); EQ(r.d[2], 0);
     CHECK(r.r[0] != NULL && r.r[1] != NULL);
     CHECK(r.r[0] != (void *)HA[0] && r.r[1] != (void *)HF[0]);     /* the user pair was replaced by Enable */
-    CHECK(r.r[2] == r.r[0] && r.r[3] == r.r[1]);                    /* Disable leaves whatever Enable installed */
+    CHECK(r.r[2] != NULL && r.r[3] != NULL);
+    CHECK(r.r[2] == d.r[0] && r.r[3] == d.r[1]);                    /* the final Disable puts the default pair back */
+    CHECK(r.r[2] != r.r[0] && r.r[3] != r.r[1]);
     t_note("Enable installs %s RpcSsAllocate and %s RpcSsFree exports", r.r[0] == (void *)U(RpcSsAllocate) ? "the" : "not the", r.r[1] == (void *)U(RpcSsFree) ? "the" : "not the");
     EQ(r.d[3], 0);                                                 /* the earlier user hook was never called */
 }
@@ -175,16 +184,16 @@ static void body_alloc_after_disable(void *p)
     void *m;
     U(RpcSmEnableAllocate)();
     U(RpcSmDisableAllocate)();
-    m = U(NdrRpcSmClientAllocate)(16);      /* hooks are RpcSsAllocate, but the context is no longer enabled */
+    m = U(NdrRpcSmClientAllocate)(16);      /* the last Disable restored the default pair; the process default allocator is unset */
     *(void **)p = m;
 }
-TEST(gap7_stubmem_client_allocate_after_enable_disable_cycle_raises_out_of_memory)
+TEST(gap7_stubmem_client_allocate_after_enable_disable_cycle_raises_no_memory)
 {
     void *m = (void *)1; DWORD x;
     REQUIRE(U(RpcSmEnableAllocate)); REQUIRE(U(NdrRpcSmClientAllocate));
     if (t_is_wine()) { t_skip("wine lacks the TLS allocation-context hooks"); return; }
     x = g7_run(body_alloc_after_disable, &m);
-    EQ(x, RPC_S_OUT_OF_MEMORY);
+    EQ(x, G7_NOMEM);                        /* 0x725 from the default pair, not RPC_S_OUT_OF_MEMORY */
 }
 
 /* ---------- mixed Ss/Sm enable counting ---------- */
@@ -303,25 +312,41 @@ TEST(gap7_stubmem_shared_context_enable_count_is_shared_between_threads)
     for (i = 0; i < 4; i++) CloseHandle(sh_ev[i]);
 }
 
-/* ---------- default allocator round trip ---------- */
+/* ---------- default pair with no process-wide default allocator ---------- */
 static void body_default_roundtrip(void *p)
 {
-    res *r = p; unsigned i, bad = 0;
-    for (i = 0; i < 2000; i++) {
-        size_t n = (i * 37) % 3000 + 1; unsigned char *m = U(NdrRpcSmClientAllocate)(n);
-        if (!m) { bad++; continue; }
-        memset(m, (int)i, n);
-        if (m[0] != (unsigned char)i || m[n - 1] != (unsigned char)i) bad++;
-        if (i & 1) U(NdrRpcSmClientFree)(m); else U(RpcSmClientFree)(m);
-    }
-    r->d[0] = bad;
+    res *r = p;
+    r->d[0] = 0;
+    r->r[0] = U(NdrRpcSmClientAllocate)(64);   /* no context, process default unset: raises RPC_X_NO_MEMORY */
+    r->d[0] = 1;                               /* not reached */
 }
-TEST(gap7_stubmem_default_client_allocator_roundtrip)
+static void body_default_free(void *p)
+{
+    res *r = p; r->d[0] = 0;
+    U(RpcSmClientFree)(NULL);                  /* the default free raises the same status */
+    r->d[0] = 1;
+}
+static void body_default_free_ctx(void *p)
+{
+    res *r = p; void *oa, *of; r->d[0] = 0;
+    U(RpcSmSwapClientAllocFree)(HA[0], HF[0], (RPC_CLIENT_ALLOC **)&oa, (RPC_CLIENT_FREE **)&of);   /* create a context, remember the default pair */
+    U(RpcSmSwapClientAllocFree)((RPC_CLIENT_ALLOC *)oa, (RPC_CLIENT_FREE *)of, (RPC_CLIENT_ALLOC **)&oa, (RPC_CLIENT_FREE **)&of);
+    U(NdrRpcSmClientFree)(NULL);               /* context present, default pair installed: same status */
+    r->d[0] = 1;
+}
+TEST(gap7_stubmem_default_client_allocator_raises_no_memory_when_process_default_unset)
 {
     res r;
-    REQUIRE(U(NdrRpcSmClientAllocate)); REQUIRE(U(NdrRpcSmClientFree)); REQUIRE(U(RpcSmClientFree));
+    REQUIRE(U(NdrRpcSmClientAllocate)); REQUIRE(U(NdrRpcSmClientFree)); REQUIRE(U(RpcSmClientFree)); REQUIRE(U(RpcSmSwapClientAllocFree));
     if (t_is_wine()) { t_skip("wine lacks NdrRpcSmClientAllocate"); return; }
     memset(&r, 0xff, sizeof r);
-    EQ(g7_run(body_default_roundtrip, &r), 0);
+    EQ(g7_run(body_default_roundtrip, &r), G7_NOMEM);
     EQ(r.d[0], 0);
+    memset(&r, 0xff, sizeof r);
+    EQ(g7_run(body_default_free, &r), G7_NOMEM);
+    EQ(r.d[0], 0);
+    memset(&r, 0xff, sizeof r);
+    EQ(g7_run(body_default_free_ctx, &r), G7_NOMEM);
+    EQ(r.d[0], 0);
+    t_note("default allocator pair raises 0x725 until a stub installs the process-wide default");
 }

@@ -194,6 +194,14 @@ TEST(gap7_ndrconvert_empty_format_changes_nothing)
 }
 
 /* ======================= NdrInterfacePointerFree / Unmarshall ======================= */
+/* NdrInterfacePointerFree/Unmarshall dispatch through the NDR OLE extension table, which rpcrt4 loads lazily (from ole32)
+ * on first use by other entry points, e.g. NdrOleAllocate; without it the table pointer is NULL and the call faults. */
+static void ndr_ole_ext_load(void)
+{
+    void *(WINAPI *oa)(size_t) = (void *)t_proc_in("rpcrt4.dll", "NdrOleAllocate");
+    void (WINAPI *of)(void *) = (void *)t_proc_in("rpcrt4.dll", "NdrOleFree");
+    if (oa && of) { void *m = oa(8); if (m) of(m); }
+}
 typedef struct { void **vtbl; } fake_unk;
 static volatile LONG f_qi, f_addref, f_release; static void *volatile f_release_this;
 static HRESULT STDMETHODCALLTYPE fq(void *t, const IID *i, void **o) { InterlockedIncrement(&f_qi); return E_NOINTERFACE; }
@@ -210,6 +218,7 @@ TEST(gap7_ndrinterfacepointerfree_calls_release_once)
     mctx c; ip_arg a; unsigned char fmt[4] = { FC_IP, FC_CONSTANT_IID, 0, 0 };
     REQUIRE(U(NdrInterfacePointerFree));
     if (t_is_wine()) { t_skip("not validated under wine"); return; }
+    ndr_ole_ext_load();
     m_make(&c, NULL, 0, 0, 0x10, 0);
     a.c = &c; a.fmt = fmt;
     fake_reset(); a.mem = (unsigned char *)&fake_obj;
@@ -262,6 +271,7 @@ TEST(gap7_ndrinterfacepointerunmarshall_client_releases_previous_server_does_not
     unsigned char fmt[4] = { FC_IP, FC_CONSTANT_IID, 0, 0 }; unsigned client;
     REQUIRE(U(NdrInterfacePointerUnmarshall));
     if (t_is_wine()) { t_skip("not validated under wine"); return; }
+    ndr_ole_ext_load();
     for (client = 0; client < 2; client++) {
         mctx c; ipu_arg a; unsigned char *mem = (unsigned char *)&fake_obj;
         m_make(&c, wire, 4, 0, 0x10, client);
