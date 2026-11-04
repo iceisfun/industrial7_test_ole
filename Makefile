@@ -4,7 +4,12 @@ CC      = x86_64-w64-mingw32-gcc
 CFLAGS  ?= -O1 -Wall -Wno-unused-function -Wno-unused-variable -Wno-unused-but-set-variable -Wno-format
 AREAS   := $(notdir $(wildcard tests/*))
 EXES    := $(addprefix build/,$(addsuffix .exe,$(AREAS)))
-all: $(EXES)
+TOOLEXES := build/tools/olet_runas.exe build/tools/olet_probe.exe
+all: $(EXES) $(TOOLEXES)
+# Guest-side helpers used by tools/win10_pack.py (not test areas).
+build/tools/%.exe: tools/guest/%.c
+	@mkdir -p build/tools
+	$(CC) $(CFLAGS) -o $@ $< -static -ladvapi32 -lkernel32
 .SECONDEXPANSION:
 build/%.exe: $$(wildcard tests/$$*/*.c) common/t.c common/t.h common/modules.h
 	@mkdir -p build
