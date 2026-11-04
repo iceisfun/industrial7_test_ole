@@ -169,7 +169,7 @@ TEST(ndr_cvstruct_wire_layout) {
 }
 
 /* ---------------- complex (bogus) structs ---------------- */
-static const unsigned char f_bs_enum[] = { FC_BOGUS_STRUCT, 3, S16(8), S16(0), S16(0), FC_LONG, FC_ENUM16, FC_STRUCTPAD2, FC_END };
+static const unsigned char f_bs_enum[] = { FC_BOGUS_STRUCT, 3, S16(8), S16(0), S16(0), FC_LONG, FC_ENUM16, FC_END };
 TEST(ndr_bstruct_enum16_member_is_two_bytes_on_wire) {
     fam f = FAM(NdrComplexStruct); if (!fam_ok(&f)) { t_skip("exports"); return; }
     struct { int a; int e; } v = { 0x11223344, 0x1234 };
@@ -391,7 +391,7 @@ TEST(ndr_eunion_unmarshal_truncated) {
 }
 /* default arm: switch long; case 5: hyper; default: long */
 static const unsigned char f_eu_def[] = {
-    FC_ENCAPSULATED_UNION, 0x40 | FC_LONG, S16(8), S16(0x7001),
+    FC_ENCAPSULATED_UNION, 0x80 | FC_LONG, S16(8), S16(0x7001),   /* high nibble: memory distance from switch to arms */
     W32(5), W16(0x800b),
     W16(0x8008),
 };
@@ -408,7 +408,8 @@ TEST(ndr_eunion_default_arm_and_hyper_alignment) {
     memset(&v, 0, sizeof v); v.sw = 99; v.u.l = 0x55AA55AA;
     nc_client(&c, f_eu_def, 64); memset(c.buf, 0, 64);
     used = n_marshal(&f, &c, (unsigned char *)&v, f_eu_def, NULL);
-    CHECKF(used == 16, "default arm used %lu", used);     /* union alignment (8) applies to every arm */
+    /* the union alignment (8) pads the arms' start on the wire for every arm, but the default long arm adds no tail padding */
+    CHECKF(used == 12, "default arm used %lu", used);
     EXPECT_EQ(*(unsigned *)c.buf, 99);
     EXPECT_EQ(*(unsigned *)(c.buf + 8), 0x55AA55AA);
     nc_done(&c);
@@ -438,7 +439,7 @@ TEST(ndr_eunion_switch_types_signed_values) {
 /* non-encapsulated: switch_is from the stack */
 static const unsigned char f_neu[] = {
     FC_NON_ENCAPSULATED_UNION, FC_SHORT, FC_TOP_LEVEL_CONFORMANCE | FC_SHORT, 0, S16(0), S16(2),
-    S16(4), S16(0x3003),
+    S16(4), S16(0x3002),     /* two arms */
     W32(1), W16(0x8008),
     W32(2), W16(0x8006),
     W16(0xffff),

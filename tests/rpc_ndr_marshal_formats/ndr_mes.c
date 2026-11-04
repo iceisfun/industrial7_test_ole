@@ -1,6 +1,8 @@
 /* Serialization / pickling (midl_es): handle creation, reset, simple type and type pickles, incremental handles. */
 #include "ndrh.h"
 
+/* EXPECT_EQ evaluates its arguments twice: never put calls with side effects (frees, creates) inside it */
+#define EXPECT_ST(call, want) do { RPC_STATUS st_once_ = (call); EXPECT_EQ(st_once_, want); } while (0)
 #define ES_ENCODE 0   /* MES_ENCODE */
 #define ES_DECODE 1   /* MES_DECODE */
 #define ES_INCR   0   /* MES_INCREMENTAL_HANDLE */
@@ -49,11 +51,11 @@ TEST(ndr_mes_dyn_handle_create_argument_validation) {
     CHECK(h == NULL);
     st = U(MesEncodeDynBufferHandleCreate)(&buf, &enc, &h);   EXPECT_EQ(st, RPC_S_OK);
     CHECK(h != NULL);
-    if (st == RPC_S_OK) { EXPECT_EQ(U(MesHandleFree)(h), RPC_S_OK); }
+    if (st == RPC_S_OK) { EXPECT_ST(U(MesHandleFree)(h), RPC_S_OK); }
 }
 TEST(ndr_mes_handle_free_null_is_ok) {
     REQUIRE(U(MesHandleFree));
-    EXPECT_EQ(U(MesHandleFree)(NULL), RPC_S_OK);
+    EXPECT_ST(U(MesHandleFree)(NULL), RPC_S_OK);
 }
 TEST(ndr_mes_decode_handle_create) {
     REQUIRE(U(MesDecodeBufferHandleCreate)); REQUIRE(U(MesHandleFree));
@@ -62,7 +64,7 @@ TEST(ndr_mes_decode_handle_create) {
     RPC_STATUS st = U(MesDecodeBufferHandleCreate)(buf, 64, &h);
     EXPECT_EQ(st, RPC_S_OK);
     CHECK(h != NULL);
-    if (st == RPC_S_OK) { EXPECT_EQ(U(MesHandleFree)(h), RPC_S_OK); }
+    if (st == RPC_S_OK) { EXPECT_ST(U(MesHandleFree)(h), RPC_S_OK); }
     h = NULL;
     st = U(MesDecodeBufferHandleCreate)(buf, 16, &h);    EXPECT_EQ(st, RPC_S_OK);       /* 16 bytes is the minimum */
     if (st == RPC_S_OK) U(MesHandleFree)(h);
@@ -88,11 +90,17 @@ TEST(ndr_mes_simpletype_encode_fixed_buffer_layout) {
         RPC_STATUS st = U(MesEncodeFixedBufferHandleCreate)((char *)buf, sizeof buf, &enc, &h);
         if (st != RPC_S_OK) { CHECKF(0, "create %ld", (long)st); return; }
         MIDL_STUB_DESC d; n_fill_desc(&d, NULL);
-        size_t as = U(NdrMesSimpleTypeAlignSize)(h);
-        CHECKF(as == 16, "size %d: AlignSize %zu", t[k].size, as);
+        /* NdrMesSimpleTypeAlignSize advances the handle's own size accounting: ask a separate handle */
+        handle_t h2 = NULL; ULONG enc2;
+        if (U(MesEncodeFixedBufferHandleCreate)((char *)buf, sizeof buf, &enc2, &h2) == RPC_S_OK) {
+            size_t as = U(NdrMesSimpleTypeAlignSize)(h2);
+            CHECKF(as == 16, "size %d: AlignSize %zu", t[k].size, as);
+            U(MesHandleFree)(h2);
+        }
         unsigned long long v = t[k].v;
         NTRY U(NdrMesSimpleTypeEncode)(h, &d, &v, t[k].size); NEND;
         CHECKF(n_code == 0, "size %d raised %lu", t[k].size, (unsigned long)n_code);
+        t_note("size %d: buffer low nibble %x, encoded size %lu; %08x %08x %08x %08x %08x", t[k].size, (unsigned)((ULONG_PTR)buf & 0xf), enc, ((unsigned *)buf)[0], ((unsigned *)buf)[1], ((unsigned *)buf)[2], ((unsigned *)buf)[3], ((unsigned *)buf)[4]);
         CHECKF(enc == 16, "size %d: encoded size %lu", t[k].size, enc);
         CHECKF(!memcmp(buf, pk_hdr, 8), "size %d: common header", t[k].size);
         unsigned long long body = 0; memcpy(&body, buf + 8, 8);
@@ -112,7 +120,8 @@ TEST(ndr_mes_simpletype_decode_roundtrip_and_header_validation) {
     EXPECT_EQ(st, RPC_S_OK);
     if (st != RPC_S_OK) return;
     unsigned out = 0;
-    NTRY U(NdrMesSimpleTypeDecode)(h, &out, 4); NEND;
+    /* the last argument of NdrMesSimpleTypeDecode is the NDR format character of the type (FC_LONG), not a byte size */
+    NTRY U(NdrMesSimpleTypeDecode)(h, &out, FC_LONG); NEND;
     EXPECT_EQ(n_code, 0);
     EXPECT_EQ(out, 0xFEEDF00D);
     U(MesHandleFree)(h);
@@ -120,14 +129,14 @@ TEST(ndr_mes_simpletype_decode_roundtrip_and_header_validation) {
     buf[0] = 2;
     st = U(MesDecodeBufferHandleCreate)((char *)buf, 16, &h);
     EXPECT_EQ(st, RPC_S_OK);
-    NTRY U(NdrMesSimpleTypeDecode)(h, &out, 4); NEND;
+    NTRY U(NdrMesSimpleTypeDecode)(h, &out, FC_LONG); NEND;
     EXPECT_EQ(n_code, 1828);     /* RPC_X_WRONG_ES_VERSION */
     U(MesHandleFree)(h);
     buf[0] = 1;
     /* buffer too small for the common header */
     st = U(MesDecodeBufferHandleCreate)((char *)buf, 8, &h);
     if (st == RPC_S_OK) {
-        NTRY U(NdrMesSimpleTypeDecode)(h, &out, 4); NEND;
+        NTRY U(NdrMesSimpleTypeDecode)(h, &out, FC_LONG); NEND;
         t_note("decode with an 8 byte buffer raised %lu", (unsigned long)n_code);
         CHECK(n_code != 0);
         U(MesHandleFree)(h);
@@ -166,20 +175,29 @@ TEST(ndr_mes_simpletype_invalid_handle_raises_invalid_arg) {
     NTRY U(NdrMesSimpleTypeAlignSize)((handle_t)garbage); NEND;
     EXPECT_EQ(n_code, ERROR_INVALID_PARAMETER);
 }
-TEST(ndr_mes_encode_into_too_small_fixed_buffer_raises) {
+TEST(ndr_mes_fixed_buffer_encode_is_not_bounds_checked) {
     WSTUB("NdrMesSimpleTypeEncode");
     REQUIRE(U(MesEncodeFixedBufferHandleCreate)); REQUIRE(U(NdrMesSimpleTypeEncode)); REQUIRE(U(MesHandleFree));
-    __attribute__((aligned(8))) unsigned char buf[32]; memset(buf, 0x77, sizeof buf);
+    __attribute__((aligned(8))) unsigned char buf[48]; memset(buf, 0x77, sizeof buf);
     ULONG enc; handle_t h = NULL;
+    /* Windows refuses a fixed buffer handle smaller than a pickle header at creation time */
     RPC_STATUS st = U(MesEncodeFixedBufferHandleCreate)((char *)buf, 8, &enc, &h);
+    EXPECT_EQ(st, ERROR_INVALID_PARAMETER);
+    if (st == RPC_S_OK) U(MesHandleFree)(h);
+    h = NULL;
+    /* a 16 byte buffer holds exactly one simple pickle; Windows does not check the declared size while encoding, so a
+       second pickle is written behind it (the callers size the buffer with the AlignSize routines) */
+    st = U(MesEncodeFixedBufferHandleCreate)((char *)buf, 16, &enc, &h);
     EXPECT_EQ(st, RPC_S_OK);
     if (st != RPC_S_OK) return;
     MIDL_STUB_DESC d; n_fill_desc(&d, NULL);
-    unsigned v = 1;
+    unsigned v = 1, v2 = 2;
     NTRY U(NdrMesSimpleTypeEncode)(h, &d, &v, 4); NEND;
-    t_note("16 byte pickle into an 8 byte fixed buffer raised %lu", (unsigned long)n_code);
-    CHECK(n_code != 0);
-    CHECK(buf[8] == 0x77);       /* never writes beyond the declared size */
+    EXPECT_EQ(n_code, 0);
+    NTRY U(NdrMesSimpleTypeEncode)(h, &d, &v2, 4); NEND;
+    t_note("second pickle into a 16 byte fixed buffer raised %lu, encoded size %lu", (unsigned long)n_code, enc);
+    EXPECT_EQ(n_code, 0);
+    EXPECT_EQ(*(unsigned *)(buf + 16), 2);
     U(MesHandleFree)(h);
 }
 TEST(ndr_mes_dyn_buffer_encode_allocates_through_stub_desc) {
@@ -216,6 +234,7 @@ TEST(ndr_mes_two_pickles_in_one_fixed_buffer_are_16_byte_chunks) {
     MIDL_STUB_DESC d; n_fill_desc(&d, NULL);
     unsigned a = 1, b = 2;
     U(NdrMesSimpleTypeEncode)(h, &d, &a, 4);
+    t_note("buffer low nibble %x, encoded size after the first pickle: %lu", (unsigned)((ULONG_PTR)buf & 0xf), enc);
     U(NdrMesSimpleTypeEncode)(h, &d, &b, 4);
     t_note("two simple pickles: encoded size %lu", enc);
     CHECK(enc == 24 || enc == 32);   /* second pickle either omits (24) or repeats (32) the common header */
@@ -258,7 +277,7 @@ TEST(ndr_mes_type_encode2_struct_layout_and_roundtrip) {
 }
 
 /* ---------------- incremental handles ---------------- */
-static struct { int allocs, writes, reads; ULONG want_alloc; ULONG wrote; unsigned char store[256]; ULONG rpos; } inc;
+static struct { int allocs, writes, reads; ULONG want_alloc; ULONG wrote; __attribute__((aligned(8))) unsigned char store[256]; ULONG rpos; } inc;   /* Windows insists on 8-byte aligned pickle buffers */
 static void __RPC_API inc_alloc(void *state, char **pbuf, unsigned int *psize) { inc.allocs++; inc.want_alloc = *psize; static __attribute__((aligned(8))) char blk[256]; *pbuf = blk; *psize = sizeof blk; }
 static void __RPC_API inc_write(void *state, char *buf, unsigned int size) { inc.writes++; if (inc.wrote + size <= sizeof inc.store) memcpy(inc.store + inc.wrote, buf, size); inc.wrote += size; }
 static void __RPC_API inc_read(void *state, char **pbuf, unsigned int *psize) {
@@ -288,7 +307,7 @@ TEST(ndr_mes_incremental_encode_decode_simple_type) {
     EXPECT_EQ(st, RPC_S_OK);
     if (st != RPC_S_OK) return;
     unsigned out = 0;
-    NTRY U(NdrMesSimpleTypeDecode)(h, &out, 4); NEND;
+    NTRY U(NdrMesSimpleTypeDecode)(h, &out, FC_LONG); NEND;
     EXPECT_EQ(n_code, 0);
     EXPECT_EQ(out, 0x0BADCAFE);
     CHECK(inc.reads >= 1);
@@ -300,11 +319,11 @@ TEST(ndr_mes_incremental_handles_create_and_free) {
     handle_t h = NULL;
     RPC_STATUS st = U(MesEncodeIncrementalHandleCreate)(&inc, inc_alloc, inc_write, &h);
     EXPECT_EQ(st, RPC_S_OK); CHECK(h != NULL);
-    if (st == RPC_S_OK) EXPECT_EQ(U(MesHandleFree)(h), RPC_S_OK);
+    if (st == RPC_S_OK) EXPECT_ST(U(MesHandleFree)(h), RPC_S_OK);
     h = NULL;
     st = U(MesDecodeIncrementalHandleCreate)(&inc, inc_read, &h);
     EXPECT_EQ(st, RPC_S_OK); CHECK(h != NULL);
-    if (st == RPC_S_OK) EXPECT_EQ(U(MesHandleFree)(h), RPC_S_OK);
+    if (st == RPC_S_OK) EXPECT_ST(U(MesHandleFree)(h), RPC_S_OK);
 }
 
 /* MesInqProcEncodingId: NdrpValidateMesHandleReturnStatus returns 0x57 (ERROR_INVALID_PARAMETER) for NULL handle (decomp) */
@@ -312,7 +331,7 @@ TEST(ndr_mes_inq_proc_encoding_id_null_handle) {
     WSTUB("MesInqProcEncodingId");
     REQUIRE(U(MesInqProcEncodingId));
     RPC_SYNTAX_IDENTIFIER id; ULONG ver = 0;
-    EXPECT_EQ(U(MesInqProcEncodingId)(NULL, &id, &ver), ERROR_INVALID_PARAMETER);
+    EXPECT_ST(U(MesInqProcEncodingId)(NULL, &id, &ver), ERROR_INVALID_PARAMETER);
 }
 TEST(ndr_mes_inq_proc_encoding_id_null_outputs) {
     WSTUB("MesInqProcEncodingId");
@@ -320,16 +339,16 @@ TEST(ndr_mes_inq_proc_encoding_id_null_outputs) {
     char *buf = NULL; ULONG enc = 0; handle_t h = NULL;
     if (U(MesEncodeDynBufferHandleCreate)(&buf, &enc, &h) != RPC_S_OK) { CHECK(0); return; }
     ULONG ver = 0; RPC_SYNTAX_IDENTIFIER id;
-    EXPECT_EQ(U(MesInqProcEncodingId)(h, NULL, &ver), ERROR_INVALID_PARAMETER);
-    EXPECT_EQ(U(MesInqProcEncodingId)(h, &id, NULL), ERROR_INVALID_PARAMETER);
+    EXPECT_ST(U(MesInqProcEncodingId)(h, NULL, &ver), ERROR_INVALID_PARAMETER);
+    EXPECT_ST(U(MesInqProcEncodingId)(h, &id, NULL), ERROR_INVALID_PARAMETER);
     /* encode handle with no procedure header yet: RPC_X_INVALID_ES_ACTION (0x723) */
-    EXPECT_EQ(U(MesInqProcEncodingId)(h, &id, &ver), X_INVALID_ES);
+    EXPECT_ST(U(MesInqProcEncodingId)(h, &id, &ver), X_INVALID_ES);
     U(MesHandleFree)(h);
 }
 TEST(ndr_mes_dyn_handle_create_free_leaves_buffer_null) {
     REQUIRE(U(MesEncodeDynBufferHandleCreate)); REQUIRE(U(MesHandleFree));
     char *buf = NULL; ULONG enc = 0; handle_t h = NULL;
-    EXPECT_EQ(U(MesEncodeDynBufferHandleCreate)(&buf, &enc, &h), RPC_S_OK);
-    EXPECT_EQ(U(MesHandleFree)(h), RPC_S_OK);
+    EXPECT_ST(U(MesEncodeDynBufferHandleCreate)(&buf, &enc, &h), RPC_S_OK);
+    EXPECT_ST(U(MesHandleFree)(h), RPC_S_OK);
     CHECK(buf == NULL);
 }

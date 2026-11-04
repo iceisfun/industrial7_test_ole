@@ -36,6 +36,22 @@ static LONG CALLBACK n_veh(PEXCEPTION_POINTERS ep) {
     longjmp(n_jb, 1);
     return EXCEPTION_CONTINUE_SEARCH;
 }
+/* Windows 10: server side NdrServerInitialize* needs the RPC runtime to be initialised (it allocates a per-thread object
+   from the runtime's heap) and raises an access violation inside ntdll when it is not. rpcrt4 initialises itself lazily on
+   the first public API call, so make one before any test runs; then create the per-thread object. */
+static void n_warm_ctor(void) __attribute__((constructor));
+static void n_warm_ctor(void) {
+    HMODULE m = LoadLibraryA("rpcrt4.dll");
+    unsigned char *(WINAPI *init)(PRPC_MESSAGE, PMIDL_STUB_MESSAGE, PMIDL_STUB_DESC) = m ? (void *)GetProcAddress(m, "NdrServerInitializeNew") : NULL;
+    long (WINAPI *valid)(const wchar_t *) = m ? (void *)GetProcAddress(m, "RpcNetworkIsProtseqValidW") : NULL;
+    RPC_MESSAGE rpc; MIDL_STUB_MESSAGE sm; MIDL_STUB_DESC d; unsigned char b[8];
+    if (!init) return;
+    if (valid) valid(L"ncalrpc");
+    memset(&rpc, 0, sizeof rpc); memset(&sm, 0, sizeof sm); memset(&d, 0, sizeof d);
+    d.Version = 0x20000; d.MIDLVersion = 0x50100a4; d.mFlags = 1;
+    rpc.Buffer = b; rpc.BufferLength = sizeof b; rpc.RpcFlags = RPC_BUFFER_COMPLETE;
+    init(&rpc, &sm, &d);
+}
 static void n_init(void) {
     static int done;
     if (!done) { done = 1; AddVectoredExceptionHandler(1, n_veh); }

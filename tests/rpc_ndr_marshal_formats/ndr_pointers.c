@@ -94,12 +94,14 @@ TEST(ndr_ptr_null_ref_pointer_raises) {
         nc_done(&c);
     }
 }
-TEST(ndr_ptr_null_ref_pointer_buffersize_raises) {
+TEST(ndr_ptr_null_ref_pointer_buffersize_does_not_raise) {
     REQUIRE(U(NdrPointerBufferSize)); REQUIRE(U(NdrClientInitializeNew));
     unsigned char f[4]; mkfmt(f, FC_RP, FC_LONG);
     nctx c; nc_client(&c, f, 64);
     NTRY U(NdrPointerBufferSize)(&c.sm, NULL, f); NEND;
-    EXPECT_EQ(n_code, X_NULL_REF);
+    /* Windows sizes a NULL ref pointer without raising (only marshalling raises RPC_X_NULL_REF_POINTER) */
+    t_note("NdrPointerBufferSize(NULL ref) raised %lu, BufferLength %lu", (unsigned long)n_code, (unsigned long)c.sm.BufferLength);
+    EXPECT_EQ(n_code, 0);
     nc_done(&c);
 }
 TEST(ndr_ptr_marshal_misaligned_start_pads_id_then_value) {
@@ -206,10 +208,12 @@ TEST(ndr_ptr_unmarshal_unique_null_wire_gives_null) {
         unsigned char f[4]; mkfmt(f, kinds[k], FC_LONG);
         unsigned zero = 0;
         nctx c; nc_rx(&c, f, &zero, 4, 1);
-        unsigned char *mem = (unsigned char *)(ULONG_PTR)0x1234;   /* must be overwritten */
-        n_alloc_cnt = 0;
+        unsigned char *old = n_alloc(4), *mem = old;   /* an existing block: a null wire pointer replaces it with NULL */
+        n_alloc_cnt = 0; n_free_cnt = 0;
         U(NdrPointerUnmarshall)(&c.sm, &mem, f, 0);
         CHECKF(mem == NULL, "%s mem %p", kname[k], mem);
+        t_note("%s: null wire pointer over an existing block freed it: %d", kname[k], n_free_cnt);
+        if (n_free_cnt == 0) n_free(old);
         EXPECT_EQ(nc_used(&c), 4);
         EXPECT_EQ(n_alloc_cnt, 0);
         nc_done(&c);
