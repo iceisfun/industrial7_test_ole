@@ -36,7 +36,9 @@ void t_note(const char *fmt, ...) { va_list a; va_start(a, fmt); printf("  NOTE 
 void t_skip(const char *fmt, ...) { va_list a; va_start(a, fmt); printf("  SKIP "); vprintf(fmt, a); printf("\n"); va_end(a); g_cur_skip = 1; }
 
 /* A crash inside a test is reported as a failure of that test and the run continues. */
-static LONG CALLBACK veh(PEXCEPTION_POINTERS ep) {
+/* Runs only for exceptions nobody handled: Windows system code raises and swallows first-chance access violations
+   by design (HeapValidate on a bad pointer, probing), which a vectored handler would misreport as test crashes. */
+static LONG WINAPI veh(PEXCEPTION_POINTERS ep) {
     DWORD c = ep->ExceptionRecord->ExceptionCode;
     if (!g_in_test) return EXCEPTION_CONTINUE_SEARCH;
     if (c == 0x40010006 || c == 0x406D1388 || c == DBG_PRINTEXCEPTION_C || c == 0x4001000A) return EXCEPTION_CONTINUE_SEARCH;
@@ -106,7 +108,7 @@ int main(int argc, char **argv) {
         for (int i = 0; i < g_nc; i++) if (!strcmp(g_c[i].n, argv[2])) return g_c[i].f(argc - 2, argv + 2);
         return 0xC0DE0001;
     }
-    AddVectoredExceptionHandler(1, veh);
+    SetUnhandledExceptionFilter(veh);
     if (!t_module(g_mods[0])) { printf("FATAL cannot load %s\n", g_mods[0]); return 2; }
     for (int i = 0; i < g_nt; i++) {
         if (filter && !strstr(g_t[i].n, filter)) continue;
