@@ -384,8 +384,11 @@ TEST(usr_hbitmap_roundtrip_and_free)
                 p_GetBitmapBits(hb, cb, x); p_GetBitmapBits(o, cb, y);
                 CHECKF(!memcmp(x, y, cb), "bm %d bits", i);
                 free(x); free(y);
-                um_init(&c, NULL, 0, C_LOCAL); XEQ(um_x_free(ff, UMF(&c), &o), 0);
-                CHECKF(p_GetObjectType(o) == 0, "UserFree deletes the bitmap in a non-INPROC context");
+                {   HBITMAP o0 = o; BITMAP bb;
+                    um_init(&c, NULL, 0, C_LOCAL); XEQ(um_x_free(ff, UMF(&c), &o), 0);
+                    /* GDI batches deletions: GetObjectType may still report the type right after the call, GetObjectW already fails */
+                    CHECKF(p_GetObjectW(o0, sizeof bb, &bb) == 0, "UserFree deletes the bitmap in a non-INPROC context");
+                }
             }
             /* INPROC keeps the handle alive */
             um_init(&c, NULL, 0, C_INPROC); XEQ(um_x_free(ff, UMF(&c), &hb), 0);
@@ -409,7 +412,8 @@ TEST(usr_hbitmap_null_and_inproc)
         CHECK(e == b + 8); EXPECT_EQ(RD_U32(b, 0), ctx == C_INPROC ? UM_TAG_H : UM_TAG_R); EXPECT_EQ(RD_U32(b, 4), 0);
         memset(b, 0xCC, 64);
         XEQ(um_x_mar(fm6, UMF(&c), b + 1, &nh, &e), 0);
-        CHECK(e == b + 16); EXPECT_EQ(RD_U32(b, 8), ctx == C_INPROC ? UM_TAG_P : UM_TAG_R);
+        /* Win10: the 64-bit form aligns the tag to 8 (+8) and the handle follows at +16 */
+        CHECK(e == b + 24); EXPECT_EQ(RD_U32(b, 8), ctx == C_INPROC ? UM_TAG_P : UM_TAG_R);
         XEQ(um_x_size(fs6, UMF(&c), 1, &nh, &sz), 0); CHECK(sz == 8 + 16);
     }
     /* inproc: the handle value travels */
@@ -521,7 +525,8 @@ TEST(usr_hpalette_roundtrip_and_free)
             CHECK(p_GetPaletteEntries(o, 0, 0, NULL) == 40);
             CHECK(p_GetPaletteEntries(o, 0, 40, got) == 40 && !memcmp(got, ents, sizeof ents));
             um_init(&c, NULL, 0, C_DIFFM); XEQ(um_x_free(ff, UMF(&c), &o), 0);
-            CHECKF(p_GetObjectType(o) == 0, "palette deleted by UserFree");
+            /* GDI batches deletions: GetObjectType may lag, GetObjectW fails at once */
+            { WORD pw = 0; CHECKF(p_GetObjectW(o, sizeof pw, &pw) == 0, "palette deleted by UserFree"); }
         }
         um_init(&c, NULL, 0, C_INPROC); XEQ(um_x_free(ff, UMF(&c), &hp), 0);
         CHECK(p_GetObjectType(hp) == OBJ_PAL);

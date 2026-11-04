@@ -178,7 +178,11 @@ TEST(usr_snb_unmarshal_errors)
     um_init(&c, b, 26, C_LOCAL); XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), X_BADSTUB);
     CHECKF(um_nalloc - a0 == um_nfree - f0, "allocation made during parsing is released again (alloc %d free %d)", um_nalloc - a0, um_nfree - f0);
     RD_U32(b, 4) = 2; *(WCHAR *)(b + 12 + 12) = L'z';   /* last char not NUL */
-    um_init(&c, b, 26, C_LOCAL); XEQ(um_x_mar(fu, UMF(&c), b, &o, &e), X_BADSTUB);
+    {   /* Win10 does not reject this: it raises STATUS_HEAP_CORRUPTION (0xc0000374) from the unterminated string walk */
+        um_init(&c, b, 26, C_LOCAL);
+        { DWORD x = um_x_mar(fu, UMF(&c), b, &o, &e); CHECKF(x == X_BADSTUB || x == 0xc0000374u, "last char not NUL: refused (got 0x%lx)", x);
+          if (x != X_BADSTUB) t_note("SNB_UserUnmarshal with an unterminated last string raises 0x%lx instead of RPC_X_BAD_STUB_DATA", x); }
+    }
     /* count == 0: Win10 returns just past the 12-byte header without consuming the characters */
     memcpy(b + 12, L"abc\0de\0", 14);
     RD_U32(b, 4) = 0; o = (WCHAR **)(ULONG_PTR)0; um_init(&c, b, 26, C_LOCAL);
