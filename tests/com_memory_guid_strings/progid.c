@@ -367,8 +367,12 @@ TEST(guid_cocreateguid_threads_unique) {
     HANDLE h[4];
     for (int i = 0; i < 4; i++) { h[i] = CreateThread(NULL, 0, th_guids, (LPVOID)(ULONG_PTR)i, 0, NULL); CHECK(h[i] != NULL); }
     for (int i = 0; i < 4; i++) if (h[i]) { CHECK(WaitForSingleObject(h[i], 10000) == WAIT_OBJECT_0); CloseHandle(h[i]); }
-    qsort(thr_guids, 4 * 2500, sizeof(GUID), cmp_guid);
-    int dup = 0; for (int i = 1; i < 4 * 2500; i++) if (!memcmp(&thr_guids[i], &thr_guids[i - 1], sizeof(GUID))) dup++;
+    /* sort a heap copy: qsort over the static 2-D array walks off the end of the image on Windows' msvcrt */
+    GUID *all = malloc(4 * 2500 * sizeof(GUID)); CHECK(all != NULL); if (!all) return;
+    memcpy(all, thr_guids, 4 * 2500 * sizeof(GUID));
+    qsort(all, 4 * 2500, sizeof(GUID), cmp_guid);
+    int dup = 0; for (int i = 1; i < 4 * 2500; i++) if (!memcmp(&all[i], &all[i - 1], sizeof(GUID))) dup++;
+    free(all);
     EXPECT_EQ(dup, 0);
 }
 TEST(guid_cocreateguid_string_roundtrip) {
