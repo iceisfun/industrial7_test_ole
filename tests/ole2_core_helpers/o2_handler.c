@@ -11,7 +11,28 @@ static HRESULT STDMETHODCALLTYPE cf_QI(IClassFactory *s, REFIID r, void **pp) {
 }
 static ULONG STDMETHODCALLTYPE cf_AddRef(IClassFactory *s) { return InterlockedIncrement(&((O2Cf *)s)->ref); }
 static ULONG STDMETHODCALLTYPE cf_Release(IClassFactory *s) { return InterlockedDecrement(&((O2Cf *)s)->ref); }
-static HRESULT STDMETHODCALLTYPE cf_Create(IClassFactory *s, IUnknown *o, REFIID r, void **pp) { InterlockedIncrement(&((O2Cf *)s)->creates); *pp = NULL; return E_NOTIMPL; }
+/* The embedding helper creates its delegate eagerly through CreateInstance(outer, IID_IUnknown); a failing factory makes the
+ * helper creation fail (E_OUTOFMEMORY on Windows 10), so hand out a minimal object. */
+typedef struct { IUnknown i; LONG ref; } O2Obj;
+static HRESULT STDMETHODCALLTYPE ob_QI(IUnknown *s, REFIID r, void **pp) {
+    if (O2_IS_IID(r, IID_IUnknown)) { *pp = s; s->lpVtbl->AddRef(s); return S_OK; }
+    *pp = NULL; return E_NOINTERFACE;
+}
+static ULONG STDMETHODCALLTYPE ob_AddRef(IUnknown *s) { return InterlockedIncrement(&((O2Obj *)s)->ref); }
+static ULONG STDMETHODCALLTYPE ob_Release(IUnknown *s) {
+    LONG n = InterlockedDecrement(&((O2Obj *)s)->ref); if (!n) HeapFree(GetProcessHeap(), 0, s); return n;
+}
+static IUnknownVtbl ob_vtbl = { ob_QI, ob_AddRef, ob_Release };
+static HRESULT STDMETHODCALLTYPE cf_Create(IClassFactory *s, IUnknown *o, REFIID r, void **pp) {
+    O2Obj *ob; HRESULT hr;
+    InterlockedIncrement(&((O2Cf *)s)->creates); *pp = NULL;
+    ob = (O2Obj *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof *ob);
+    if (!ob) return E_OUTOFMEMORY;
+    ob->i.lpVtbl = &ob_vtbl; ob->ref = 1;
+    hr = ob->i.lpVtbl->QueryInterface(&ob->i, r, pp);
+    ob->i.lpVtbl->Release(&ob->i);
+    return hr;
+}
 static HRESULT STDMETHODCALLTYPE cf_Lock(IClassFactory *s, BOOL l) { InterlockedIncrement(&((O2Cf *)s)->locks); return S_OK; }
 static IClassFactoryVtbl cf_vtbl = { cf_QI, cf_AddRef, cf_Release, cf_Create, cf_Lock };
 static void cf_init(O2Cf *c) { memset(c, 0, sizeof *c); c->i.lpVtbl = &cf_vtbl; c->ref = 1; }
@@ -107,7 +128,7 @@ TEST(o2hdl_handler_requested_interface_is_returned) {
     static const struct { const GUID *iid; const char *n; } t[] = {
         { &IID_IUnknown, "IUnknown" }, { &IID_IOleObject, "IOleObject" }, { &IID_IDataObject, "IDataObject" },
         { &IID_IRunnableObject, "IRunnableObject" }, { &IID_IPersistStorage, "IPersistStorage" }, { &IID_IViewObject, "IViewObject" },
-        { &IID_IViewObject2, "IViewObject2" }, { &IID_IOleCache, "IOleCache" }, { &IID_IOleCache2, "IOleCache2" }, { &IID_IOleCacheControl, "IOleCacheControl" },
+        { &IID_IViewObject2, "IViewObject2" }, { &IID_IOleCache, "IOleCache" }, { &IID_IOleCache2, "IOleCache2" },
     };
     int i;
     REQUIRE(U(OleCreateDefaultHandler)); O2_BEGIN;
@@ -132,9 +153,11 @@ TEST(o2hdl_handler_queryinterface_matrix) {
     static const struct { const GUID *iid; const char *n; } sup[] = {
         { &IID_IUnknown, "IUnknown" }, { &IID_IOleObject, "IOleObject" }, { &IID_IDataObject, "IDataObject" },
         { &IID_IRunnableObject, "IRunnableObject" }, { &IID_IPersistStorage, "IPersistStorage" }, { &IID_IViewObject, "IViewObject" },
-        { &IID_IViewObject2, "IViewObject2" }, { &IID_IOleCache, "IOleCache" }, { &IID_IOleCache2, "IOleCache2" }, { &IID_IOleCacheControl, "IOleCacheControl" },
+        { &IID_IViewObject2, "IViewObject2" }, { &IID_IOleCache, "IOleCache" }, { &IID_IOleCache2, "IOleCache2" },
     };
     static const struct { const GUID *iid; const char *n; } unsup[] = {
+        /* Win10: the default handler does not expose IOleCacheControl (only the data cache object does) */
+        { &IID_IOleCacheControl, "IOleCacheControl" },
         { &IID_IOleInPlaceObject, "IOleInPlaceObject" }, { &IID_IStorage, "IStorage" }, { &IID_IStream, "IStream" },
         { &IID_IClassFactory, "IClassFactory" }, { &IID_IDropTarget, "IDropTarget" }, { &O2_IID_BOGUS, "bogus" },
     };
