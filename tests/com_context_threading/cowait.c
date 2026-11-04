@@ -438,8 +438,9 @@ static void w_cw_dispatch_flags(void *p)
     msgs_reset();
     {
         HANDLE th0;
+        /* the poster thread may start late on a loaded guest: the wait timeout only bounds the test, the post wakes the pump */
         th0 = CreateThread(NULL, 0, post_user5_thread, w, 0, NULL);
-        hr = U(CoWaitForMultipleHandles)(COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES, 150, 1, &ev, &idx);
+        hr = U(CoWaitForMultipleHandles)(COWAIT_DISPATCH_CALLS | COWAIT_DISPATCH_WINDOW_MESSAGES, 2000, 1, &ev, &idx);
         CXEQ_HR(hr, CX_HR_CALLPENDING);
         CXEQ(saw(WM_USER + 5), 1);
         WaitForSingleObject(th0, 5000); CloseHandle(th0);
