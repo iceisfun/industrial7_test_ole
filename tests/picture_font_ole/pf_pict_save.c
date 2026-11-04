@@ -385,22 +385,24 @@ TEST(psavepic_keep_original_format_gif) {
     IPicture *p = NULL; LONG size = -1; BYTE buf[512]; size_t n; HRESULT hr; REQUIRE(U(OleLoadPicture));
     EQ(pf_load(pfd_gifimage, sizeof pfd_gifimage, sizeof pfd_gifimage, &p), S_OK);
     if (!p) return;
-    EQ(IPicture_put_KeepOriginalFormat(p, TRUE), S_OK);
+    /* Win10: put_KeepOriginalFormat is not supported (E_FAIL) and the image is always saved as a DIB */
+    EQ(IPicture_put_KeepOriginalFormat(p, TRUE), E_FAIL);
     hr = save_as_file(p, TRUE, &size, buf, sizeof buf, &n);
     EQ(hr, S_OK);
-    t_note("GIF with KeepOriginalFormat saved size=%ld bytes=%zu starts %.4s", size, n, n >= 4 ? (char *)buf : "");
-    if (n >= 4) SOFT_EQ(!memcmp(buf, "GIF8", 4), 1);
+    t_note("GIF with KeepOriginalFormat saved size=%ld bytes=%zu starts %.2s", size, n, n >= 2 ? (char *)buf : "");
+    if (n >= 2) CHECK(!memcmp(buf, "BM", 2));
     IPicture_Release(p);
 }
 TEST(psavepic_keep_original_format_jpeg) {
     IPicture *p = NULL; LONG size = -1; BYTE buf[1024]; size_t n; HRESULT hr; REQUIRE(U(OleLoadPicture));
     EQ(pf_load(pfd_jpgimage, sizeof pfd_jpgimage, sizeof pfd_jpgimage, &p), S_OK);
     if (!p) return;
-    EQ(IPicture_put_KeepOriginalFormat(p, TRUE), S_OK);
+    /* Win10: put_KeepOriginalFormat is not supported (E_FAIL) and the image is always saved as a DIB */
+    EQ(IPicture_put_KeepOriginalFormat(p, TRUE), E_FAIL);
     hr = save_as_file(p, TRUE, &size, buf, sizeof buf, &n);
     EQ(hr, S_OK);
     t_note("JPEG with KeepOriginalFormat saved size=%ld (original %zu)", size, sizeof pfd_jpgimage);
-    if (n >= 2) SOFT_EQ(buf[0] == 0xff && buf[1] == 0xd8, 1);
+    if (n >= 2) CHECK(!memcmp(buf, "BM", 2));
     IPicture_Release(p);
 }
 TEST(psavepic_persist_stream_of_loaded_gif) {
@@ -545,16 +547,22 @@ TEST(ploadfile_integer_variant_is_file_number) {
     hr = U(OleLoadPictureFile)(v, &d);
     t_note("OleLoadPictureFile(VT_I4 762) hr=%08lx", hr);
     VariantInit(&v);
+    d = NULL;
     hr = U(OleLoadPictureFile)(v, &d);
-    CHECKF(FAILED(hr), "VT_EMPTY accepted: %08lx", hr);
-    t_note("OleLoadPictureFile(VT_EMPTY) hr=%08lx", hr);
+    /* Win10: a VT_EMPTY file name is accepted and yields an (empty) picture object */
+    CHECKF(hr == S_OK, "VT_EMPTY: hr=%08lx want S_OK", hr);
+    t_note("OleLoadPictureFile(VT_EMPTY) hr=%08lx obj=%d", hr, d != NULL);
+    if (d) IDispatch_Release(d);
 }
 TEST(ploadfile_empty_and_directory_names) {
     VARIANT v; IDispatch *d = NULL; HRESULT hr; char dir[MAX_PATH]; WCHAR w[MAX_PATH]; REQUIRE(U(OleLoadPictureFile));
     VariantInit(&v); V_VT(&v) = VT_BSTR; V_BSTR(&v) = SysAllocString(L"");
+    d = NULL;
     hr = U(OleLoadPictureFile)(v, &d);
-    CHECKF(FAILED(hr), "empty path accepted: %08lx", hr);
-    t_note("OleLoadPictureFile(\"\") hr=%08lx", hr);
+    /* Win10: an empty file name is accepted like VT_EMPTY and yields an (empty) picture object */
+    CHECKF(hr == S_OK, "empty path: hr=%08lx want S_OK", hr);
+    t_note("OleLoadPictureFile(\"\") hr=%08lx obj=%d", hr, d != NULL);
+    if (d) { IDispatch_Release(d); d = NULL; }
     VariantClear(&v);
     lstrcpyA(dir, t_tmpdir()); widen(dir, w, MAX_PATH);
     VariantInit(&v); V_VT(&v) = VT_BSTR; V_BSTR(&v) = SysAllocString(w);

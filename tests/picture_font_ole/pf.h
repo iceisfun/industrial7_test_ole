@@ -125,6 +125,9 @@ static inline void pf_fontdesc(FONTDESC *fd, const WCHAR *name, LONGLONG cy, SHO
     fd->fUnderline = ul;
     fd->fStrikethrough = st;
 }
+/* Win10: IFont reports the weight of the realized face, not the requested one. The test faces (Arial, Courier New)
+ * only exist as regular (400) and bold (700), so a requested weight snaps to one of those. */
+static int pf_snap_weight(int w) { return w <= 500 ? 400 : 700; }
 static const WCHAR pf_arial[] = { 'A','r','i','a','l',0 };
 static const WCHAR pf_system[] = { 'S','y','s','t','e','m',0 };
 static const WCHAR pf_mssans[] = { 'M','S',' ','S','a','n','s',' ','S','e','r','i','f',0 };

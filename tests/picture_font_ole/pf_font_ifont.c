@@ -131,7 +131,7 @@ TEST(pfont_create_desc_values_applied) {
     if (!f) return;
     EQ(IFont_get_Name(f, &n), S_OK); if (n) CHECK(!lstrcmpW(n, pf_arial)); SysFreeString(n);
     sz.int64 = 0; EQ(IFont_get_Size(f, &sz), S_OK); CHECK(sz.int64 - 135000 < 10000 && sz.int64 - 135000 > -10000);
-    EQ(IFont_get_Weight(f, &w), S_OK); EQ(w, 300);
+    EQ(IFont_get_Weight(f, &w), S_OK); EQ(w, pf_snap_weight(300));   /* requested 300 -> realized 400 */
     EQ(IFont_get_Charset(f, &cs), S_OK); EQ(cs, ANSI_CHARSET);
     EQ(IFont_get_Italic(f, &b), S_OK); EQ(b, TRUE);
     EQ(IFont_get_Underline(f, &b), S_OK); EQ(b, TRUE);
@@ -399,7 +399,7 @@ TEST(pfont_weight_bold_relation_table) {
     for (i = 0; i < PF_N(t); i++) {
         BOOL b = 5; SHORT w = 0;
         EQ(IFont_put_Weight(f, t[i].w), S_OK);
-        EQ(IFont_get_Weight(f, &w), S_OK); CHECKF(w == t[i].w, "weight %d got %d", t[i].w, w);
+        EQ(IFont_get_Weight(f, &w), S_OK); CHECKF(w == pf_snap_weight(t[i].w), "weight %d got %d", t[i].w, w);
         EQ(IFont_get_Bold(f, &b), S_OK); CHECKF(b == t[i].bold, "weight %d bold=%d want %d", t[i].w, b, t[i].bold);
     }
     IFont_Release(f);
@@ -423,7 +423,7 @@ TEST(pfont_weight_roundtrip_range) {
         HRESULT hr = IFont_put_Weight(f, ws[i]);
         EQ(hr, S_OK);
         EQ(IFont_get_Weight(f, &out), S_OK);
-        CHECKF(out == ws[i], "weight %d got %d", ws[i], out);
+        CHECKF(out == pf_snap_weight(ws[i]), "weight %d got %d", ws[i], out);
     }
     IFont_Release(f);
 }
