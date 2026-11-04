@@ -446,7 +446,8 @@ XT(apt_caller_tid_from_mta_caller) {
         XEQ(probe(f.p), S_OK);
         XEQ(f.o->lastTid, f.h.tid);
         XEQ(f.o->lastCallerTidHr, S_OK);
-        XEQ(f.o->lastCallerTid, f.mainTid);
+        /* Win10: for a caller in the MTA no caller thread id is recorded (dwTIDCaller stays 0), unlike an STA caller */
+        XEQ(f.o->lastCallerTid, 0);
     } else CHECK(0);
     xp_fx_teardown(&f); UNINIT();
 }
@@ -716,16 +717,16 @@ static void f_probe_false(XpObj *o, IClassFactory *p) { HRESULT hr; o->probeHr =
 XT(apt_lockserver_through_proxy) {
     XpFx f; HRESULT hr;
     XP_NEED_BASE(); INIT(STA());
-    if (t_is_wine()) { t_skip("emulator stubs IClassFactory::LockServer proxy"); UNINIT(); return; }
     if (xp_fx_setup(&f, STA(), MSHLFLAGS_NORMAL)) {
+        /* Win10: the IClassFactory proxy answers LockServer locally with S_OK (Win10 decompilation: the proxy
+           routine is "xor eax,eax; ret"); the call never reaches the object, whatever it would return */
         hr = IClassFactory_LockServer(f.p, TRUE);   XEQ(hr, S_OK);
-        hr = IClassFactory_LockServer(f.p, FALSE);  XEQ(hr, S_FALSE);
-        XEQ(f.o->lockCalls, 2);
-        XEQ(f.o->lastLock, 0);
-        XEQ(f.o->lastTid, f.h.tid);
+        hr = IClassFactory_LockServer(f.p, FALSE);  XEQ(hr, S_OK);
+        XEQ(f.o->lockCalls, 0);
         f.o->lockHrTrue = XP_CUSTOM_HR;
-        hr = IClassFactory_LockServer(f.p, TRUE);   XEQ(hr, XP_CUSTOM_HR);
-        XEQ(f.o->lastLock, 1);
+        hr = IClassFactory_LockServer(f.p, TRUE);   XEQ(hr, S_OK);
+        XEQ(f.o->lockCalls, 0);
+        t_note("IClassFactory::LockServer through a proxy is answered by the proxy (S_OK) and never reaches the server object");
     } else CHECK(0);
     xp_fx_teardown(&f); UNINIT();
 }

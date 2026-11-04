@@ -440,7 +440,9 @@ XT(xproc_set_proxy_blanket_roundtrip) {
         hr = blk_query((IUnknown *)r.p, &b);
         XEQ(hr, S_OK);
         XEQ(b.authn, RPC_C_AUTHN_WINNT); XEQ(b.authz, RPC_C_AUTHZ_NONE);
-        XEQ(b.level, RPC_C_AUTHN_LEVEL_CALL); XEQ(b.imp, RPC_C_IMP_LEVEL_IMPERSONATE);
+        /* Win10: the queried level is the effective one; a proxy to a COM server over local RPC reports PKT_PRIVACY whatever
+           level (1..6) was set (authn service, authz and impersonation level are reported as set) */
+        XEQ(b.level, RPC_C_AUTHN_LEVEL_PKT_PRIVACY); XEQ(b.imp, RPC_C_IMP_LEVEL_IMPERSONATE);
         t_note("blanket after set: caps=0x%lx principal=%ls", b.caps, b.princ ? b.princ : L"(null)");
         if (b.princ) U(CoTaskMemFree)(b.princ);
         XEQ(probe(r.p), S_OK);                                      /* the proxy keeps working with the new blanket */
@@ -473,9 +475,11 @@ XT(xproc_set_proxy_blanket_invalid) {
     rig_stop(&r); UNINIT();
 }
 XT(xproc_copy_proxy_is_independent) {
-    Rig r; IUnknown *copy = NULL; HRESULT hr; Blk b1, bc; unsigned long long v;
+    Rig r; IUnknown *copy = NULL; HRESULT hr; Blk b1, bc, bd; unsigned long long v;
     XP_NEED_BASE(); NEED(CoCopyProxy); NEED(CoSetProxyBlanket); INIT(COINIT_APARTMENTTHREADED);
     if (rig_start(&r, "mta", "normal")) {
+        blk_query((IUnknown *)r.p, &bd);                            /* the default blanket, before anything is set */
+        if (bd.princ) U(CoTaskMemFree)(bd.princ);
         hr = U(CoSetProxyBlanket)((IUnknown *)r.p, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, RPC_C_AUTHN_LEVEL_CALL, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE);
         XEQ(hr, S_OK);
         hr = U(CoCopyProxy)((IUnknown *)r.p, &copy);
@@ -484,17 +488,18 @@ XT(xproc_copy_proxy_is_independent) {
         if (copy) {
             XEQ(probe((IClassFactory *)copy), S_OK);
             blk_query(copy, &bc);
-            XEQ(bc.level, RPC_C_AUTHN_LEVEL_CALL);                  /* the copy starts with the original's blanket */
-            XEQ(bc.imp, RPC_C_IMP_LEVEL_IMPERSONATE);
+            XEQ(bc.level, bd.level);                                /* Win10: the copy starts with the proxy's default blanket, not the one set on the original ... */
+            XEQ(bc.imp, bd.imp);
+            t_note("copy blanket: authn=%lu level=%lu imp=%lu (default imp %lu, original set to %d)", bc.authn, bc.level, bc.imp, bd.imp, (int)RPC_C_IMP_LEVEL_IMPERSONATE);
             if (bc.princ) U(CoTaskMemFree)(bc.princ);
-            hr = U(CoSetProxyBlanket)(copy, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, RPC_C_AUTHN_LEVEL_PKT_PRIVACY, RPC_C_IMP_LEVEL_IMPERSONATE, NULL, EOAC_NONE);
+            XEQ(probe((IClassFactory *)copy), S_OK);
+            hr = U(CoSetProxyBlanket)(copy, RPC_C_AUTHN_WINNT, RPC_C_AUTHZ_NONE, NULL, RPC_C_AUTHN_LEVEL_PKT_PRIVACY, RPC_C_IMP_LEVEL_DELEGATE, NULL, EOAC_NONE);
             XEQ(hr, S_OK);
             blk_query(copy, &bc); blk_query((IUnknown *)r.p, &b1);
-            XEQ(bc.level, RPC_C_AUTHN_LEVEL_PKT_PRIVACY);
-            XEQ(b1.level, RPC_C_AUTHN_LEVEL_CALL);                  /* ... and changing it does not touch the original */
+            XEQ(bc.imp, RPC_C_IMP_LEVEL_DELEGATE);
+            XEQ(b1.imp, RPC_C_IMP_LEVEL_IMPERSONATE);               /* ... and changing the copy does not touch the original */
             if (bc.princ) U(CoTaskMemFree)(bc.princ);
             if (b1.princ) U(CoTaskMemFree)(b1.princ);
-            XEQ(probe((IClassFactory *)copy), S_OK);
             XEQ(probe(r.p), S_OK);
             IUnknown_Release(copy);
         }
