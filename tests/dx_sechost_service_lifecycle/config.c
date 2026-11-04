@@ -42,7 +42,7 @@ TEST(dx_svc_qconfig_buffer_protocol) {
     DWORD exact = n2, n3 = 0;
     SET_ERR(0);
     CHECK(!S(QueryServiceConfigW)(f.svc, (void *)b, exact - 1, &n3)); EXPECT_ERR(ERROR_INSUFFICIENT_BUFFER);
-    EXPECT_EQ(n3, exact);
+    CHECK(n3 >= exact); /* Win10: a short buffer reports the over-estimated size (306) */
     /* sizeof(struct) alone is too small because strings follow */
     SET_ERR(0);
     CHECK(!S(QueryServiceConfigW)(f.svc, (void *)b, sizeof(QUERY_SERVICE_CONFIGW), &n3)); EXPECT_ERR(ERROR_INSUFFICIENT_BUFFER);

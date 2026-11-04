@@ -278,9 +278,16 @@ TEST(dx_svc_delete_with_second_handle_open) {
     CHECK(S(QueryServiceStatus)(h2, &st));
     if (h2) S(CloseServiceHandle)(h2);
     /* last handle closed: gone */
-    SET_ERR(0);
-    SC_HANDLE o = S(OpenServiceW)(f.scm, f.name, SERVICE_QUERY_STATUS);
+    /* Win10: the SCM drops the record asynchronously after the last handle is closed */
+    SC_HANDLE o; int i;
+    for (i = 0; i < 100; i++) {
+        SET_ERR(0);
+        o = S(OpenServiceW)(f.scm, f.name, SERVICE_QUERY_STATUS);
+        if (!o) break;
+        S(CloseServiceHandle)(o); Sleep(100);
+    }
     CHECK(o == NULL); EXPECT_ERR(ERROR_SERVICE_DOES_NOT_EXIST);
+    for (i = 0; i < 100 && reg_exists(f.name); i++) Sleep(100);
     CHECK(!reg_exists(f.name));
     /* name is reusable now */
     c = S(CreateServiceW)(f.scm, f.name, f.disp, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
