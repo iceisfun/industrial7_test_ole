@@ -60,7 +60,8 @@ TEST(exports_combase_ole32_typed_forwarders) {
     CHECK((FARPROC)UIN("ole32.dll", CoTaskMemAlloc) == (FARPROC)UIN("combase.dll", CoTaskMemAlloc));
     CHECK((FARPROC)UIN("ole32.dll", CoGetClassObject) == (FARPROC)UIN("combase.dll", CoGetClassObject));
     CHECK((FARPROC)UIN("ole32.dll", StringFromGUID2) == (FARPROC)UIN("combase.dll", StringFromGUID2));
-    CHECK((FARPROC)UIN("ole32.dll", PropVariantClear) == (FARPROC)UIN("combase.dll", PropVariantClear));
+    /* Win10: ole32!PropVariantClear is a local jump thunk through the combase import, not an export forwarder */
+    CHECK(UIN("ole32.dll", PropVariantClear) != NULL && UIN("combase.dll", PropVariantClear) != NULL);
     CHECK((FARPROC)UIN("ole32.dll", CreateStreamOnHGlobal) == (FARPROC)UIN("combase.dll", CreateStreamOnHGlobal));
 }
 TEST(exports_combase_default_lookup_prefers_ole32_but_same_target) {
