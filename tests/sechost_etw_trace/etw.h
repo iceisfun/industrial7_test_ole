@@ -23,6 +23,14 @@ static inline FARPROC etw_res(const char *name) {
 #define REQUIRE(ptr) do { if (!(ptr)) { t_skip("missing export: " #ptr); return; } \
     if (t_is_wine()) { t_skip("emulator ETW is a stub"); return; } } while (0)
 #define ETW_REQ(p) REQUIRE(p)
+/* The shared EXPECT_EQ/EXPECT_NE evaluate their arguments twice (check and message). Many checks here wrap
+ * non-idempotent calls such as EventUnregister(h), whose second evaluation fails: evaluate each argument once. */
+#undef EXPECT_EQ
+#undef EXPECT_NE
+#define EXPECT_EQ(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
+    t_check(a_ == b_, __FILE__, __LINE__, #a " == " #b, "got 0x%llx want 0x%llx", (unsigned long long)a_, (unsigned long long)b_); } while (0)
+#define EXPECT_NE(a, b) do { ULONG_PTR a_ = (ULONG_PTR)(a), b_ = (ULONG_PTR)(b); \
+    t_check(a_ != b_, __FILE__, __LINE__, #a " != " #b, "got 0x%llx", (unsigned long long)a_); } while (0)
 #define ET(name) ((__typeof__(&name))etw_res(#name))
 
 /* Win10 value of EVENT_TRACE_PROPERTIES fixed size (WNODE_HEADER 0x30 + 0x48). */
