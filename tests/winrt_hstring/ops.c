@@ -697,7 +697,9 @@ TEST(winrt_hstring_ops_trim_start_all_nul_set_observed)
     r = HS_SENTINEL;
     hr = WTRE(s, set, &r);
     t_note("TrimEnd(all-NUL, {NUL}) hr=0x%08lx result=%p", (unsigned long)hr, (void *)r);
-    EXPECT_EQ(hr, S_OK);
+    /* Windows 10: TrimEnd of an all-NUL string by a {NUL} set fails with HS_E_LENGTH (0x80080011)
+     * and leaves the output NULL (observed on 10.0.19045). */
+    EXPECT_EQ(hr, HS_E_LENGTH);
     CHECK(r == NULL);
     WDEL(s); WDEL(set);
 }
