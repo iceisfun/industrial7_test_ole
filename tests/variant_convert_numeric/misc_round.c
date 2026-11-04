@@ -2,7 +2,7 @@
  * Rules (decomp of VarI4FromR8/ConvI4FromR8/ConvUI4FromR8/ConvI8FromR8/ConvUI8FromR8):
  *   overflow if x < lo or x >= hi, otherwise round-half-to-even.  lo/hi are exact doubles:
  *   I1 [-128.5,127.5)  UI1 [-0.5,255.5)  I2 [-32768.5,32767.5)  UI2 [-0.5,65535.5)
- *   I4 [-2^31-0.5,2^31-0.5)  UI4 [-0.5,2^32-0.5)  I8 [-2^63,2^63)  UI8 [-0.5,2^64)
+ *   I4 [-2^31-0.5,2^31-0.5)  UI4 [-0.5,2^32-0.5)  I8 [-2^62,2^62) (Win10 constants 0xC3D0.. and 0x43D0.., not 2^63)  UI8 [-0.5,2^64)
  * (lower bound inclusive, upper bound exclusive.)  The same bounds apply to the R4 and Date sources. */
 #include "vcn.h"
 
@@ -14,7 +14,7 @@ static const struct ifam {
 } fam[] = {
     { "I1", 1, 1, -128.5, 127.5 }, { "UI1", 1, 0, -0.5, 255.5 }, { "I2", 2, 1, -32768.5, 32767.5 },
     { "UI2", 2, 0, -0.5, 65535.5 }, { "I4", 4, 1, -2147483648.5, 2147483647.5 }, { "UI4", 4, 0, -0.5, 4294967295.5 },
-    { "I8", 8, 1, -9223372036854775808.0, 9223372036854775808.0 }, { "UI8", 8, 0, -0.5, 18446744073709551616.0 },
+    { "I8", 8, 1, -4611686018427387904.0, 4611686018427387904.0 }, { "UI8", 8, 0, -0.5, 18446744073709551616.0 },
 };
 
 static long double as_ld(const struct ifam *f, const void *o)

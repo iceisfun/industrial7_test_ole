@@ -65,7 +65,8 @@ TEST(vcn_cy_from_r8_range_edges)
     EXPECT_EQ(U(VarCyFromR8)(nextafter(bnd, 1e300), &c), DISP_E_OVERFLOW);
     EXPECT_EQ(U(VarCyFromR8)(INFINITY, &c), DISP_E_OVERFLOW);
     EXPECT_EQ(U(VarCyFromR8)(-INFINITY, &c), DISP_E_OVERFLOW);
-    EXPECT_EQ(U(VarCyFromR8)(NAN, &c), DISP_E_OVERFLOW);   /* both comparisons false -> falls to overflow */
+    EXPECT_EQ(U(VarCyFromR8)(NAN, &c), S_OK);   /* Win10: NaN passes the range test and yields 0x8000000000000000 */
+    EXPECT_EQ(c.int64, (LONGLONG)0x8000000000000000ULL);
     /* VarCyFromDate is the same code (one RVA, two ordinals) */
     if (U(VarCyFromDate)) {
         EXPECT_EQ(U(VarCyFromDate)(bnd, &c), DISP_E_OVERFLOW);

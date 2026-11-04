@@ -15,7 +15,7 @@ TEST(vcn_i4fromstr_hex_oct_bit_limits)
         { L"&H100000000", DISP_E_OVERFLOW, 0 }, { L"&H1FFFFFFFF", DISP_E_OVERFLOW, 0 }, { L"&HFFFFFFFFF", DISP_E_OVERFLOW, 0 },
         { L"&O0", S_OK, 0 }, { L"&O7", S_OK, 7 }, { L"&O10", S_OK, 8 }, { L"&O37777777777", S_OK, -1 },
         { L"&O17777777777", S_OK, 0x7fffffff }, { L"&O20000000000", S_OK, (LONG)0x80000000UL },
-        { L"&O40000000000", DISP_E_OVERFLOW, 0 }, { L"&O77777777777", DISP_E_OVERFLOW, 0 }, { L"&O400000000000", DISP_E_OVERFLOW, 0 },
+        { L"&O40000000000", DISP_E_OVERFLOW, 0 }, { L"&O77777777777", DISP_E_OVERFLOW, 0 }, { L"&O400000000000", DISP_E_TYPEMISMATCH, 0 },   /* 12 octal digits: Win10 gives TYPEMISMATCH, not OVERFLOW */
         { L"&hff", S_OK, 255 }, { L"&Hff", S_OK, 255 }, { L"&hFf", S_OK, 255 }, { L"&o17", S_OK, 15 },
     };
     for (unsigned i = 0; i < VCN_ROWS(t); i++) {

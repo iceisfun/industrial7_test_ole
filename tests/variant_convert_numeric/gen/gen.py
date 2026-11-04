@@ -118,6 +118,8 @@ def real_domain(single):
             2.0**64, -2.0**64]
     for x in base:
         s.add(f(x))
+    for x in (2.0**63, -2.0**63, 2.0**62, -2.0**62):   # I8 float bound is 2^62 on Win10; keep the 2^63 neighbourhood too
+        s.update([f(x), nx(f(x), True), nx(f(x), False)])
     for dst, (lo, hi) in M.FBOUND.items():
         for b in (lo, hi):
             fb = f(b)

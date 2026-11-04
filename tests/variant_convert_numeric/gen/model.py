@@ -21,7 +21,7 @@ INT_RANGE = {
 FBOUND = {
     "I1": (-128.5, 127.5), "UI1": (-0.5, 255.5), "I2": (-32768.5, 32767.5),
     "UI2": (-0.5, 65535.5), "I4": (-2147483648.5, 2147483647.5),
-    "UI4": (-0.5, 4294967295.5), "I8": (-2.0**63, 2.0**63), "UI8": (-0.5, 2.0**64),
+    "UI4": (-0.5, 4294967295.5), "I8": (-2.0**62, 2.0**62), "UI8": (-0.5, 2.0**64),
 }
 INTS = list(INT_RANGE)
 FLT_MAX = struct.unpack('<f', struct.pack('<I', 0x7f7fffff))[0]
@@ -365,7 +365,7 @@ def convert(dst, src, v):
         if k == "dec":
             if not dec_valid(v):
                 return ("hr", INV)
-            return ("ok", r8_from_dec(v))
+            return chk(r8_from_dec(v))   # Win10: VarDateFromDec range-checks like VarDateFromR8
     if dst == "Cy":
         if k == "int":
             if src == "I8":
