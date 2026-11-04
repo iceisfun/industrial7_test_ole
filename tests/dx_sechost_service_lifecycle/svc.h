@@ -69,7 +69,7 @@ static void fx_sweep(void) {
    ERROR_SERVICE_MARKED_FOR_DELETE (create) or still open (open) for a short while. Retry only on that. */
 static SC_HANDLE fx_create_retry(SC_HANDLE scm, const WCHAR *name, const WCHAR *disp, DWORD *err) {
     SC_HANDLE s = NULL; DWORD le = 0;
-    for (int i = 0; i < 100; i++) {
+    for (int i = 0; i < 300; i++) {
         s = S(CreateServiceW)(scm, name, disp, SERVICE_ALL_ACCESS, SERVICE_WIN32_OWN_PROCESS,
                               SERVICE_DEMAND_START, SERVICE_ERROR_NORMAL, FX_BIN, NULL, NULL, NULL, NULL, NULL);
         if (s) break;

@@ -220,10 +220,21 @@ TEST(dx_svc_delete_basic) {
     fx_t f; if (!fx_begin(&f, 1)) return;
     CHECK(S(DeleteService)(f.svc));
     S(CloseServiceHandle)(f.svc); f.svc = NULL;
-    CHECK(fx_wait_gone(f.scm, f.name));
+    /* Win10: the SCM drops its record and the registry key asynchronously (and can lag while the system is still
+       settling after boot), so wait until the name has been gone from both for three consecutive looks. */
+    SC_HANDLE o = NULL; int calm = 0;
+    for (int i = 0; i < 200 && calm < 3; i++) {
+        SET_ERR(0);
+        o = S(OpenServiceW)(f.scm, f.name, SERVICE_QUERY_STATUS);
+        if (!o && GetLastError() == ERROR_SERVICE_DOES_NOT_EXIST && !reg_exists(f.name)) calm++;
+        else { calm = 0; if (o) S(CloseServiceHandle)(o); Sleep(100); }
+        o = NULL;
+    }
+    CHECK(calm >= 3);
     SET_ERR(0);
-    SC_HANDLE o = S(OpenServiceW)(f.scm, f.name, SERVICE_QUERY_STATUS);
+    o = S(OpenServiceW)(f.scm, f.name, SERVICE_QUERY_STATUS);
     CHECK(o == NULL); EXPECT_ERR(ERROR_SERVICE_DOES_NOT_EXIST);
+    if (o) S(CloseServiceHandle)(o);
     CHECK(!reg_exists(f.name));
     fx_end(&f);
 }
