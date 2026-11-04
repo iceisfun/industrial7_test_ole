@@ -97,7 +97,8 @@ TEST(gap4_sa_destroy_while_pinned_keeps_blocks_alive) {
     CHECK(pd != NULL);
     hr = U(SafeArrayDestroy)(sa);              /* the owner lets go while a script engine still holds pins */
     EQ(hr, S_OK);
-    t_note("Win10: after destroy-while-pinned the descriptor pvData is cleared (%s) and cLocks %lu", sa->pvData ? "not" : "yes", (unsigned long)sa->cLocks);
+    /* Win10: the data block is detached from the still-pinned descriptor (SafeArrayDestroy clears pvData, the pins keep the blocks alive) */
+    CHECKF(sa->pvData == NULL, "pvData %p after destroy-while-pinned", sa->pvData);
     UN(SafeArrayReleaseData)(pd);              /* last data pin: the data block is freed here */
     UN(SafeArrayReleaseDescriptor)(sa);        /* last descriptor pin: the descriptor is freed here */
     t_note("destroy-while-pinned and both releases completed");
