@@ -3,9 +3,13 @@
  * SeSecurityPrivilege (t_skip otherwise) and always restore what they changed (finally-style tails). Leftovers
  * from an aborted earlier run (the fake account SID below) are swept at the start of each test.
  *
+ * Win10 behaviour (observed on 22H2): AuditSetSystemPolicy ORs the SUCCESS(1)/FAILURE(2) bits into the stored policy; 0 leaves it
+ * unchanged and NONE(4) clears both, reading back as 0. An exact value v is therefore written as v|NONE.
+ *
  * Decomp facts (sechost 19041): AuditSetSystemPolicy / AuditSetPerUserPolicy / AuditSetSecurity map the RPC
  * NTSTATUS with RtlNtStatusToDosError; AuditSetSecurity first converts the descriptor with RtlMakeSelfRelativeSD
- * (so a descriptor that is already self-relative is rejected with ERROR_INVALID_PARAMETER). */
+ * (an already self-relative descriptor is accepted: the first call only sizes the buffer; ERROR_INVALID_PARAMETER
+ * comes only when that sizing call does not report BUFFER_TOO_SMALL). */
 #include "../gap_00/gap0.h"
 
 #define AU(name) ((name##_pfn)t_proc_in("sechost.dll", #name))
@@ -35,7 +39,7 @@ TEST(dx_gap0_audit_system_policy_roundtrip) {
     ULONG orig = 0;
     if (!query_one(&SUB_LOGON, &orig)) { t_skip("cannot query the system audit policy (%lu)", GetLastError()); return; }
     t_note("original Logon policy = 0x%lx", orig);
-    ULONG restore = orig ? orig : G_AUDIT_NONE;   /* 0 (not configured) is restored by writing NONE */
+    ULONG restore = orig ? (orig | G_AUDIT_NONE) : G_AUDIT_NONE;   /* 0 (not configured) is restored by writing NONE */
 
     /* writing the current value back is accepted */
     G_AUDIT_POLICY in = { SUB_LOGON, orig, CAT_LOGON };
@@ -48,7 +52,7 @@ TEST(dx_gap0_audit_system_policy_roundtrip) {
 
     static const ULONG values[] = { G_AUDIT_SUCCESS, G_AUDIT_FAILURE, G_AUDIT_SUCCESS | G_AUDIT_FAILURE };
     for (int i = 0; i < 3; i++) {
-        in.AuditingInformation = values[i];
+        in.AuditingInformation = values[i] | G_AUDIT_NONE;   /* exact value: clear first, then set the bits */
         SET_ERR(0);
         CHECKF(pAuditSetSystemPolicy(&in, 1), "set %lu failed: %lu", values[i], GetLastError());
         now = 0xFF;
@@ -56,14 +60,14 @@ TEST(dx_gap0_audit_system_policy_roundtrip) {
         EXPECT_EQ(now, values[i]);
     }
     /* two entries in one call */
-    G_AUDIT_POLICY two[2] = { { SUB_LOGON, G_AUDIT_FAILURE, CAT_LOGON }, { SUB_LOGOFF, G_AUDIT_SUCCESS, CAT_LOGON } };
+    G_AUDIT_POLICY two[2] = { { SUB_LOGON, G_AUDIT_FAILURE | G_AUDIT_NONE, CAT_LOGON }, { SUB_LOGOFF, G_AUDIT_SUCCESS | G_AUDIT_NONE, CAT_LOGON } };
     ULONG o2 = 0; BOOL have2 = query_one(&SUB_LOGOFF, &o2);
     CHECK(pAuditSetSystemPolicy(two, 2));
     ULONG a = 0xFF, b = 0xFF;
     CHECK(query_one(&SUB_LOGON, &a)); CHECK(query_one(&SUB_LOGOFF, &b));
     EXPECT_EQ(a, G_AUDIT_FAILURE); EXPECT_EQ(b, G_AUDIT_SUCCESS);
     /* finally: restore */
-    two[0].AuditingInformation = restore; two[1].AuditingInformation = o2 ? o2 : G_AUDIT_NONE;
+    two[0].AuditingInformation = restore; two[1].AuditingInformation = o2 ? (o2 | G_AUDIT_NONE) : G_AUDIT_NONE;
     if (have2) pAuditSetSystemPolicy(two, 2); else pAuditSetSystemPolicy(two, 1);
     now = 0xFF;
     CHECK(query_one(&SUB_LOGON, &now));
@@ -86,12 +90,27 @@ TEST(dx_gap0_audit_set_system_policy_unknown_subcategory) {
     }
 }
 
+/* The per-user policy server resolves the SID: an unmapped SID fails with ERROR_NONE_MAPPED (1332) on Windows 10, so
+ * this needs a real local account. The built-in Guest (or another built-in) account is used; its policy entries are
+ * cleared again at the end, and nothing is audited for a disabled account. */
+static BYTE g_user_sid[SECURITY_MAX_SID_SIZE];
+static BOOL find_local_account(void) {
+    static const WCHAR *names[] = { L"Guest", L"DefaultAccount", L"WDAGUtilityAccount" };
+    for (int i = 0; i < 3; i++) {
+        DWORD sl = sizeof g_user_sid, dl = 0; WCHAR dom[256]; SID_NAME_USE use;
+        dl = 256;
+        if (LookupAccountNameW(NULL, names[i], g_user_sid, &sl, dom, &dl, &use) && use == SidTypeUser) return TRUE;
+    }
+    return FALSE;
+}
+
 TEST(dx_gap0_audit_per_user_policy_roundtrip) {
     GATE();
     NEED(AuditSetPerUserPolicy); NEED(AuditQueryPerUserPolicy); NEED(AuditEnumeratePerUserPolicy); NEED(AuditFree);
     NEED(AuditComputeEffectivePolicyBySid);
-    PSID sid = (PSID)FAKE_SID;
-    /* sweep: clear any leftover entry for the fake account */
+    if (!find_local_account()) { t_skip("no built-in local account (Guest/DefaultAccount) to attach a per-user policy to"); return; }
+    PSID sid = (PSID)g_user_sid;
+    /* sweep: clear any leftover entry for the account */
     G_AUDIT_POLICY clr[2] = { { SUB_LOGON, 0, CAT_LOGON }, { SUB_LOGOFF, 0, CAT_LOGON } };
     pAuditSetPerUserPolicy(sid, clr, 2);
 
@@ -120,7 +139,7 @@ TEST(dx_gap0_audit_per_user_policy_roundtrip) {
 
     out = (G_AUDIT_POLICY *)(ULONG_PTR)1; SET_ERR(0);
     BOOLEAN r = pAuditComputeEffectivePolicyBySid(sid, req, 2, &out);
-    t_note("effective policy for the fake SID: result=%d err=%lu", r, GetLastError());
+    t_note("effective policy for the account: result=%d err=%lu", r, GetLastError());
 
     /* finally: clear */
     CHECK(pAuditSetPerUserPolicy(sid, clr, 2));
@@ -128,7 +147,7 @@ TEST(dx_gap0_audit_per_user_policy_roundtrip) {
     if (pAuditEnumeratePerUserPolicy(&sids) && sids) {
         int found = 0;
         for (ULONG i = 0; i < sids->UsersCount; i++) if (EqualSid(sids->UserSidArray[i], sid)) found = 1;
-        t_note("fake SID still enumerated after clearing: %d", found);
+        t_note("account still enumerated after clearing: %d", found);
         pAuditFree(sids);
     }
 }
@@ -212,18 +231,20 @@ TEST(dx_gap0_audit_security_descriptor_roundtrip) {
     if (present && dacl) { ACL_SIZE_INFORMATION si; if (GetAclInformation(dacl, &si, sizeof si, AclSizeInformation)) aces = si.AceCount; }
     t_note("audit policy DACL: present=%d aces=%lu", present, aces);
 
-    /* feeding the self-relative result straight back is rejected before any RPC */
-    SET_ERR(0x5A5A);
-    EXPECT_EQ(pAuditSetSecurity(DACL_SECURITY_INFORMATION, sd), FALSE);
-    EXPECT_ERR(ERROR_INVALID_PARAMETER);
+    /* Win10: RtlMakeSelfRelativeSD on an already self-relative descriptor reports the needed size and then copies it,
+     * so feeding the self-relative query result straight back is accepted (it is not rejected up front). The
+     * same DACL is written back, which changes nothing. */
+    SET_ERR(0);
+    BOOLEAN r = pAuditSetSecurity(DACL_SECURITY_INFORMATION, sd);
+    CHECKF(r, "AuditSetSecurity(self-relative, same DACL) failed: %lu", GetLastError());
 
-    /* converted to an absolute descriptor, writing the same DACL back is accepted and changes nothing */
+    /* converted to an absolute descriptor, writing the same DACL back is accepted as well */
     void *bufs[5] = { 0 };
     PSECURITY_DESCRIPTOR abs = to_absolute(sd, bufs);
     if (abs) {
         SET_ERR(0);
-        BOOLEAN r = pAuditSetSecurity(DACL_SECURITY_INFORMATION, abs);
-        CHECKF(r, "AuditSetSecurity(same DACL) failed: %lu", GetLastError());
+        r = pAuditSetSecurity(DACL_SECURITY_INFORMATION, abs);
+        CHECKF(r, "AuditSetSecurity(absolute, same DACL) failed: %lu", GetLastError());
         PSECURITY_DESCRIPTOR sd2 = NULL;
         if (pAuditQuerySecurity(DACL_SECURITY_INFORMATION, &sd2) && sd2) {
             PACL d2 = NULL;
