@@ -258,7 +258,7 @@ TEST(tlli_font_bool_properties_roundtrip)
             TEQ(inv_put(ifti, font, id, &arg, &ae), S_OK);
             TEQ(inv_get(ifti, font, id, &res), S_OK);
             /* IFont declares BOOL (int): Windows reports TRUE as 1 (not VARIANT_TRUE) in a VT_BOOL result. */
-            if (!t_is_wine()) CHECKF(V_VT(&res) == VT_BOOL && (V_BOOL(&res) != 0) == (vals[k] != 0), "%ls round trip %d", props[p], k);
+            if (!t_is_wine()) CHECKF(V_VT(&res) == VT_BOOL && V_BOOL(&res) == (vals[k] ? 1 : 0), "%ls round trip %d", props[p], k);
             if (!t_is_wine() && vals[k] == VARIANT_TRUE) t_note("%ls TRUE reads back as %d", props[p], V_BOOL(&res));
         }
     }
@@ -316,7 +316,7 @@ TEST(tlli_font_weight_charset_via_invoke)
     TEQ(inv_put(ifti, font, id_of(ifti, L"Charset"), &arg, &ae), S_OK);
     TEQ(inv_get(ifti, font, id_of(ifti, L"Charset"), &res), S_OK);
     t_note("Charset after put 3 reads %d", V_VT(&res) == VT_I2 ? V_I2(&res) : -1);
-    WCHECK(V_VT(&res) == VT_I2 && V_I2(&res) != 3);
+    WCHECK(V_VT(&res) == VT_I2 && V_I2(&res) == 0);
     FONT_TEARDOWN(font, tl, ifti, fdti);
 }
 
