@@ -71,7 +71,7 @@ TEST(ncalrpc_extra_unregister_wrong_mgrtype) {
     EQ(U(RpcServerRegisterIf)((RPC_IF_HANDLE)&r.si, &mt, (RPC_MGR_EPV *)epv), RPC_S_OK);
     st = U(RpcServerUnregisterIf)((RPC_IF_HANDLE)&r.si, &other, 1);
     t_note("UnregisterIf with a manager type that was not registered -> %lu", (unsigned long)st);
-    CHECK(st == RPC_S_UNKNOWN_MGR_TYPE || st == RPC_S_UNKNOWN_IF);
+    EQ(st, RPC_S_UNKNOWN_MGR_TYPE);
     EQ(U(RpcServerUnregisterIf)((RPC_IF_HANDLE)&r.si, &mt, 1), RPC_S_OK);
 }
 TEST(ncalrpc_extra_register_same_mgrtype_twice) {
@@ -81,7 +81,7 @@ TEST(ncalrpc_extra_register_same_mgrtype_twice) {
     EQ(U(RpcServerRegisterIf)((RPC_IF_HANDLE)&r.si, &mt, (RPC_MGR_EPV *)e1), RPC_S_OK);
     st = U(RpcServerRegisterIf)((RPC_IF_HANDLE)&r.si, &mt, (RPC_MGR_EPV *)e2);
     t_note("second registration of the same (interface, manager type) -> %lu", (unsigned long)st);
-    CHECK(st == RPC_S_OK || st == RPC_S_ALREADY_REGISTERED);
+    EQ(st, RPC_S_TYPE_ALREADY_REGISTERED);
     EQ(U(RpcServerUnregisterIf)((RPC_IF_HANDLE)&r.si, &mt, 1), RPC_S_OK);
 }
 
@@ -143,12 +143,23 @@ TEST(ncalrpc_extra_binding_option_roundtrip) {
     }
     raw_down(&f);
 }
+static void bo_null(void *p) {
+    struct { int inq; ULONG_PTR v; RPC_STATUS st; } *a = p;
+    a->st = a->inq ? UN(RpcBindingInqOption)(NULL, 12, &a->v) : UN(RpcBindingSetOption)(NULL, 12, 1000);
+}
 TEST(ncalrpc_extra_binding_option_null_binding) {
     ULONG_PTR v = 0;
     REQUIRE(UN(RpcBindingSetOption)); REQUIRE(UN(RpcBindingInqOption));
     if (t_is_wine()) { t_skip("wine dereferences NULL binding"); return; }
-    EQ(UN(RpcBindingSetOption)(NULL, 12, 1000), RPC_S_INVALID_BINDING);
-    EQ(UN(RpcBindingInqOption)(NULL, 12, &v), RPC_S_INVALID_BINDING);
+    /* Windows validates the handle in RpcBindingInqOption but RpcBindingSetOption dereferences a NULL binding */
+    {   struct { int inq; ULONG_PTR v; RPC_STATUS st; } a; DWORD x;
+        a.inq = 0; a.v = 0; a.st = 0xdead;
+        x = rx_guarded(bo_null, &a); t_note("RpcBindingSetOption(NULL) -> exception 0x%lx", (unsigned long)x); EQ(x, EXCEPTION_ACCESS_VIOLATION);
+        a.inq = 1; a.st = 0xdead;
+        x = rx_guarded(bo_null, &a); t_note("RpcBindingInqOption(NULL) -> exception 0x%lx status %lu", (unsigned long)x, (unsigned long)a.st);
+        EQ(x, 0); EQ(a.st, RPC_S_INVALID_BINDING);
+    }
+    (void)v;
 }
 TEST(ncalrpc_extra_call_timeout_option_effect) {
     WCHAR ep[64]; RPC_BINDING_HANDLE h; DWORD e, t0, el; RPC_STATUS st;

@@ -316,7 +316,7 @@ DWORD WINAPI ncalrpc_sleep_thread(void *p) {
 /* ---- errors surfaced by the runtime -------------------------------------- */
 TEST(ncalrpc_ndr_server_unavailable) {
     WCHAR ep[64]; RPC_BINDING_HANDLE h; DWORD e; int r;
-    rx_server_reset(); rx_ep(ep, 64);
+    rx_server_reset(); rx_ep_unique(ep, 64);    /* an endpoint nobody in this process ever registered (pooled ones stay alive) */
     h = rx_bind(ep); CHECK(h != NULL);          /* binding to a nonexistent endpoint can be created */
     e = rx_add(h, 1, 2, &r);
     EQ(e, RPC_S_SERVER_UNAVAILABLE);
@@ -349,8 +349,8 @@ TEST(ncalrpc_ndr_procnum_out_of_range) {
     EQ(U(RpcServerRegisterIf)((RPC_IF_HANDLE)&r.si, NULL, NULL), RPC_S_OK);
     EQ(U(RpcServerListen)(1, 20, TRUE), RPC_S_OK);
     h = rx_bind(ep);
-    st = rx_raw_call(h, &r, 11, NULL, 0, NULL, 0, &n);   EQ(st, RPC_S_PROCNUM_OUT_OF_RANGE);   /* table has 11 entries */
-    st = rx_raw_call(h, &r, 12, NULL, 0, NULL, 0, &n);   EQ(st, RPC_S_PROCNUM_OUT_OF_RANGE);
+    st = rx_raw_call(h, &r, 13, NULL, 0, NULL, 0, &n);   EQ(st, RPC_S_PROCNUM_OUT_OF_RANGE);   /* table has 13 entries */
+    st = rx_raw_call(h, &r, 14, NULL, 0, NULL, 0, &n);   EQ(st, RPC_S_PROCNUM_OUT_OF_RANGE);
     st = rx_raw_call(h, &r, 0xffff, NULL, 0, NULL, 0, &n); EQ(st, RPC_S_PROCNUM_OUT_OF_RANGE);
     st = rx_raw_call(h, &r, 4, NULL, 0, NULL, 0, &n);    EQ(st, RPC_S_OK);                     /* still works */
     rx_unbind(h); rx_server_down((RPC_IF_HANDLE)&r.si, NULL);
