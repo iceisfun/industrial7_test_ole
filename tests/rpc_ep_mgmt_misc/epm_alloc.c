@@ -159,7 +159,8 @@ TEST(epm_alloc_ss_enable_is_reference_counted) {
     CHECK(r[0] != NULL);
     EXPECT_EQ((ULONG_PTR)r[1], 0);
     CHECK(r[2] == NULL);
-    EXPECT_EQ((ULONG_PTR)r[3], XCODE_OUT_OF_MEMORY);
+    /* the last disable (count 0) frees the context, so the thread is back to "no context": invalid parameter, not out of memory */
+    EXPECT_EQ((ULONG_PTR)r[3], XCODE_INVALID_PARAMETER);
 }
 
 static void t_disable_only(void *p) {
@@ -389,7 +390,8 @@ TEST(epm_alloc_sm_free_and_client_free_accept_null) {
     REQUIRE(U(RpcSmFree) && U(RpcSmClientFree));
     WINE_STUB();
     EQ(U(RpcSmFree)(NULL), 0);
-    EQ(U(RpcSmClientFree)(NULL), 0);
+    /* RpcSmClientFree goes through the thread's client hooks; with none installed Win10 reports 0x725 rather than success */
+    EQ(U(RpcSmClientFree)(NULL), 0x725);
 }
 
 /* ---------------- Ndr* hooks ---------------- */
@@ -431,23 +433,33 @@ TEST(epm_alloc_ndr_ss_default_allocate_free_roundtrip) {
     if (p) U(NdrRpcSsDefaultFree)(p);
 }
 
+static size_t g_smsz; static void *g_smres;
+static void do_sm_alloc(void *p) { (void)p; g_smres = U(NdrRpcSmClientAllocate)(g_smsz); }
+static void do_sm_free(void *p) { U(NdrRpcSmClientFree)(p); }
 static void t_sm_client(void *p) {
-    void **r = p; MIDL_STUB_MESSAGE m; void *q;
+    void **r = p; MIDL_STUB_MESSAGE m;
     memset(&m, 0, sizeof m);
     U(NdrRpcSmSetClientToOsf)(&m);
     r[0] = (void *)m.pfnAllocate; r[1] = (void *)m.pfnFree;
-    q = U(NdrRpcSmClientAllocate)(64);       /* no context on this thread: default allocator */
-    r[2] = q;
-    if (q) U(NdrRpcSmClientFree)(q);
+    /* No context on this thread: the call goes to the process-wide defaults (RpcSsDefaults). On Windows 10 those hooks are
+       not installed unless something registered them, and DefaultAllocate/DefaultFree then raise status 0x725. */
+    g_smsz = 64; g_smres = NULL;
+    r[2] = (void *)(ULONG_PTR)epx_try(do_sm_alloc, NULL);
+    r[3] = g_smres;
+    r[4] = (void *)(ULONG_PTR)epx_try(do_sm_free, epx_fake);
+    if (g_smres) epx_try(do_sm_free, g_smres);
 }
 TEST(epm_alloc_ndr_sm_client_allocate_without_context) {
-    void *r[3] = {0};
+    void *r[5] = {0};
     REQUIRE(U(NdrRpcSmSetClientToOsf) && U(NdrRpcSmClientAllocate) && U(NdrRpcSmClientFree));
     WINE_STUB();
     CHECK(epx_run(t_sm_client, r, 10000));
     CHECK(r[0] == (void *)U(NdrRpcSmClientAllocate));
     CHECK(r[1] == (void *)U(NdrRpcSmClientFree));
-    CHECK(r[2] != NULL);
+    /* Win10: with no context and no default hooks installed, both raise 0x725 and the allocation yields no block */
+    EXPECT_EQ((ULONG_PTR)r[2], 0x725);
+    CHECK(r[3] == NULL);
+    EXPECT_EQ((ULONG_PTR)r[4], 0x725);
 }
 
 /* ---------------- I_RpcAllocate / I_RpcFree ---------------- */

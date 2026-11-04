@@ -167,8 +167,8 @@ TEST(epm_server_probe_in_call_cancel_and_timeout) {
     DWORD r[R_COUNT]; ULONG n = 0;
     SERVER_TEST_SETUP(h);
     if (call(h, P_PROBE, NULL, 0, r, sizeof r, &n) == RPC_S_OK && n == sizeof r) {
-        EQ(r[R_CANCEL_ST_NULL], RPC_S_OK);       /* not cancelled: RpcServerTestCancel returns 0 */
-        EQ(r[R_CANCEL_ST_H], RPC_S_OK);
+        EQ(r[R_CANCEL_ST_NULL], RPC_S_CALL_IN_PROGRESS);   /* not cancelled: RpcServerTestCancel returns RPC_S_CALL_IN_PROGRESS (RPC_S_OK means cancelled) */
+        EQ(r[R_CANCEL_ST_H], RPC_S_CALL_IN_PROGRESS);
         EQ(r[R_SETCANCEL_ST], RPC_S_OK);
     } else CHECK(0);
     SERVER_TEST_TEARDOWN(h);
