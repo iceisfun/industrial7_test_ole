@@ -243,7 +243,10 @@ TEST(sap_audit_security_descriptor_shape) {
     if (sacl) {
         SECURITY_DESCRIPTOR_CONTROL ctl = 0; DWORD rev = 0;
         CHECK(GetSecurityDescriptorControl(sacl, &ctl, &rev));
-        EXPECT_EQ(ctl, SE_SELF_RELATIVE);
+        /* SE_SACL_PRESENT appears once an earlier AuditSetSecurity(SACL) call of the same boot has stored its (empty) descriptor
+           (gap_00 does that in a full elevated pass); a fresh boot answers SE_SELF_RELATIVE alone. Both were measured on Windows 10. */
+        t_note("SACL-only descriptor control 0x%x", (unsigned)ctl);
+        EXPECT_EQ(ctl & ~SE_SACL_PRESENT, SE_SELF_RELATIVE);
         EXPECT_EQ(GetSecurityDescriptorLength(sacl), 20);
         pAuditFree(sacl);
     }
