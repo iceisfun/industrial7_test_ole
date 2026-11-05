@@ -13,6 +13,7 @@ variant_core
 variant_convert_numeric
 variant_format_parse
 variant_arith_ops
+oleaut32_ext
 com_memory_guid_strings
 rpc_uuid_strings
 usrmarshal_oleaut32

@@ -95,6 +95,8 @@ the `dx` pass on the 16 dx areas; `skips adm / std` are the skipped tests in the
 facilities the source uses (source scan plus the Windows skip reasons), not an i7 measurement; "s" is Windows wall time.
 Tier totals (adm tests): tier 0 4 areas 467 tests; tier 1 16 areas 2115 tests; tier 2 16 areas 3185 tests; tier 3 14 areas 2157 tests (sum 7924); tier 4 (dx) 16 areas 580 tests.
 
+`oleaut32_ext` (tier 1, 27 tests) was added after the 66-exe baseline measurement; the tier totals above and the totals in COVERAGE.md/HANDOFF.md do not include it.
+
 | area | tier | DLLs imported besides kernel32 + msvcrt | other DLLs loaded by name at run time (not imported) | tests | skips adm / std | s (adm) |
 |---|---|---|---|---|---|---|
 | core_smoke | 0 | - | - | 3 | 0 / 0 | 0.2 |
@@ -107,6 +109,7 @@ Tier totals (adm tests): tier 0 4 areas 467 tests; tier 1 16 areas 2115 tests; t
 | variant_convert_numeric | 1 | - | - | 234 | 0 / 0 | 0.7 |
 | variant_format_parse | 1 | - | - | 176 | 0 / 0 | 1.2 |
 | variant_arith_ops | 1 | - | - | 93 | 0 / 0 | 1.8 |
+| oleaut32_ext | 1 | - | - | 27 | 0 / 0 | 1.7 |
 | com_memory_guid_strings | 1 | - | - | 155 | 0 / 0 | 1.2 |
 | rpc_uuid_strings | 1 | user32 | - | 133 | 0 / 0 | 1.0 |
 | usrmarshal_oleaut32 | 1 | - | - | 107 | 0 / 0 | 0.4 |
