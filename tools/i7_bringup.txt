@@ -26,6 +26,7 @@ gap_10
 # tier 2
 com_init_apartments
 com_class_factories
+combase_ext
 com_context_threading
 com_marshal_basic
 storage_elements_streams

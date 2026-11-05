@@ -119,6 +119,7 @@ Tier totals (adm tests): tier 0 4 areas 467 tests; tier 1 16 areas 2115 tests; t
 | gap_10 | 1 | advapi32 | - | 96 | 0 / 0 | 0.3 |
 | com_init_apartments | 2 | user32 | - | 179 | 0 / 0 | 1.1 |
 | com_class_factories | 2 | user32 | - | 132 | 0 / 0 | 1.6 |
+| combase_ext | 2 | advapi32 | - | 10 | 0 / 0 | 1.5 |
 | com_context_threading | 2 | user32 | - | 171 | 0 / 0 | 6.7 |
 | com_marshal_basic | 2 | user32 | - | 186 | 0 / 0 | 2.9 |
 | storage_elements_streams | 2 | user32 | - | 458 | 0 / 0 | 2.8 |
