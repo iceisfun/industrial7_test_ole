@@ -165,4 +165,18 @@ static BOOL sap_has_guid(const GUID *a, ULONG n, const GUID *g) {
     return FALSE;
 }
 static void sap_narrow(const WCHAR *w, char *out, size_t cap) { WideCharToMultiByte(CP_ACP, 0, w, -1, out, (int)cap, NULL, NULL); }
+
+/* A local user account: sechost's own LookupAccountNameLocalW (what advapi32's LookupAccountNameW calls for the local
+ * machine), else advapi32's. Tries the built-in accounts of a Windows 10 install, then the personality's. */
+static BOOL sap_find_user(BYTE *sid, DWORD cap) {
+    typedef BOOL (WINAPI *lk_fn)(PCWSTR, PSID, LPDWORD, LPWSTR, LPDWORD, PSID_NAME_USE);
+    static const WCHAR *names[] = {L"Guest", L"DefaultAccount", L"WDAGUtilityAccount", L"Administrator", L"User"};
+    lk_fn f = (lk_fn)t_proc_in("sechost.dll", "LookupAccountNameLocalW");
+    for (int i = 0; i < 5; i++) {
+        DWORD sl = cap, dl = 256; WCHAR dom[256]; SID_NAME_USE use;
+        BOOL ok = f ? f(names[i], sid, &sl, dom, &dl, &use) : LookupAccountNameW(NULL, names[i], sid, &sl, dom, &dl, &use);
+        if (ok && use == SidTypeUser) return TRUE;
+    }
+    return FALSE;
+}
 #endif

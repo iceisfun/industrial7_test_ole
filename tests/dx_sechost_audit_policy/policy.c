@@ -80,14 +80,7 @@ TEST(dx_sap_system_policy_batches) {
 
 /* a local user account that exists on every Windows 10 install (and on the personality: Administrator) */
 static BYTE g_sid[SECURITY_MAX_SID_SIZE];
-static BOOL find_user(void) {
-    static const WCHAR *names[] = {L"Guest", L"DefaultAccount", L"WDAGUtilityAccount", L"Administrator"};
-    for (int i = 0; i < 4; i++) {
-        DWORD sl = sizeof g_sid, dl = 256; WCHAR dom[256]; SID_NAME_USE use;
-        if (LookupAccountNameW(NULL, names[i], g_sid, &sl, dom, &dl, &use) && use == SidTypeUser) return TRUE;
-    }
-    return FALSE;
-}
+static BOOL find_user(void) { return sap_find_user(g_sid, sizeof g_sid); }
 static BOOLEAN user_set(int sub, ULONG flags) {
     SAP_POLICY e = {sap_sub_guid(sub), flags, SAP_CAT[SAP_SUB[sub].cat]};
     return AP(AuditSetPerUserPolicy)((PSID)g_sid, &e, 1);

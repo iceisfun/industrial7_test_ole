@@ -3,14 +3,7 @@
  * Nothing here changes machine state (failing writes only). */
 #include "sap.h"
 
-static const BYTE *sid_user_any(BYTE *buf, DWORD cap) {
-    static const WCHAR *names[] = {L"Guest", L"DefaultAccount", L"WDAGUtilityAccount", L"Administrator"};
-    for (int i = 0; i < 4; i++) {
-        DWORD sl = cap, dl = 256; WCHAR dom[256]; SID_NAME_USE use;
-        if (LookupAccountNameW(NULL, names[i], buf, &sl, dom, &dl, &use) && use == SidTypeUser) return buf;
-    }
-    return NULL;
-}
+static const BYTE *sid_user_any(BYTE *buf, DWORD cap) { return sap_find_user(buf, cap) ? buf : NULL; }
 
 TEST(sap_system_policy_read_needs_privilege_present) {
     NEEDAP(AuditQuerySystemPolicy); NEEDAP(AuditFree);
