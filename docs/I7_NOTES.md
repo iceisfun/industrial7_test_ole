@@ -134,6 +134,7 @@ Tier totals (adm tests): tier 0 4 areas 467 tests; tier 1 16 areas 2115 tests; t
 | ole2_core_helpers | 2 | user32 | gdi32 | 264 | 0 / 0 | 17.5 |
 | winrt_roapi | 2 | user32 | - | 135 | 0 / 0 | 1.1 |
 | sechost_security_sid_sd | 3 | advapi32, user32 | - | 248 | 0 / 0 | 0.5 |
+| sechost_audit_policy | 3 | advapi32 | - | 17 | 0 / 4 | 0.3 |
 | rpc_proxy_stub_dcom | 3 | advapi32, user32 | - | 131 | 0 / 0 | 0.6 |
 | rpc_ep_mgmt_misc | 3 | user32 | - | 124 | 0 / 0 | 1.3 |
 | rpc_server_client_ncalrpc | 3 | advapi32, user32 | - | 201 | 0 / 0 | 22.4 |
@@ -163,6 +164,7 @@ Tier totals (adm tests): tier 0 4 areas 467 tests; tier 1 16 areas 2115 tests; t
 | dx_ole2_clipboard | 4 | user32 | gdi32 | 15 | 0 / - | 0.5 |
 | dx_gap_08 | 4 | - | - | 3 | 0 / - | 8.4 |
 | dx_sechost_service_lifecycle | 4 | advapi32, user32 | - | 153 | 0 / - | 9.7 |
+| dx_sechost_audit_policy | 4 | advapi32 | - | 7 | 0 / - | 2.3 |
 
 Per tier, the system facilities to expect and what to do when the area fails early:
 

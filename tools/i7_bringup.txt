@@ -42,6 +42,7 @@ ole2_core_helpers
 winrt_roapi
 # tier 3
 sechost_security_sid_sd
+sechost_audit_policy
 rpc_proxy_stub_dcom
 rpc_ep_mgmt_misc
 rpc_server_client_ncalrpc
@@ -72,3 +73,4 @@ dx_com_registry_activation
 dx_ole2_clipboard
 dx_gap_08
 dx_sechost_service_lifecycle
+dx_sechost_audit_policy

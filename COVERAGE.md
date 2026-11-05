@@ -60,6 +60,7 @@ Every area: 0 failed tests, 0 failed checks. Runtime is the wall time of the exe
 | dx_gap_10 | 4 | 0 | 0 | n/a (dx) | 4 | 0.2 |
 | dx_ole2_clipboard | 15 | 0 | 0 | n/a (dx) | 120 | 0.5 |
 | dx_rpc_ep_register | 9 | 0 | 0 | n/a (dx) | 58 | 1.0 |
+| dx_sechost_audit_policy | 7 | 0 | 0 | n/a (dx) | 420 | 2.3 |
 | dx_sechost_service_lifecycle | 153 | 0 | 0 | n/a (dx) | 745 | 9.7 |
 | dx_typelib_marshal_registry | 172 | 0 | 0 | n/a (dx) | 3850 | 10.0 |
 | exports_combase | 243 | 0 | 0 | 0 | 27698 | 1.7 |
@@ -86,6 +87,7 @@ Every area: 0 failed tests, 0 failed checks. Runtime is the wall time of the exe
 | rpc_server_client_ncalrpc | 201 | 0 | 0 | 0 | 1107 | 22.4 |
 | rpc_uuid_strings | 133 | 0 | 0 | 0 | 14103 | 1.0 |
 | safearray_core | 137 | 0 | 0 | 0 | 4504 | 0.7 |
+| sechost_audit_policy | 17 | 0 | 0 | 4 | 1309 | 0.3 |
 | sechost_etw_trace | 162 | 0 | 0 | 1 | 715 | 1.2 |
 | sechost_security_sid_sd | 248 | 0 | 0 | 0 | 5249 | 0.5 |
 | sechost_service_ctrl_local | 132 | 0 | 2 | 2 | 568 | 24.2 |
