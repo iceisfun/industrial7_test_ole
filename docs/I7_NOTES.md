@@ -142,6 +142,7 @@ Tier totals (adm tests): tier 0 4 areas 467 tests; tier 1 16 areas 2115 tests; t
 | gap_07 | 3 | advapi32, user32 | - | 93 | 0 / 0 | 0.7 |
 | gap_08 | 3 | - | advapi32 | 80 | 0 / 1 | 1.4 |
 | monikers_rot | 3 | user32 | - | 223 | 0 / 0 | 6.2 |
+| ole32_ext | 3 | user32 | - | 29 | 0 / 0 | 1.1 |
 | com_marshal_xproc | 3 | advapi32, user32 | - | 126 | 0 / 0 | 7.7 |
 | gap_01 | 3 | advapi32, user32 | - | 72 | 0 / 1 | 1.0 |
 | sechost_etw_trace | 3 | advapi32, user32 | - | 162 | 0 / 1 | 1.2 |
@@ -158,6 +159,7 @@ Tier totals (adm tests): tier 0 4 areas 467 tests; tier 1 16 areas 2115 tests; t
 | dx_gap_03 | 4 | advapi32, user32 | - | 8 | 0 / - | 0.5 |
 | dx_gap_07 | 4 | user32 | - | 3 | 2 / - | 1.0 |
 | dx_rpc_ep_register | 4 | user32 | - | 9 | 0 / - | 1.0 |
+| dx_ole32_ext | 4 | advapi32 | - | 3 | 0 / - | 0.3 |
 | dx_typelib_marshal_registry | 4 | advapi32, user32 | - | 172 | 0 / - | 10.0 |
 | dx_com_registry_activation | 4 | advapi32, user32 | - | 151 | 0 / - | 35.7 |
 | dx_ole2_clipboard | 4 | user32 | gdi32 | 15 | 0 / - | 0.5 |

@@ -50,6 +50,7 @@ gap_04
 gap_07
 gap_08
 monikers_rot
+ole32_ext
 com_marshal_xproc
 gap_01
 sechost_etw_trace
@@ -68,6 +69,7 @@ dx_gap_03
 dx_gap_07
 dx_rpc_ep_register
 dx_typelib_marshal_registry
+dx_ole32_ext
 dx_com_registry_activation
 dx_ole2_clipboard
 dx_gap_08

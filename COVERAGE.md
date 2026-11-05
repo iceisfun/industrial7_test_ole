@@ -24,6 +24,9 @@ Final run, three fresh guests per pass, per-exe limit 600 s. Modes are described
 
 Total 66 exes, 8504 distinct tests. The three `both` guests gave identical per-test results (the totals above are one guest's), see Determinism.
 
+`ole32_ext` (29 tests) and `dx_ole32_ext` (3) were added after this run and measured on their own: one guest, `adm` and `std` (identical,
+0 failed, 0 skipped, 269 checks each) and `dx` (0 failed, 18 checks); they are not in the totals above.
+
 ### Determinism (three guests)
 - `adm`/`std`: zero test-result differences between the three guests; only the `NOTE` line of `picture_font_ole` that prints the
   `SelectPicture(NULL dc)` bitmap handle value differs (value-volatile; it shows only when whole lines are compared, `win10_compare.py --lines`).
@@ -58,6 +61,7 @@ Every area: 0 failed tests, 0 failed checks. Runtime is the wall time of the exe
 | dx_gap_08 | 3 | 0 | 0 | n/a (dx) | 16 | 8.4 |
 | dx_gap_09 | 3 | 0 | 0 | n/a (dx) | 72 | 0.1 |
 | dx_gap_10 | 4 | 0 | 0 | n/a (dx) | 4 | 0.2 |
+| dx_ole32_ext | 3 | 0 | 0 | n/a (dx) | 18 | 0.3 |
 | dx_ole2_clipboard | 15 | 0 | 0 | n/a (dx) | 120 | 0.5 |
 | dx_rpc_ep_register | 9 | 0 | 0 | n/a (dx) | 58 | 1.0 |
 | dx_sechost_service_lifecycle | 153 | 0 | 0 | n/a (dx) | 745 | 9.7 |
@@ -78,6 +82,7 @@ Every area: 0 failed tests, 0 failed checks. Runtime is the wall time of the exe
 | gap_10 | 96 | 0 | 0 | 0 | 2355 | 0.3 |
 | monikers_rot | 223 | 0 | 0 | 0 | 2543 | 6.2 |
 | ole2_core_helpers | 264 | 0 | 0 | 0 | 2066 | 17.5 |
+| ole32_ext | 29 | 0 | 0 | 0 | 269 | 1.1 |
 | picture_font_ole | 259 | 0 | 0 | 0 | 2419 | 1.4 |
 | propvariant_propstg | 235 | 0 | 0 | 0 | 3971 | 8.9 |
 | rpc_ep_mgmt_misc | 124 | 0 | 0 | 0 | 806 | 1.3 |
