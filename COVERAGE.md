@@ -39,6 +39,7 @@ Every area: 0 failed tests, 0 failed checks. Runtime is the wall time of the exe
 |---|---|---|---|---|---|---|
 | bstr_core | 113 | 0 | 0 | 0 | 11825 | 2.0 |
 | com_class_factories | 132 | 0 | 0 | 0 | 1404 | 1.6 |
+| combase_ext | 10 | 0 | 0 | 0 | 90 | 1.5 |
 | com_context_threading | 171 | 0 | 0 | 0 | 1612 | 6.7 |
 | com_init_apartments | 179 | 0 | 0 | 0 | 4196 | 1.1 |
 | com_marshal_basic | 186 | 0 | 0 | 0 | 1693 | 2.9 |
@@ -124,3 +125,5 @@ Known differences and caveats:
 - 63 public names are uncovered by design (see Export coverage).
 - Wine origin: many tests are rewritten Wine tests; the tests that carried `NOWINE()`/`t_is_wine()` guards are no-ops on Windows.
   The old Wine failure counts were wrong expectations or Wine bugs and are no longer tracked here.
+
+Note: `combase_ext` (10 tests: CoDecodeProxy, CoReactivateObject, CoRegisterConsoleHandles/CoRevokeConsoleHandles, CoRegisterRacActivationToken/CoRevokeRacActivationToken, UpdateProcessTracing, UpdateDCOMSettings, GetCatalogHelper, DcomChannelSetHResult, CStdStubBuffer_Invoke) was added after the 66-exe run above and measured separately on Windows 10 22H2 build 19045: `adm` 10 OK / 0 failed, `std` 10 OK / 0 failed. Values that come from the resolver service are recorded with `t_note` only.
