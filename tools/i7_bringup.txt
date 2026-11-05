@@ -47,6 +47,7 @@ sechost_security_sid_sd
 rpc_proxy_stub_dcom
 rpc_ep_mgmt_misc
 rpc_server_client_ncalrpc
+rpc_ext_internal
 gap_03
 gap_04
 gap_07

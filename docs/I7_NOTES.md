@@ -141,6 +141,7 @@ Tier totals (adm tests): tier 0 4 areas 467 tests; tier 1 16 areas 2115 tests; t
 | rpc_proxy_stub_dcom | 3 | advapi32, user32 | - | 131 | 0 / 0 | 0.6 |
 | rpc_ep_mgmt_misc | 3 | user32 | - | 124 | 0 / 0 | 1.3 |
 | rpc_server_client_ncalrpc | 3 | advapi32, user32 | - | 201 | 0 / 0 | 22.4 |
+| rpc_ext_internal | 3 | user32 | - | 33 | 0 / 0 | 2 |
 | gap_03 | 3 | advapi32, user32 | - | 108 | 0 / 0 | 0.7 |
 | gap_04 | 3 | advapi32, user32 | gdi32 | 120 | 0 / 0 | 5.8 |
 | gap_07 | 3 | advapi32, user32 | - | 93 | 0 / 0 | 0.7 |

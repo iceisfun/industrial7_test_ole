@@ -35,7 +35,7 @@ Every directory under `tests/` is one exe. Test names are prefixed with the area
 | `com_*` | CoInitialize/apartments, class factories, contexts, memory/GUID/strings, in-proc and cross-process marshaling |
 | `monikers_rot`, `storage_*`, `propvariant_propstg`, `ole2_core_helpers`, `picture_font_ole`, `ole32_ext` | ole32 monikers/ROT, structured storage, PROPVARIANT, OLE2 helpers, pictures/fonts; `ole32_ext`: ole32 exports the other areas only check for presence (`StgOpenStorageOnHandle`, `GetObjectFromRotByPath`, `CleanROTForApartment`/`DestroyRunningObjectTable`, `OleInitializeWOW`, `Ole32DllGetClassObject`, the drop-target registration ordinals, clipboard-broker ordinals, `OleGetPackageClipboardOwner`, `CoCheckElevationEnabled`) |
 | `bstr_core`, `safearray_core`, `variant_*`, `typelib_*`, `dispatch_typeinfo_dispcall`, `usrmarshal_*` | oleaut32 |
-| `rpc_*` | rpcrt4: UUID/strings, NDR, ncalrpc client/server, endpoint mapper, proxy/stub |
+| `rpc_*` | rpcrt4: UUID/strings, NDR, ncalrpc client/server, endpoint mapper, proxy/stub, internal `I_Rpc*`/`Ndr*` helpers (`rpc_ext_internal`) |
 | `sechost_*` | sechost: SCM queries, service control, SID/SD/privileges, ETW |
 | `winrt_*` | combase HSTRING and RoXxx |
 | `gap_NN` | tests for exports not covered by the themed areas |

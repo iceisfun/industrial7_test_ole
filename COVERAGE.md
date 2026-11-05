@@ -22,7 +22,7 @@ Final run, three fresh guests per pass, per-exe limit 600 s. Modes are described
 | `std` (restricted-admin token, same areas) | 50 | 7924 | 0 | 18 | 1,003,452 | 0 |
 | `dx` (destructive areas, elevated) | 16 | 580 | 0 | 2 | 5,782 | 0 |
 
-Total 66 exes, 8504 distinct tests. The three `both` guests gave identical per-test results (the totals above are one guest's), see Determinism.
+Total 66 exes, 8504 distinct tests (`rpc_ext_internal`, 33 tests, was added afterwards: Windows 10 22H2 `adm` and `std`, 0 failed, 0 skipped; it is not in the totals above). The three `both` guests gave identical per-test results (the totals above are one guest's), see Determinism.
 
 `ole32_ext` (29 tests) and `dx_ole32_ext` (3) were added after this run and measured on their own: one guest, `adm` and `std` (identical,
 0 failed, 0 skipped, 269 checks each) and `dx` (0 failed, 18 checks); they are not in the totals above.
@@ -90,6 +90,7 @@ Every area: 0 failed tests, 0 failed checks. Runtime is the wall time of the exe
 | rpc_ndr_marshal_formats | 219 | 0 | 0 | 0 | 3941 | 0.3 |
 | rpc_proxy_stub_dcom | 131 | 0 | 0 | 0 | 1675 | 0.6 |
 | rpc_server_client_ncalrpc | 201 | 0 | 0 | 0 | 1107 | 22.4 |
+| rpc_ext_internal | 33 | 0 | 0 | 0 | 336 | 2 |
 | rpc_uuid_strings | 133 | 0 | 0 | 0 | 14103 | 1.0 |
 | safearray_core | 137 | 0 | 0 | 0 | 4504 | 0.7 |
 | sechost_etw_trace | 162 | 0 | 0 | 1 | 715 | 1.2 |
