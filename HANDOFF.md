@@ -3,13 +3,13 @@
 For whoever executes the corpus on a Windows 10 machine (or on the i7 kernel) and feeds corrections back.
 
 ## Status
-**Windows 10 verified.** Windows 10 22H2 build 19045 (10.0.19045, x64), three fresh guests per pass, final run: 66 exes, 8504 tests.
+**Windows 10 verified.** Windows 10 22H2 build 19045 (10.0.19045, x64), one fresh guest per pass for the final whole-corpus run (the earlier 66-exe run used three): 73 exes, 8630 tests.
 
 | mode | exes | tests | failed | skipped | checks failed |
 |---|---|---|---|---|---|
-| `adm` (elevated administrator) | 50 | 7924 | 0 | 4 | 0 |
-| `std` (restricted-admin token) | 50 | 7924 | 0 | 18 | 0 |
-| `dx` (destructive `dx_*` areas, elevated) | 16 | 580 | 0 | 2 | 0 |
+| `adm` (elevated administrator) | 55 | 8040 | 0 | 4 | 0 |
+| `std` (restricted-admin token) | 55 | 8040 | 0 | 22 | 0 |
+| `dx` (destructive `dx_*` areas, elevated) | 18 | 590 | 0 | 2 | 0 |
 
 Per-test results are identical across the three guests, with two exceptions that are not expectation problems: one `NOTE` line
 in `picture_font_ole` prints a bitmap handle value, and on one of three `dx` guests `dx_sechost_service_lifecycle` hit the
@@ -37,7 +37,7 @@ Win10 decompilation, MS docs and (rewritten) Wine tests and have been reconciled
 - Python 3 on the VM (optional) for `tools\summarize.py`.
 
 ## Build
-    make clean && make -j8        # build/<area>.exe, 66 exes, zero errors expected (warnings are fine); also builds build/tools/*.exe
+    make clean && make -j8        # build/<area>.exe, 73 exes, zero errors expected (warnings are fine); also builds build/tools/*.exe
 
 ## Run on a guest you drive by hand (revert the snapshot between passes)
 For automated runs use the packed flow instead: `python3 tools/win10_pack.py PAY --all --mode both` (or `--mode dx`), ship the payload

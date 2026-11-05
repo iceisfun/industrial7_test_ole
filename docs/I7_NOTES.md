@@ -33,7 +33,7 @@ user-marshal tests), `shell32.dll` and `msvbvm60.dll` (a type-library search lis
 inbox-class-registration check in `com_class_factories`), `comsvcs.dll` (`GetModuleHandle` only, `com_marshal_xproc`),
 `netapi32.dll` (`dx_gap_02`, skips when absent). Test names such as `combase_no_such_dll.dll` are deliberate load failures.
 
-### Imported functions (union over all 66 exes)
+### Imported functions (union over the 66 exes of the first measurement)
 
 Counts: kernel32 131, msvcrt 79, user32 34, advapi32 65.
 
@@ -72,8 +72,8 @@ Notes: `__C_specific_handler` (SEH, imported from kernel32), `_setjmp`/`longjmp`
 ## Tools
 
     python3 tools/i7_areas.py --check                   # verify the bring-up list covers tests/ exactly
-    python3 tools/i7_areas.py --nondx --comma           # 50 non-dx areas, the form a runner --only option takes
-    python3 tools/i7_areas.py --dx --comma              # the 16 dx_ areas, to stage and run separately
+    python3 tools/i7_areas.py --nondx --comma           # 55 non-dx areas, the form a runner --only option takes
+    python3 tools/i7_areas.py --dx --comma              # the 18 dx_ areas, to stage and run separately
     python3 tools/i7_areas.py --all --order bringup     # smallest first (tools/i7_bringup.txt)
     python3 tools/win10_results.py --i7 RUN_DIR AREA... [--tests | --failures | --format json]
     python3 tools/i7_serial.py RUN_DIR AREA... -o serial.olet.log      # the same conversion, written to a file
@@ -89,8 +89,8 @@ Windows per test: `win10_results.py --tests` on both logs and diff the `exe/test
 
 ## Suggested bring-up order and Windows 10 expected totals
 
-Measured on Windows 10 22H2 build 19045 with the `adm` token (elevated administrator) on the 50 non-dx areas and with
-the `dx` pass on the 16 dx areas; `skips adm / std` are the skipped tests in the elevated and the restricted-admin pass
+Measured on Windows 10 22H2 build 19045 with the `adm` token (elevated administrator) on the 55 non-dx areas and with
+the `dx` pass on the 18 dx areas (final whole-corpus run: adm 8040 tests, std 8040, dx 590, 0 failed); `skips adm / std` are the skipped tests in the elevated and the restricted-admin pass
 (i7 will most likely behave like `adm`); all `failed` counts are 0 on Windows. Tiers are a reading of which system
 facilities the source uses (source scan plus the Windows skip reasons), not an i7 measurement; "s" is Windows wall time.
 Tier totals (adm tests): tier 0 4 areas 467 tests; tier 1 16 areas 2115 tests; tier 2 16 areas 3185 tests; tier 3 14 areas 2157 tests (sum 7924); tier 4 (dx) 16 areas 580 tests.

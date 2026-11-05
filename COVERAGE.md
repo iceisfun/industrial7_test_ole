@@ -18,14 +18,12 @@ Final run, three fresh guests per pass, per-exe limit 600 s. Modes are described
 
 | pass | exes | tests | failed | skipped | checks passed | checks failed |
 |---|---|---|---|---|---|---|
-| `adm` (elevated administrator, 50 non-dx areas) | 50 | 7924 | 0 | 4 | 1,003,834 | 0 |
-| `std` (restricted-admin token, same areas) | 50 | 7924 | 0 | 18 | 1,003,452 | 0 |
-| `dx` (destructive areas, elevated) | 16 | 580 | 0 | 2 | 5,782 | 0 |
+| `adm` (elevated administrator, 55 non-dx areas) | 55 | 8040 | 0 | 4 | 1,006,321 | 0 |
+| `std` (restricted-admin token, same areas) | 55 | 8040 | 0 | 22 | 1,005,604 | 0 |
+| `dx` (destructive areas, elevated) | 18 | 590 | 0 | 2 | 6,220 | 0 |
 
-Total 66 exes, 8504 distinct tests (`rpc_ext_internal`, 33 tests, was added afterwards: Windows 10 22H2 `adm` and `std`, 0 failed, 0 skipped; it is not in the totals above). The three `both` guests gave identical per-test results (the totals above are one guest's), see Determinism.
+Total 73 exes, 8630 distinct tests, measured in one final run of the whole corpus (one `both` guest for `adm` + `std`, one `dx` guest; per-exe limit 600 s); it includes the areas added since the earlier three-guest run (`combase_ext`, `ole32_ext`, `oleaut32_ext`, `rpc_ext_internal`, `sechost_audit_policy`, `dx_ole32_ext`, `dx_sechost_audit_policy`). The earlier three `both` guests (66 exes, 8504 tests) gave identical per-test results, see Determinism.
 
-`ole32_ext` (29 tests) and `dx_ole32_ext` (3) were added after this run and measured on their own: one guest, `adm` and `std` (identical,
-0 failed, 0 skipped, 269 checks each) and `dx` (0 failed, 18 checks); they are not in the totals above.
 
 ### Determinism (three guests)
 - `adm`/`std`: zero test-result differences between the three guests; only the `NOTE` line of `picture_font_ole` that prints the

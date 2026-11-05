@@ -11,8 +11,8 @@ Modules searched by `U()`: ole32.dll combase.dll oleaut32.dll rpcrt4.dll sechost
     tools\run_all.bat            # everything, results\<area>.txt (add /destructive for dx_* areas)
     python tools\summarize.py results [--failures]
 
-Status: the corpus is verified on genuine Windows 10 22H2 (build 19045): 66 exes, 8504 tests, 0 failed
-(`adm` 7924 tests / 4 skipped, `std` 7924 / 18 skipped, `dx` 580 / 2 skipped); see `COVERAGE.md`. It was first written under
+Status: the corpus is verified on genuine Windows 10 22H2 (build 19045): 73 exes, 8630 tests, 0 failed
+(`adm` 8040 tests / 4 skipped, `std` 8040 / 22 skipped, `dx` 590 / 2 skipped); see `COVERAGE.md`. It was first written under
 Wine only; Windows 10 results are the authority and all expectations were reconciled with them.
 
 Output: `RUN/OK/FAIL/SKIP` per test, `  FAIL file:line expr (detail)` per failed check, `SUMMARY` last;
